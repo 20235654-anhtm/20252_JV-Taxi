@@ -5,6 +5,7 @@ Dự án này bao gồm 2 phần chính: **Backend** (Node.js + Express + TypeSc
 Dưới đây là hướng dẫn để các thành viên trong team clone source code về và setup chạy thử trên máy cá nhân.
 
 ## Yêu cầu môi trường
+
 - Đã cài đặt [Node.js](https://nodejs.org/) (khuyến nghị phiên bản LTS mới nhất từ 18.x trở lên).
 - Đã cài đặt Git.
 
@@ -20,12 +21,19 @@ Dưới đây là hướng dẫn để các thành viên trong team clone source
    ```bash
    npm install
    ```
-3. Tạo file `.env` (nếu cần thiết) dựa trên các cấu hình mặc định (bạn có thể hỏi team leader hoặc copy từ mẫu `.env.example` nếu có).
-4. Khởi động server trong môi trường dev:
+3. Cấu hình biến môi trường và kết nối Database (Supabase):
+   - Tạo file `.env` từ file `.env.example` trong thư mục `backend`.
+   - Mở file `.env` vừa tạo và thay thế `[YOUR-PASSWORD]` bằng mật khẩu kết nối database thực tế của bạn.
+4. Kiểm tra kết nối database:
+   ```bash
+   npx ts-node src/test-db.ts
+   ```
+   _Nếu terminal hiện "Kết nối database thành công!" thì bạn đã cấu hình đúng._
+5. Khởi động server trong môi trường dev:
    ```bash
    npm run dev
    ```
-   *Server sẽ khởi chạy. Mặc định sẽ chạy ở port 5000 (ví dụ: `http://localhost:5000`).*
+   _Server sẽ khởi chạy. Mặc định sẽ chạy ở port 5000 (ví dụ: `http://localhost:5000`)._
 
 ---
 
@@ -43,12 +51,11 @@ Dưới đây là hướng dẫn để các thành viên trong team clone source
    ```bash
    npm run dev
    ```
-   *Frontend sẽ chạy tại địa chỉ được in ra trên terminal (thường là `http://localhost:5173`). Mở link này bằng trình duyệt để xem.*
+   _Frontend sẽ chạy tại địa chỉ được in ra trên terminal (thường là `http://localhost:5173`). Mở link này bằng trình duyệt để xem._
 
 ---
 
 ## Git & File bỏ qua (.gitignore)
+
 - Toàn bộ thư mục `node_modules/` và thư mục build (`dist/`, `build/`) đã được cấu hình loại bỏ trong `.gitignore` để không bị push lên repository.
 - Các file chứa biến môi trường nhạy cảm như `.env` cũng đã được ignore. **Tuyệt đối không push file `.env` thực tế lên Github.**
-
-Chúc team code vui vẻ! 🚀
