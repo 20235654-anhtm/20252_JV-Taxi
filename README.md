@@ -55,6 +55,31 @@ Dưới đây là hướng dẫn để các thành viên trong team clone source
 
 ---
 
+## 3. Cấu trúc Route Frontend
+
+Dự án sử dụng `react-router-dom` để quản lý điều hướng. Các route được định nghĩa tại `frontend/src/routes/index.tsx` và chia thành 2 luồng chính:
+
+### Luồng cho Khách (Guest - Chưa đăng nhập)
+| Đường dẫn (URL) | Component (`src/pages/guest/`) | Mô tả |
+| :--- | :--- | :--- |
+| `/` | `GuestHome.tsx` | Trang chủ dành cho khách. |
+| `/guest/search-location` | `GuestSearchLocation.tsx` | Trang tìm và chọn điểm đến cho khách. |
+| `/login` | `SignIn.tsx` | Màn hình đăng nhập. |
+| `/signup` | `SignUpSelection.tsx` | Màn hình chọn vai trò đăng ký. |
+| `/signup/passenger` | `PassengerSignUp.tsx` | Màn hình đăng ký cho hành khách. |
+| `/signup/driver` | `DriverSignUp.tsx` | Màn hình đăng ký cho tài xế. |
+
+### Luồng cho Hành Khách (Passenger - Đã đăng nhập)
+| Đường dẫn (URL) | Component (`src/pages/passenger/`) | Mô tả |
+| :--- | :--- | :--- |
+| `/passenger` | `PassengerHome.tsx` | Trang chủ dành cho hành khách. |
+| `/passenger/search-location`| `SearchLocation.tsx` | Trang tìm, chọn điểm đến để bắt xe. |
+| `/passenger/booking-options`| `BookingOptions.tsx` | Trang chọn phương thức ghép cuốc. |
+| `/passenger/select-driver` | `SelectDriver.tsx` | Trang hiển thị danh sách tài xế. |
+| `/passenger/driver-detail` | `DriverDetail.tsx` | Trang xem chi tiết một tài xế. |
+
+---
+
 ## Git & File bỏ qua (.gitignore)
 
 - Toàn bộ thư mục `node_modules/` và thư mục build (`dist/`, `build/`) đã được cấu hình loại bỏ trong `.gitignore` để không bị push lên repository.
