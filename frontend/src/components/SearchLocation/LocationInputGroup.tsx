@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Card } from '../ui/Card';
 
 interface LocationInputGroupProps {
   origin: string;
@@ -24,7 +25,7 @@ const LocationInputGroup: React.FC<LocationInputGroupProps> = ({ origin, onOrigi
   const filteredDestination = suggestions.filter(s => s.toLowerCase().includes(destination.toLowerCase()) && destination.length > 0);
 
   return (
-    <div className="sl-input-card">
+    <Card variant="default" padding="none" rounded="lg" className="sl-input-card">
       <div className="sl-input-item">
         <div className="sl-dot-green"></div>
         <div className="sl-input-content">
@@ -75,7 +76,7 @@ const LocationInputGroup: React.FC<LocationInputGroupProps> = ({ origin, onOrigi
           )}
         </div>
       </div>
-    </div>
+    </Card>
   );
 };
 
