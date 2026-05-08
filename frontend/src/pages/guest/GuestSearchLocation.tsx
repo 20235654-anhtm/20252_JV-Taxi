@@ -1,5 +1,7 @@
+import SearchLocationScreen from '../../components/SearchLocation/SearchLocationScreen';
+
 const GuestSearchLocation = () => {
-  return <h1>Đây là trang Tìm và Chọn điểm đến cho Khách</h1>;
+  return <SearchLocationScreen isGuest={true} />;
 };
 
 export default GuestSearchLocation;

@@ -1,5 +1,7 @@
+import SearchLocationScreen from '../../components/SearchLocation/SearchLocationScreen';
+
 const SearchLocation = () => {
-  return <h1>Đây là trang Tìm và Chọn điểm đến cho Hành khách</h1>;
+  return <SearchLocationScreen />;
 };
 
 export default SearchLocation;
