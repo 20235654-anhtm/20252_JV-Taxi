@@ -6,6 +6,8 @@ import StaticMapPreview from './StaticMapPreview';
 import RecentHistory, { type HistoryItem } from './RecentHistory';
 import LocationPermissionPopup from './LocationPermissionPopup';
 import { useWatchLocation } from '../../hooks/useWatchLocation';
+import { Button } from '../ui/Button';
+import { ArrowRight } from 'lucide-react';
 import './SearchLocation.css';
 
 // Mock data for recent history
@@ -105,17 +107,17 @@ const SearchLocationScreen: React.FC<SearchLocationScreenProps> = ({ isGuest = f
       </div>
 
       <div className="sl-next-btn-container">
-        <button 
-          className="sl-next-btn" 
+        <Button 
+          variant="primary" 
+          fullWidth
           disabled={!destination.trim()}
           onClick={handleNext}
+          className="sl-next-btn"
+          icon={ArrowRight}
+          iconPosition="right"
         >
           次へ進む
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-            <line x1="5" y1="12" x2="19" y2="12"></line>
-            <polyline points="12 5 19 12 12 19"></polyline>
-          </svg>
-        </button>
+        </Button>
       </div>
 
       <LocationPermissionPopup isOpen={location.permissionDenied} />
