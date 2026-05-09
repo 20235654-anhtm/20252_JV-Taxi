@@ -277,3 +277,31 @@
   background: var(--color-bg-white);
   box-shadow: 0 0 0 2px var(--color-primary);
 }
+
+/* === ANIMATIONS === */
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+@keyframes location-pulse {
+  0%   { transform: scale(0.8); opacity: 0.8; }
+  70%  { transform: scale(1.6); opacity: 0; }
+  100% { transform: scale(0.8); opacity: 0; }
+}
+
+/* ── Leaflet Attribution (scoped) ── */
+
+/* Chỉ áp dụng khi map có BottomNavBar đi kèm */
+.map-with-bottom-nav .leaflet-bottom {
+  bottom: 78px !important;
+}
+
+.map-with-bottom-nav .leaflet-control-attribution {
+  font-size: 9px !important;
+  opacity: 0.6;
+  background: rgba(255, 255, 255, 0.7) !important;
+  padding: 1px 4px !important;
+  border-radius: 4px !important;
+}

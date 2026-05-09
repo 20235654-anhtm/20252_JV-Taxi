@@ -16,13 +16,13 @@ export const FAB: React.FC<FABProps> = ({
     <button
       onClick={onClick}
       className={`
-        fixed top-20 right-6 z-[60]
+        fixed z-[900]
         bg-white flex items-center justify-center rounded-full w-[48px] h-[48px]
         shadow-[0px_10px_15px_-3px_rgba(0,0,0,0.1),0px_4px_6px_-4px_rgba(0,0,0,0.1)]
         transition-all duration-200
         hover:scale-105
         active:scale-95
-        ${className}
+        ${className || 'top-[96px] right-4'}
       `}
       aria-label={ariaLabel}
     >

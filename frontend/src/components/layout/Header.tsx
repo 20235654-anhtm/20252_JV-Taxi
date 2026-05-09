@@ -28,7 +28,7 @@ export const Header: React.FC<HeaderProps> = ({
   onLanguageChange,
 }) => {
   return (
-    <header className="fixed top-0 left-0 right-0 h-16 z-50 backdrop-blur-[6px] bg-[rgba(255,255,255,0.8)] shadow-[0px_1px_2px_0px_rgba(0,0,0,0.05)]">
+    <header className="fixed top-0 left-0 right-0 h-16 z-[1000] backdrop-blur-[6px] bg-[rgba(255,255,255,0.8)] shadow-[0px_1px_2px_0px_rgba(0,0,0,0.05)]">
       <div className="flex items-center justify-between h-full px-6 max-w-[1280px] mx-auto">
         {/* Left Section */}
         <div className="flex items-center gap-4">
@@ -52,6 +52,13 @@ export const Header: React.FC<HeaderProps> = ({
             />
           )}
 
+          {/* Logo: Guest variant → bên TRÁI */}
+          {variant === 'guest' && !title && (
+            <div className="flex flex-col font-['Plus_Jakarta_Sans:ExtraBold',sans-serif] font-extrabold h-7 justify-center leading-[0] text-[#064e3b] text-xl tracking-[-0.5px]">
+              <p className="leading-7">JV – Taxi</p>
+            </div>
+          )}
+
           {/* Title (if provided) */}
           {title && (
             <div className="flex flex-col items-start">
@@ -62,11 +69,11 @@ export const Header: React.FC<HeaderProps> = ({
           )}
         </div>
 
-        {/* Center Section - Logo */}
-        {!title && (
+        {/* Center Section - Logo: Passenger/Auth variant → GIỮA tuyệt đối */}
+        {!title && variant !== 'guest' && (
           <div className="absolute left-1/2 -translate-x-1/2 flex items-center">
             <div className="flex flex-col font-['Plus_Jakarta_Sans:ExtraBold',sans-serif] font-extrabold h-7 justify-center leading-[0] text-[#064e3b] text-xl tracking-[-0.5px]">
-              <p className="leading-7">JV - Taxi</p>
+              <p className="leading-7">JV – Taxi</p>
             </div>
           </div>
         )}
@@ -75,37 +82,20 @@ export const Header: React.FC<HeaderProps> = ({
         <div className="flex items-center gap-3">
           {/* Login/Signup Buttons (Guest variant) */}
           {variant === 'guest' && (
-            <>
-              <div className="flex flex-col items-start justify-center py-[14.9px] w-[117px]">
-                <div className="flex h-[27px] items-center justify-center w-[121px]">
-                  <div className="flex-none scale-x-95 scale-y-95">
-                    <button
-                      onClick={onLoginClick}
-                      className="bg-[#006d37] flex flex-col h-[28.421px] items-center justify-center px-6 py-2 rounded-full w-[127.368px] relative shadow-[0px_4px_6px_-1px_rgba(0,0,0,0.1),0px_2px_4px_-2px_rgba(0,0,0,0.1)]"
-                    >
-                      <div className="flex flex-col font-['Plus_Jakarta_Sans:Bold','Noto_Sans_JP:Bold',sans-serif] font-bold justify-center leading-[0] text-sm text-center text-white">
-                        <p className="leading-5">ログイン</p>
-                      </div>
-                    </button>
-                  </div>
-                </div>
-              </div>
-
-              <div className="flex flex-col h-16 items-start justify-center py-[14.9px]">
-                <div className="flex h-[27px] items-center justify-center w-[112px]">
-                  <div className="flex-none scale-x-95 scale-y-95">
-                    <button
-                      onClick={onSignupClick}
-                      className="bg-[#006d37] flex flex-col h-[28.421px] items-center justify-center px-6 py-2 rounded-full w-[117.895px] relative shadow-[0px_4px_6px_-1px_rgba(0,0,0,0.1),0px_2px_4px_-2px_rgba(0,0,0,0.1)]"
-                    >
-                      <div className="flex flex-col font-['Plus_Jakarta_Sans:Bold','Noto_Sans_JP:Bold',sans-serif] font-bold h-5 justify-center leading-[0] text-sm text-center text-white">
-                        <p className="leading-5">サインアップ</p>
-                      </div>
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={onLoginClick}
+                className="bg-[#006d37] font-['Plus_Jakarta_Sans:Bold','Noto_Sans_JP:Bold',sans-serif] font-bold text-sm text-white px-5 py-1.5 rounded-full shadow-[0px_4px_6px_-1px_rgba(0,0,0,0.1),0px_2px_4px_-2px_rgba(0,0,0,0.1)] whitespace-nowrap"
+              >
+                ログイン
+              </button>
+              <button
+                onClick={onSignupClick}
+                className="bg-[#006d37] font-['Plus_Jakarta_Sans:Bold','Noto_Sans_JP:Bold',sans-serif] font-bold text-sm text-white px-5 py-1.5 rounded-full shadow-[0px_4px_6px_-1px_rgba(0,0,0,0.1),0px_2px_4px_-2px_rgba(0,0,0,0.1)] whitespace-nowrap"
+              >
+                サインアップ
+              </button>
+            </div>
           )}
 
           {/* Language Switcher (Passenger variant) */}
