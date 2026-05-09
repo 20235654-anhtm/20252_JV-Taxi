@@ -4,11 +4,16 @@ import cors from 'cors';
 
 dotenv.config();
 
+import locationRoutes from './routes/locationRoutes';
+
 const app: Express = express();
 const port = process.env.PORT || 5000;
 
 app.use(cors());
 app.use(express.json());
+
+// Nhúng API gợi ý địa điểm
+app.use('/api/locations', locationRoutes);
 
 app.get('/', (req: Request, res: Response) => {
     res.send('Backend Express Server is running');
