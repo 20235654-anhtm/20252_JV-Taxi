@@ -1,0 +1,247 @@
+/* Căn giữa ứng dụng ra màn hình máy tính */
+body {
+  margin: 0;
+  display: flex;
+  justify-content: center;
+  background-color: #e0e0e0;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+}
+
+.app-container {
+  width: 390px;
+  min-height: 884px;
+  background: #F4FBF1; /* Màu nền xanh nhạt chuẩn Figma */
+  position: relative;
+  box-sizing: border-box;
+  overflow-x: hidden;
+}
+
+.content {
+  padding: 96px 16px 128px 16px; 
+}
+
+/* Header mờ (Backdrop Filter) */
+.header {
+  width: 100%;
+  height: 64px;
+  position: absolute;
+  top: 0;
+  left: 0;
+  padding: 0 24px;
+  background: rgba(255, 255, 255, 0.80);
+  backdrop-filter: blur(6px);
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  box-sizing: border-box;
+  z-index: 10;
+  box-shadow: 0px 32px 32px -4px rgba(23, 29, 23, 0.06);
+}
+.header h2 { 
+  margin: 0; 
+  font-size: 18px; 
+  font-weight: 700; 
+  color: #064E3B; 
+}
+.back-icon { 
+  font-size: 20px; 
+  color: #064E3B;
+  font-weight: bold; 
+  cursor: pointer; 
+}
+
+/* Status Row */
+.status-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+  padding: 0 8px;
+}
+.status-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #3D4A3F;
+}
+.dot { 
+  width: 8px; 
+  height: 8px; 
+  background-color: #006D37; 
+  border-radius: 50%; 
+}
+.live-badge {
+  background: #E9F0E6;
+  padding: 4px 12px;
+  border-radius: 9999px;
+  font-size: 10px;
+  font-weight: 700;
+  color: #A1A1AA;
+  text-transform: uppercase;
+}
+
+/* Driver Card */
+.driver-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.driver-card {
+  background: white;
+  border-radius: 24px;
+  padding: 16px;
+  box-shadow: 0px 8px 24px rgba(0, 0, 0, 0.02);
+  outline: 1px solid rgba(255, 255, 255, 0.50);
+  outline-offset: -1px;
+}
+.card-top {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 16px;
+  gap: 16px;
+}
+.driver-info { 
+  display: flex; 
+  gap: 16px; 
+  flex: 1;
+}
+
+/* Avatar & Rating */
+.avatar-wrapper { 
+  position: relative; 
+  width: 80px; 
+  height: 80px; 
+  background: #E9F0E6;
+  border-radius: 24px;
+}
+.avatar { 
+  width: 100%; 
+  height: 100%; 
+  border-radius: 24px; 
+  object-fit: cover; 
+}
+.rating {
+  position: absolute;
+  bottom: -8px;
+  right: -8px; 
+  background: white;
+  padding: 4px 8px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #171D17;
+  box-shadow: 0px 1px 2px rgba(0, 0, 0, 0.05);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.star { color: #FEA520; font-size: 10px;}
+
+/* Driver Details */
+.driver-details {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.driver-details h3 { 
+  margin: 0; 
+  font-size: 18px; 
+  font-weight: 700;
+  color: #171D17; 
+  line-height: 22.5px;
+}
+.car-model { 
+  margin: 0 0 4px 0; 
+  font-size: 10px; 
+  color: #A1A1AA; 
+  text-transform: uppercase; 
+  font-weight: 700;
+  letter-spacing: 0.25px;
+}
+.tags { 
+  display: flex; 
+  gap: 8px; 
+}
+.tag { 
+  background: #F4F4F5; 
+  padding: 4px 8px; 
+  border-radius: 6px; 
+  font-size: 10px; 
+  font-weight: 700; 
+  color: #71717A; 
+}
+
+/* Price */
+.price-info { 
+  text-align: right; 
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+}
+.price { 
+  margin: 0; 
+  font-size: 20px; 
+  font-weight: 800; 
+  color: #006D37; 
+  line-height: 28px;
+}
+.price-label { 
+  margin: 0; 
+  font-size: 10px; 
+  color: #A1A1AA; 
+  font-weight: 400;
+}
+
+/* Nút Bấm Gradient */
+.select-btn {
+  width: 100%;
+  height: 56px;
+  background: linear-gradient(90deg, #FEA520 0%, #F39C12 100%);
+  border: none;
+  border-radius: 24px;
+  font-size: 16px;
+  font-weight: 700;
+  color: #2B1700;
+  cursor: pointer;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  box-shadow: 0px 4px 6px -4px rgba(0, 0, 0, 0.10), 0px 10px 15px -3px rgba(0, 0, 0, 0.10);
+}
+.arrow { font-size: 12px; }
+
+/* Footer Loading */
+.loading-footer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  margin-top: 32px;
+  opacity: 0.40;
+}
+/* Hiệu ứng xoay tròn */
+.spinner {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 4px solid transparent;
+  border-top-color: #059669; 
+  margin-bottom: 8px;
+  animation: spin 1s linear infinite;
+}
+.loading-footer p {
+  margin: 0;
+  color: #065F46;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}

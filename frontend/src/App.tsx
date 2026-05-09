@@ -1,16 +1,16 @@
-import { BrowserRouter } from 'react-router-dom';
-import AppRoutes from './routes';
-import './App.css';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import ID3 from './id3'; 
+import ID4 from './id4';
 
 function App() {
   return (
     <BrowserRouter>
-      <div className="App">
-        {/* Router sẽ quyết định component nào được hiển thị dựa trên URL */}
-        <AppRoutes />
-      </div>
+      <Routes>
+        {/* Gọi Component bằng tên đã viết hoa */}
+        <Route path="/" element={<ID4 />} />
+        <Route path="/booking" element={<ID3 />} />
+      </Routes>
     </BrowserRouter>
   );
 }
-
 export default App;
