@@ -151,7 +151,7 @@ function MapLoadingOverlay() {
         color: '#064e3b',
         letterSpacing: '-0.3px',
       }}>
-        Đang xác định vị trí...
+        位置情報取得中...
       </p>
     </div>
   );

@@ -36,23 +36,23 @@ interface SearchLocationScreenProps {
   initialSearch?: string;
 }
 
-const SearchLocationScreen: React.FC<SearchLocationScreenProps> = ({ 
+const SearchLocationScreen: React.FC<SearchLocationScreenProps> = ({
   isGuest = false,
-  initialSearch = '' 
+  initialSearch = ''
 }) => {
   const navigate = useNavigate();
   const [destination, setDestination] = useState(initialSearch);
   const [isAuthSheetOpen, setIsAuthSheetOpen] = useState(false);
-  
-  const [origin, setOrigin] = useState('Đang xác định vị trí...');
-  
+
+  const [origin, setOrigin] = useState('位置情報取得中...');
+
   // Use custom hook to watch location
   const location = useWatchLocation();
 
   // Tự động lấy địa chỉ hiện tại khi có tọa độ GPS
   useEffect(() => {
     const updateCurrentLocation = async () => {
-      if (location.latitude && location.longitude && origin === 'Đang xác định vị trí...') {
+      if (location.latitude && location.longitude && origin === '位置情報取得中...') {
         const address = await reverseGeocode(location.latitude, location.longitude);
         setOrigin(address);
       } else if (location.permissionDenied) {
@@ -94,32 +94,32 @@ const SearchLocationScreen: React.FC<SearchLocationScreenProps> = ({
   return (
     <div className="sl-container">
       <Header isGuest={isGuest} onBackClick={handleBackClick} />
-      
+
       <div className="sl-content">
-        <LocationInputGroup 
+        <LocationInputGroup
           origin={origin}
-          onOriginChange={setOrigin} 
+          onOriginChange={setOrigin}
           destination={destination}
           onDestinationChange={setDestination}
         />
-        
-        <StaticMapPreview 
-          latitude={location.latitude} 
-          longitude={location.longitude} 
-          loading={location.loading} 
+
+        <StaticMapPreview
+          latitude={location.latitude}
+          longitude={location.longitude}
+          loading={location.loading}
         />
-        
+
         {!isGuest && (
-          <RecentHistory 
-            history={mockHistory} 
-            onSelect={handleDestinationSelect} 
+          <RecentHistory
+            history={mockHistory}
+            onSelect={handleDestinationSelect}
           />
         )}
       </div>
 
       <div className="sl-next-btn-container">
-        <Button 
-          variant="primary" 
+        <Button
+          variant="primary"
           fullWidth
           disabled={!destination.trim()}
           onClick={handleNext}
@@ -132,10 +132,10 @@ const SearchLocationScreen: React.FC<SearchLocationScreenProps> = ({
       </div>
 
       <LocationPermissionPopup isOpen={location.permissionDenied} />
-      
-      <AuthRequiredSheet 
-        isOpen={isAuthSheetOpen} 
-        onClose={() => setIsAuthSheetOpen(false)} 
+
+      <AuthRequiredSheet
+        isOpen={isAuthSheetOpen}
+        onClose={() => setIsAuthSheetOpen(false)}
       />
     </div>
   );
