@@ -1,76 +1,56 @@
-/* Căn giữa ứng dụng ra màn hình máy tính */
+
 body {
   margin: 0;
+  min-height: 100vh;
+
   display: flex;
   justify-content: center;
-  background-color: #e0e0e0;
+
+  background: #e0e0e0;
+
   font-family: 'Plus Jakarta Sans', sans-serif;
 }
 
 .app-container {
-  width: 390px;
-  min-height: 884px;
-  background: #F4FBF1; /* Màu nền xanh nhạt chuẩn Figma */
+  width: 100%;
+  max-width: 390px;
+  min-height: 100vh;
+
+  background: #F4FBF1;
+
   position: relative;
-  box-sizing: border-box;
   overflow-x: hidden;
 }
-
 .content {
-  padding: 96px 16px 128px 16px; 
-}
+  padding: 96px 16px 128px;
 
-/* Header mờ (Backdrop Filter) */
-.header {
-  width: 100%;
-  height: 64px;
-  position: absolute;
-  top: 0;
-  left: 0;
-  padding: 0 24px;
-  background: rgba(255, 255, 255, 0.80);
-  backdrop-filter: blur(6px);
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 16px;
-  box-sizing: border-box;
-  z-index: 10;
-  box-shadow: 0px 32px 32px -4px rgba(23, 29, 23, 0.06);
 }
-.header h2 { 
-  margin: 0; 
-  font-size: 18px; 
-  font-weight: 700; 
-  color: #064E3B; 
-}
-.back-icon { 
-  font-size: 20px; 
-  color: #064E3B;
-  font-weight: bold; 
-  cursor: pointer; 
-}
-
-/* Status Row */
 .status-row {
   display: flex;
+  align-items: center; 
   justify-content: space-between;
-  align-items: center;
-  margin-bottom: 24px;
-  padding: 0 8px;
+  margin-bottom: 16px;
+  width: 100%;
 }
 .status-title {
   display: flex;
-  align-items: center;
+  align-items: center; 
   gap: 8px;
+  color: #064e3b;
+  font-weight: bold;
   font-size: 14px;
-  font-weight: 600;
-  color: #3D4A3F;
 }
-.dot { 
-  width: 8px; 
-  height: 8px; 
-  background-color: #006D37; 
-  border-radius: 50%; 
+
+.dot {
+  width: 10px;
+  height: 10px;
+  background-color: #006d37;
+  border-radius: 50%;
+  flex-shrink: 0;
+  margin-top: 7.1px; 
 }
 .live-badge {
   background: #E9F0E6;
@@ -81,8 +61,6 @@ body {
   color: #A1A1AA;
   text-transform: uppercase;
 }
-
-/* Driver Card */
 .driver-list {
   display: flex;
   flex-direction: column;
@@ -107,8 +85,6 @@ body {
   gap: 16px; 
   flex: 1;
 }
-
-/* Avatar & Rating */
 .avatar-wrapper { 
   position: relative; 
   width: 80px; 
@@ -138,8 +114,6 @@ body {
   gap: 4px;
 }
 .star { color: #FEA520; font-size: 10px;}
-
-/* Driver Details */
 .driver-details {
   display: flex;
   flex-direction: column;
@@ -172,8 +146,6 @@ body {
   font-weight: 700; 
   color: #71717A; 
 }
-
-/* Price */
 .price-info { 
   text-align: right; 
   display: flex;
@@ -193,8 +165,6 @@ body {
   color: #A1A1AA; 
   font-weight: 400;
 }
-
-/* Nút Bấm Gradient */
 .select-btn {
   width: 100%;
   height: 56px;
@@ -212,8 +182,6 @@ body {
   box-shadow: 0px 4px 6px -4px rgba(0, 0, 0, 0.10), 0px 10px 15px -3px rgba(0, 0, 0, 0.10);
 }
 .arrow { font-size: 12px; }
-
-/* Footer Loading */
 .loading-footer {
   display: flex;
   flex-direction: column;
@@ -222,7 +190,6 @@ body {
   margin-top: 32px;
   opacity: 0.40;
 }
-/* Hiệu ứng xoay tròn */
 .spinner {
   width: 32px;
   height: 32px;
@@ -244,4 +211,13 @@ body {
 @keyframes spin {
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
+}
+@media (max-width: 430px) {
+  body {
+    background: #F4FBF1;
+  }
+
+  .app-container {
+    max-width: 100%;
+  }
 }
