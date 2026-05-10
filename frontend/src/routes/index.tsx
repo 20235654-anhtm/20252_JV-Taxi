@@ -1,6 +1,6 @@
 import { Routes, Route } from 'react-router-dom';
 
-// Import các trang của Guest
+// Guest Pages
 import GuestHome from '../pages/guest/GuestHome';
 import GuestSearchLocation from '../pages/guest/GuestSearchLocation';
 import SignIn from '../pages/guest/SignIn';
@@ -8,7 +8,7 @@ import SignUpSelection from '../pages/guest/SignUpSelection';
 import PassengerSignUp from '../pages/guest/PassengerSignUp';
 import DriverSignUp from '../pages/guest/DriverSignUp';
 
-// Import các trang của Passenger
+// Passenger Pages
 import PassengerHome from '../pages/passenger/PassengerHome';
 import SearchLocation from '../pages/passenger/SearchLocation';
 import BookingOptions from '../pages/passenger/BookingOptions';
@@ -18,40 +18,40 @@ import DriverDetail from '../pages/passenger/DriverDetail';
 const AppRoutes = () => {
   return (
     <Routes>
-      {/* ======================= LUỒNG CHO KHÁCH (CHƯA ĐĂNG NHẬP) ======================= */}
-      {/* Trang chủ dành cho khách */}
+      {/* ======================= GUEST FLOW (UNAUTHENTICATED) ======================= */}
+      {/* Guest home page */}
       <Route path="/" element={<GuestHome />} />
       
-      {/* Trang tìm, chọn điểm đến cho khách */}
+      {/* Search/select destination for guests */}
       <Route path="/guest/search-location" element={<GuestSearchLocation />} />
       
-      {/* Màn hình đăng nhập */}
+      {/* Sign-in screen */}
       <Route path="/login" element={<SignIn />} />
       
-      {/* Màn hình chọn vai trò (khi chọn đăng ký) */}
+      {/* Role selection screen (for registration) */}
       <Route path="/signup" element={<SignUpSelection />} />
       
-      {/* Màn hình đăng ký hành khách */}
+      {/* Passenger registration screen */}
       <Route path="/signup/passenger" element={<PassengerSignUp />} />
       
-      {/* Màn hình đăng ký tài xế */}
+      {/* Driver registration screen */}
       <Route path="/signup/driver" element={<DriverSignUp />} />
 
 
-      {/* ======================= LUỒNG CHO HÀNH KHÁCH (ĐÃ ĐĂNG NHẬP) ======================= */}
-      {/* Trang chủ cho hành khách */}
+      {/* ======================= PASSENGER FLOW (AUTHENTICATED) ======================= */}
+      {/* Passenger dashboard */}
       <Route path="/passenger" element={<PassengerHome />} />
       
-      {/* Trang tìm, chọn điểm đến */}
+      {/* Search/select destination */}
       <Route path="/passenger/search-location" element={<SearchLocation />} />
       
-      {/* Trang chọn phương thức ghép cuốc */}
+      {/* Select booking options */}
       <Route path="/passenger/booking-options" element={<BookingOptions />} />
       
-      {/* Trang danh sách tài xế */}
+      {/* Driver selection screen */}
       <Route path="/passenger/select-driver" element={<SelectDriver />} />
       
-      {/* Trang chi tiết tài xế */}
+      {/* Driver details screen */}
       <Route path="/passenger/driver-detail" element={<DriverDetail />} />
     </Routes>
   );
