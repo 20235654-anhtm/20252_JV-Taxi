@@ -14,6 +14,7 @@ export interface HeaderProps {
   onLoginClick?: () => void;
   onSignupClick?: () => void;
   onLanguageChange?: (lang: 'jp' | 'vn') => void;
+  rightContent?: React.ReactNode;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -26,6 +27,7 @@ export const Header: React.FC<HeaderProps> = ({
   onLoginClick,
   onSignupClick,
   onLanguageChange,
+  rightContent,
 }) => {
   return (
     <header className="fixed top-0 left-0 right-0 h-16 z-50 backdrop-blur-[6px] bg-[rgba(255,255,255,0.8)] shadow-[0px_1px_2px_0px_rgba(0,0,0,0.05)]">
@@ -73,6 +75,9 @@ export const Header: React.FC<HeaderProps> = ({
 
         {/* Right Section */}
         <div className="flex items-center gap-3">
+          {/* Custom Right Content */}
+          {rightContent}
+
           {/* Login/Signup Buttons (Guest variant) */}
           {variant === 'guest' && (
             <>

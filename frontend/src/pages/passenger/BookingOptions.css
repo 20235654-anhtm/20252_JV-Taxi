@@ -1,0 +1,78 @@
+.booking-container {
+  width: 100%;
+  max-width: 390px;
+  height: 100vh;
+  margin: 0 auto;
+  background: #F4FBF1;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+/* MAP */
+.bo-map-area { position: absolute; top: 0; width: 100%; height: 60%; z-index: 1; }
+.bo-map-gradient {
+  width: 100%; height: 100%;
+  background: linear-gradient(180deg, rgba(244,251,241,0.2) 0%, #F4FBF1 100%), 
+              url('https://placehold.co/390x574') center/cover;
+}
+
+/* MARKERS */
+.bo-marker { position: absolute; display: flex; flex-direction: column; align-items: center; z-index: 5; }
+.bo-dot { width: 16px; height: 16px; background: white; border-radius: 50%; outline: 4px solid #006D37; margin-bottom: 8px; }
+.bo-dot.bo-dest { background: #006D37; outline: 4px solid white; }
+.bo-label { background: white; padding: 4px 12px; border-radius: 8px; font-size: 10px; font-weight: 700; box-shadow: 0 8px 10px rgba(0,0,0,0.1); }
+.bo-label.bo-dest { background: #006D37; color: white; }
+
+/* BOTTOM SHEET */
+.bo-bottom-sheet {
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  background: white;
+  border-radius: 40px 40px 0 0;
+  padding: 16px 24px 32px;
+  z-index: 50;
+  box-shadow: 0 -12px 40px rgba(0,0,0,0.08);
+}
+
+.bo-drag-handle { width: 48px; height: 6px; background: #DDE5DB; border-radius: 3px; margin: 0 auto 24px; }
+.bo-sheet-title { font-size: 24px; font-weight: 800; color: #171D17; margin-bottom: 24px; }
+
+/* CARDS */
+.bo-option-card {
+  display: flex; gap: 16px; padding: 20px; background: #EFF6EC; border-radius: 24px; margin-bottom: 16px;
+  transition: all 0.2s; cursor: pointer;
+}
+.bo-option-card.bo-active { outline: 2px solid #006D37; background: #E5F0E1; }
+.bo-icon-box { width: 70px; height: 70px; border-radius: 16px; display: flex; justify-content: center; align-items: center; font-size: 28px; }
+.bo-icon-box.bo-green { background: rgba(0,109,55,0.1); }
+.bo-icon-box.bo-orange { background: rgba(254,165,32,0.1); }
+
+.bo-option-content { flex: 1; }
+.bo-info { display: flex; justify-content: space-between; margin-bottom: 8px; }
+.bo-info h3 { font-size: 18px; font-weight: 700; color: #171D17; margin: 0; }
+.bo-info p { font-size: 12px; color: #3D4A3F; margin: 0; }
+.bo-price { text-align: right; }
+.bo-amount { font-size: 18px; font-weight: 900; display: block; }
+.bo-amount.bo-green { color: #006D37; }
+.bo-unit { font-size: 10px; font-weight: 700; color: #3D4A3F; }
+
+.bo-badges { display: flex; align-items: center; gap: 8px; }
+.bo-badge-fast { background: rgba(39,174,96,0.2); color: #006D37; padding: 2px 8px; border-radius: 6px; font-size: 10px; font-weight: 700; }
+.bo-time, .bo-distance { font-size: 10px; color: #3D4A3F; font-weight: 500; }
+
+.bo-avatars { display: flex; }
+.bo-avt { width: 24px; height: 24px; border-radius: 50%; background: #D5DCD2; border: 2px solid white; margin-right: -8px; }
+.bo-avt-count { width: 24px; height: 24px; border-radius: 50%; background: #DDE5DB; border: 2px solid white; display: flex; justify-content: center; align-items: center; font-size: 8px; font-weight: 700; z-index: 2; }
+
+/* BUTTON */
+.bo-confirm-btn {
+  width: 100%; height: 64px; border: none; border-radius: 24px;
+  background: linear-gradient(90deg, #006D37 0%, #27AE60 100%);
+  color: white; font-size: 18px; font-weight: 800; cursor: pointer;
+  box-shadow: 0 12px 24px rgba(0,109,55,0.2);
+  display: flex; justify-content: center; align-items: center; gap: 12px;
+}
