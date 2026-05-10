@@ -4,11 +4,12 @@ import { Heading } from '../ui/Heading';
 import { Text } from '../ui/Text';
 import { SearchInput } from '../ui/SearchInput';
 import { Button } from '../ui/Button';
-import { Clock, ArrowRight, History } from 'lucide-react';
+import { Clock, ArrowRight, History, MapPin } from 'lucide-react';
+import { useLocationSuggestions } from '../../hooks/useLocationSuggestions';
 
 interface QuickBookingCardProps {
   userName?: string;
-  isGuest?: boolean; // Thêm prop này
+  isGuest?: boolean;
   onBookNow?: () => void;
   destinationValue: string;
   setDestinationValue: (val: string) => void;
@@ -16,7 +17,7 @@ interface QuickBookingCardProps {
 
 export const QuickBookingCard: React.FC<QuickBookingCardProps> = ({
   userName = '佐藤',
-  isGuest = false, // Mặc định là false
+  isGuest = false,
   onBookNow,
   destinationValue,
   setDestinationValue,
@@ -24,12 +25,19 @@ export const QuickBookingCard: React.FC<QuickBookingCardProps> = ({
   const [mode, setMode] = useState<'half' | 'expanded'>('half');
   const touchStartY = useRef<number | null>(null);
 
-  // Gợi ý địa điểm: Guest không có gợi ý, Passenger thấy lịch sử
-  const suggestions = isGuest ? [] : [
-    { id: 1, name: 'Vinh Yên Tower', address: 'Khai Quang, Vinh Yên, Vinh Phúc' },
-    { id: 2, name: 'Ga Vinh Yên', address: 'Phường Đống Đa, Vinh Yên' },
-    { id: 3, name: 'Big C Vinh Yên', address: 'Phường Khai Quang, Vinh Yên' },
-  ];
+  // --- SỬ DỤNG HOOK TÌM KIẾM THẬT ---
+  const { suggestions: apiSuggestions, isLoading } = useLocationSuggestions(destinationValue);
+
+  // Logic hiển thị: 
+  // 1. Nếu đang gõ (>2 ký tự) -> Hiện kết quả từ API
+  // 2. Nếu không gõ -> Hiện lịch sử (Passenger) hoặc để trống (Guest)
+  const suggestions = destinationValue.length >= 2 
+    ? apiSuggestions 
+    : (isGuest ? [] : [
+        { id: 1, name: 'Vinh Yên Tower', address: 'Khai Quang, Vinh Yên, Vinh Phúc' },
+        { id: 2, name: 'Ga Vinh Yên', address: 'Phường Đống Đa, Vinh Yên' },
+        { id: 3, name: 'Big C Vinh Yên', address: 'Phường Khai Quang, Vinh Yên' },
+      ]);
 
   const handleTouchStart = (e: React.TouchEvent) => {
     touchStartY.current = e.touches[0].clientY;
@@ -91,6 +99,8 @@ export const QuickBookingCard: React.FC<QuickBookingCardProps> = ({
                   placeholder="目的地を入力..."
                   rightIcon={!isGuest && <Clock size={24} className="text-[#cbd5e1]" />}
                   onFocus={() => setMode('expanded')}
+                  error={destinationValue.length > 100}
+                  maxLength={100}
                 />
                 <Button
                   variant="primary"
@@ -112,36 +122,55 @@ export const QuickBookingCard: React.FC<QuickBookingCardProps> = ({
             <div className="flex flex-col gap-6 h-full animate-in slide-in-from-bottom-4 duration-300">
               <Heading level={2} className="text-[20px]">どこへ行きますか？</Heading>
               
-              <SearchInput
-                value={destinationValue}
-                onValueChange={setDestinationValue}
-                placeholder="目的地を入力..."
-                autoFocus
-              />
+              <div className="relative">
+                <SearchInput
+                  value={destinationValue}
+                  onValueChange={setDestinationValue}
+                  placeholder="目的地を入力..."
+                  autoFocus
+                  error={destinationValue.length > 100}
+                  maxLength={100}
+                />
+                {isLoading && (
+                  <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-[#006d37]"></div>
+                  </div>
+                )}
+              </div>
 
               <div className="flex flex-col gap-4 overflow-y-auto">
-                {!isGuest && (
-                  <>
-                    <Text variant="label" color="tertiary" className="text-[11px] font-bold">最近の履歴</Text>
-                    {suggestions.map((item) => (
-                      <div 
-                        key={item.id}
-                        className="flex items-center gap-4 py-2 border-b border-[#f1f5f9] cursor-pointer hover:bg-slate-50 transition-colors"
-                        onClick={() => {
-                          setDestinationValue(item.name);
-                          setMode('half');
-                        }}
-                      >
-                        <div className="w-10 h-10 rounded-full bg-[#f1f5f9] flex items-center justify-center flex-shrink-0">
-                          <History size={18} className="text-[#64748b]" />
-                        </div>
-                        <div className="flex flex-col overflow-hidden">
-                          <Text variant="body" weight="bold" color="primary" className="truncate">{item.name}</Text>
-                          <Text variant="small" color="medium" className="truncate text-[12px]">{item.address}</Text>
-                        </div>
+                {(destinationValue.length >= 2 || !isGuest) && (
+                  <Text variant="label" color="tertiary" className="text-[11px] font-bold">
+                    {destinationValue.length >= 2 ? '検索結果' : '最近の履歴'}
+                  </Text>
+                )}
+                
+                {suggestions.length > 0 ? (
+                  suggestions.map((item) => (
+                    <div 
+                      key={item.id}
+                      className="flex items-center gap-4 py-3 border-b border-[#f1f5f9] cursor-pointer hover:bg-slate-50 transition-colors"
+                      onClick={() => {
+                        setDestinationValue(item.name);
+                        setMode('half');
+                      }}
+                    >
+                      <div className="w-10 h-10 rounded-full bg-[#f1f5f9] flex items-center justify-center flex-shrink-0">
+                        {destinationValue.length >= 2 
+                          ? <MapPin size={18} className="text-[#64748b]" />
+                          : <History size={18} className="text-[#64748b]" />
+                        }
                       </div>
-                    ))}
-                  </>
+                      <div className="flex flex-col overflow-hidden">
+                        <Text variant="body" weight="bold" color="primary" className="truncate">{item.name}</Text>
+                        <Text variant="small" color="medium" className="truncate text-[12px]">{item.address}</Text>
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  destinationValue.length >= 2 && !isLoading && (
+                    <Text color="medium" className="text-center py-4"> kết quả không tìm thấy </Text>
+                  )
                 )}
               </div>
             </div>

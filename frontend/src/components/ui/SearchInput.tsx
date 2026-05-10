@@ -7,7 +7,8 @@ export interface SearchInputProps extends Omit<React.InputHTMLAttributes<HTMLInp
   onClear?: () => void;
   fullWidth?: boolean;
   inputSize?: 'md' | 'lg';
-  rightIcon?: React.ReactNode; // Thêm prop này
+  rightIcon?: React.ReactNode;
+  error?: boolean; // Thêm prop này
 }
 
 export const SearchInput = React.forwardRef<HTMLInputElement, SearchInputProps>(
@@ -21,7 +22,8 @@ export const SearchInput = React.forwardRef<HTMLInputElement, SearchInputProps>(
       inputSize = 'lg',
       className = '',
       disabled = false,
-      rightIcon, // Destructure prop mới
+      rightIcon,
+      error, // Nhận prop
       ...props
     },
     ref
@@ -45,8 +47,8 @@ export const SearchInput = React.forwardRef<HTMLInputElement, SearchInputProps>(
       transition-all
       border-none
       focus:outline-none
-      focus:ring-2
-      focus:ring-[#006d37]
+      ring-2
+      ${error ? 'ring-red-500' : 'focus:ring-[#006d37] ring-transparent'}
       ${sizeClasses[inputSize]}
       ${disabled ? 'opacity-50 cursor-not-allowed' : ''}
     `;

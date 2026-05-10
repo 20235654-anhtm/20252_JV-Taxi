@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Header from './Header';
 import LocationInputGroup from './LocationInputGroup';
@@ -9,6 +9,7 @@ import { useWatchLocation } from '../../hooks/useWatchLocation';
 import { Button } from '../ui/Button';
 import { ArrowRight } from 'lucide-react';
 import { AuthRequiredSheet } from '../features/AuthRequiredSheet';
+import { reverseGeocode } from '../../hooks/useLocationSuggestions';
 import './SearchLocation.css';
 
 // Mock data for recent history
@@ -43,24 +44,24 @@ const SearchLocationScreen: React.FC<SearchLocationScreenProps> = ({
   const [destination, setDestination] = useState(initialSearch);
   const [isAuthSheetOpen, setIsAuthSheetOpen] = useState(false);
   
-  const [origin, setOrigin] = useState('');
+  const [origin, setOrigin] = useState('Đang xác định vị trí...');
   
   // Use custom hook to watch location
   const location = useWatchLocation();
-  
-  const hasInitializedOrigin = React.useRef(false);
-  
-  React.useEffect(() => {
-    if (hasInitializedOrigin.current) return;
 
-    if (location.latitude && location.longitude) {
-      setOrigin('ハノイ工科大学'); // Mocked address from GPS
-      hasInitializedOrigin.current = true;
-    } else if (location.error && !location.permissionDenied) {
-      setOrigin('位置情報を取得できません');
-      hasInitializedOrigin.current = true;
-    }
-  }, [location.latitude, location.longitude, location.error, location.permissionDenied]);
+  // Tự động lấy địa chỉ hiện tại khi có tọa độ GPS
+  useEffect(() => {
+    const updateCurrentLocation = async () => {
+      if (location.latitude && location.longitude && origin === 'Đang xác định vị trí...') {
+        const address = await reverseGeocode(location.latitude, location.longitude);
+        setOrigin(address);
+      } else if (location.permissionDenied) {
+        setOrigin('Vị trí bị chặn (Hãy bật GPS)');
+      }
+    };
+
+    updateCurrentLocation();
+  }, [location.latitude, location.longitude, location.permissionDenied, origin]);
 
   const handleBackClick = () => {
     setDestination(''); // Hủy nội dung đang nhập
