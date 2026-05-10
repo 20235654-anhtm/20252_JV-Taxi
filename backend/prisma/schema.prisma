@@ -1,0 +1,143 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Role {
+  CUSTOMER
+  DRIVER
+  ADMIN
+}
+
+enum ProfileStatus {
+  ACTIVE
+  INACTIVE
+  BANNED
+}
+
+enum RideStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+  COMPLETED
+  CANCELLED
+}
+
+enum PaymentStatus {
+  PENDING
+  SUCCESS
+  FAILED
+}
+
+model Profile {
+  id         String   @id @default(uuid()) @db.Uuid // Matches auth.users(id)
+  phone      String?  @unique @db.VarChar(20)
+  fullName   String?  @map("full_name") @db.VarChar(100)
+  role       Role     @default(CUSTOMER)
+  status     ProfileStatus @default(ACTIVE)
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  driverProfile   DriverProfile?
+  paymentMethods  PaymentMethod[]
+  ridesAsPassenger Ride[] @relation("PassengerRides")
+  ridesAsDriver    Ride[] @relation("DriverRides")
+  reviewsGiven    Review[] @relation("ReviewsGiven")
+  reviewsReceived Review[] @relation("ReviewsReceived")
+
+  @@map("profiles")
+}
+
+model DriverProfile {
+  userId               String   @id @map("user_id") @db.Uuid
+  averageRating        Decimal? @default(0.00) @map("average_rating") @db.Decimal(3, 2)
+  isOnline             Boolean? @default(false) @map("is_online")
+  isBusy               Boolean? @default(false) @map("is_busy")
+  isApproved           Boolean? @default(false) @map("is_approved")
+  vehicleType          String?  @map("vehicle_type") @db.VarChar(50)
+  japaneseCerInfor     String?  @map("japanese_cer_infor") @db.VarChar(255)
+  drivingLicenseInfor  String   @map("driving_license_infor") @db.VarChar(255)
+  vehicleInfor         String   @map("vehicle_infor") @db.VarChar(255)
+  avatarPicture        String?  @map("avatar_picture") @db.VarChar(500)
+  
+  // PostGIS Geography type is not fully supported by Prisma yet, using Unsupported
+  currentLocation      Unsupported("geography(POINT, 4326)")? @map("current_location")
+
+  profile Profile @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("driver_profiles")
+}
+
+model PaymentMethod {
+  id          String   @id @default(uuid()) @db.Uuid
+  userId      String?  @map("user_id") @db.Uuid
+  cardDetails String   @map("card_details") @db.VarChar(255)
+  isDefault   Boolean? @default(false) @map("is_default")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  profile  Profile?  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  payments Payment[]
+
+  @@map("payment_methods")
+}
+
+model Ride {
+  id            String   @id @default(uuid()) @db.Uuid
+  passengerId   String?  @map("passenger_id") @db.Uuid
+  driverId      String?  @map("driver_id") @db.Uuid
+  startAddress  String   @map("start_address") @db.VarChar(500)
+  endAddress    String   @map("end_address") @db.VarChar(500)
+  
+  startLocation Unsupported("geography(POINT, 4326)") @map("start_location")
+  endLocation   Unsupported("geography(POINT, 4326)") @map("end_location")
+  
+  matchFee      Decimal? @map("match_fee") @db.Decimal(10, 2)
+  matchType     String?  @map("match_type") @db.VarChar(50)
+  vehicleTypeRequested String? @map("vehicle_type_requested") @db.VarChar(50)
+  rejectedDriverIds    String[] @map("rejected_driver_ids") @db.Uuid
+  status        RideStatus? @default(PENDING)
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  passenger Profile? @relation("PassengerRides", fields: [passengerId], references: [id])
+  driver    Profile? @relation("DriverRides", fields: [driverId], references: [id])
+  payment   Payment?
+  reviews   Review[]
+
+  @@map("rides")
+}
+
+model Review {
+  id            String   @id @default(uuid()) @db.Uuid
+  rideId        String?  @map("ride_id") @db.Uuid
+  reviewerId    String?  @map("reviewer_id") @db.Uuid
+  driverId      String?  @map("driver_id") @db.Uuid
+  starReview    Int?     @map("star_review")
+  commentReview String?  @map("comment_review") @db.Text
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  ride     Ride?    @relation(fields: [rideId], references: [id], onDelete: Cascade)
+  reviewer Profile? @relation("ReviewsGiven", fields: [reviewerId], references: [id])
+  driver   Profile? @relation("ReviewsReceived", fields: [driverId], references: [id])
+
+  @@map("reviews")
+}
+
+model Payment {
+  id              String   @id @default(uuid()) @db.Uuid
+  rideId          String?  @unique @map("ride_id") @db.Uuid
+  paymentMethodId String?  @map("payment_method_id") @db.Uuid
+  totalAmount     Decimal  @map("total_amount") @db.Decimal(10, 2)
+  paymentType     String   @map("payment_type") @db.VarChar(50)
+  status          PaymentStatus? @default(PENDING)
+  createdAt       DateTime @default(now()) @map("created_at")
+
+  ride          Ride?          @relation(fields: [rideId], references: [id], onDelete: Cascade)
+  paymentMethod PaymentMethod? @relation(fields: [paymentMethodId], references: [id])
+
+  @@map("payments")
+}
