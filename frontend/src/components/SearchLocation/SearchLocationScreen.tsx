@@ -8,6 +8,7 @@ import LocationPermissionPopup from './LocationPermissionPopup';
 import { useWatchLocation } from '../../hooks/useWatchLocation';
 import { Button } from '../ui/Button';
 import { ArrowRight } from 'lucide-react';
+import { AuthRequiredSheet } from '../features/AuthRequiredSheet';
 import './SearchLocation.css';
 
 // Mock data for recent history
@@ -31,11 +32,16 @@ const mockHistory: HistoryItem[] = [
 
 interface SearchLocationScreenProps {
   isGuest?: boolean;
+  initialSearch?: string;
 }
 
-const SearchLocationScreen: React.FC<SearchLocationScreenProps> = ({ isGuest = false }) => {
+const SearchLocationScreen: React.FC<SearchLocationScreenProps> = ({ 
+  isGuest = false,
+  initialSearch = '' 
+}) => {
   const navigate = useNavigate();
-  const [destination, setDestination] = useState('');
+  const [destination, setDestination] = useState(initialSearch);
+  const [isAuthSheetOpen, setIsAuthSheetOpen] = useState(false);
   
   const [origin, setOrigin] = useState('');
   
@@ -75,8 +81,12 @@ const SearchLocationScreen: React.FC<SearchLocationScreenProps> = ({ isGuest = f
 
   const handleNext = () => {
     if (destination.trim()) {
-      navigate('/passenger/booking-options');
-      console.log('Proceed to next with destination:', destination);
+      if (isGuest) {
+        setIsAuthSheetOpen(true);
+      } else {
+        navigate('/passenger/booking-options');
+        console.log('Proceed to next with destination:', destination);
+      }
     }
   };
 
@@ -121,6 +131,11 @@ const SearchLocationScreen: React.FC<SearchLocationScreenProps> = ({ isGuest = f
       </div>
 
       <LocationPermissionPopup isOpen={location.permissionDenied} />
+      
+      <AuthRequiredSheet 
+        isOpen={isAuthSheetOpen} 
+        onClose={() => setIsAuthSheetOpen(false)} 
+      />
     </div>
   );
 };

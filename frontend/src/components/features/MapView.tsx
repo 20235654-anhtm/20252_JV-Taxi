@@ -56,7 +56,7 @@ function MapErrorOverlay() {
     <div style={{
       position: 'absolute',
       inset: 0,
-      zIndex: 800,
+      zIndex: 1090,
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',

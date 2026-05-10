@@ -7,6 +7,7 @@ export interface SearchInputProps extends Omit<React.InputHTMLAttributes<HTMLInp
   onClear?: () => void;
   fullWidth?: boolean;
   inputSize?: 'md' | 'lg';
+  rightIcon?: React.ReactNode; // Thêm prop này
 }
 
 export const SearchInput = React.forwardRef<HTMLInputElement, SearchInputProps>(
@@ -20,6 +21,7 @@ export const SearchInput = React.forwardRef<HTMLInputElement, SearchInputProps>(
       inputSize = 'lg',
       className = '',
       disabled = false,
+      rightIcon, // Destructure prop mới
       ...props
     },
     ref
@@ -39,7 +41,7 @@ export const SearchInput = React.forwardRef<HTMLInputElement, SearchInputProps>(
       bg-[#eff6ec]
       text-[#171d17]
       font-['Plus_Jakarta_Sans:SemiBold','Noto_Sans_JP:Bold',sans-serif] font-semibold text-[16px] leading-[normal]
-      pl-[48px] pr-[16px]
+      pl-[48px] pr-[48px]
       transition-all
       border-none
       focus:outline-none
@@ -55,7 +57,7 @@ export const SearchInput = React.forwardRef<HTMLInputElement, SearchInputProps>(
     return (
       <div className={`relative ${widthClass}`}>
         {/* Search Icon */}
-        <div className="absolute left-[19px] top-[19px] pointer-events-none">
+        <div className="absolute left-[19px] top-1/2 -translate-y-1/2 pointer-events-none">
           <Search size={18} className="text-[#006d37]" />
         </div>
 
@@ -71,17 +73,21 @@ export const SearchInput = React.forwardRef<HTMLInputElement, SearchInputProps>(
           {...props}
         />
 
-        {/* Clear Button */}
-        {value && !disabled && (
-          <button
-            type="button"
-            onClick={handleClear}
-            className="absolute right-[18px] top-[18px] hover:opacity-70 transition-opacity"
-            aria-label="クリア"
-          >
-            <X size={20} className="text-[#d4d4d8]" />
-          </button>
-        )}
+        {/* Right Element (Clear or Custom Icon) */}
+        <div className="absolute right-[18px] top-1/2 -translate-y-1/2 flex items-center">
+          {value && !disabled ? (
+            <button
+              type="button"
+              onClick={handleClear}
+              className="hover:opacity-70 transition-opacity"
+              aria-label="クリア"
+            >
+              <X size={20} className="text-[#d4d4d8]" />
+            </button>
+          ) : (
+            rightIcon && <div className="text-[#d4d4d8]">{rightIcon}</div>
+          )}
+        </div>
       </div>
     );
   }
