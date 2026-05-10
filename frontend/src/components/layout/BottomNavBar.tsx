@@ -13,7 +13,7 @@ export const BottomNavBar: React.FC<BottomNavBarProps> = ({
   onTabChange,
 }) => {
   return (
-    <nav className="fixed bottom-0 left-0 right-0 bg-white z-50 rounded-tl-[24px] rounded-tr-[24px] drop-shadow-[0px_-8px_12px_rgba(0,0,0,0.04)]">
+    <nav className="fixed bottom-0 left-0 right-0 bg-white z-[999] rounded-tl-[24px] rounded-tr-[24px] drop-shadow-[0px_-8px_12px_rgba(0,0,0,0.04)]">
       <div className="flex items-center justify-between pb-[10px] pt-[8px] px-[16px] max-w-[1280px] mx-auto">
         {/* Home Tab */}
         <button
