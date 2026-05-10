@@ -207,6 +207,19 @@
   background: linear-gradient(to top, var(--color-bg-primary), rgba(244, 251, 241, 0));
 }
 
+#root {
+  width: 1126px;
+  max-width: 100%;
+  margin: 0 auto;
+  text-align: left;
+  border-inline: 1px solid var(--border);
+  min-height: 100svh;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+}
+
+
 .gradient-sheet {
   background: linear-gradient(to bottom, rgba(244, 251, 241, 0.2), rgba(244, 251, 241, 0.8) 60%, var(--color-bg-primary));
 }
@@ -276,4 +289,32 @@
   outline: none;
   background: var(--color-bg-white);
   box-shadow: 0 0 0 2px var(--color-primary);
+}
+
+/* === ANIMATIONS === */
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+@keyframes location-pulse {
+  0%   { transform: scale(0.8); opacity: 0.8; }
+  70%  { transform: scale(1.6); opacity: 0; }
+  100% { transform: scale(0.8); opacity: 0; }
+}
+
+/* ── Leaflet Attribution (scoped) ── */
+
+/* Chỉ áp dụng khi map có BottomNavBar đi kèm */
+.map-with-bottom-nav .leaflet-bottom {
+  bottom: 78px !important;
+}
+
+.map-with-bottom-nav .leaflet-control-attribution {
+  font-size: 9px !important;
+  opacity: 0.6;
+  background: rgba(255, 255, 255, 0.7) !important;
+  padding: 1px 4px !important;
+  border-radius: 4px !important;
 }
