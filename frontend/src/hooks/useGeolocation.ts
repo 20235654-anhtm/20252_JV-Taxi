@@ -13,16 +13,21 @@ interface GeolocationState {
 
 /**
  * Hook theo dõi GPS theo thời gian thực.
- * Tự động phát hiện khi user bật quyền GPS trong settings trình duyệt
- * → popup lỗi tự biến mất, vị trí được lấy lại mà không cần reload.
+ *
+ * Tự động phát hiện khi user cấp quyền GPS mà không cần reload trang:
+ *   - Strategy 1 (Permissions API): Chrome Android, Firefox
+ *   - Strategy 2 (visibilitychange): iOS Safari + mọi browser khi user
+ *     quay lại từ trang Settings của thiết bị
  */
 export function useGeolocation(): GeolocationState {
   const [position, setPosition] = useState<LatLng | null>(null);
   const [error, setError]       = useState<string | null>(null);
   const [loading, setLoading]   = useState<boolean>(true);
 
-  // Giữ watchId trong ref để có thể clear và restart trong closure
-  const watchIdRef = useRef<number | null>(null);
+  // Ref giữ watchId để có thể clear/restart trong closure
+  const watchIdRef  = useRef<number | null>(null);
+  // Ref theo dõi trạng thái lỗi để visibilitychange biết có nên retry không
+  const hasErrorRef = useRef(false);
 
   useEffect(() => {
     if (!navigator.geolocation) {
@@ -41,6 +46,7 @@ export function useGeolocation(): GeolocationState {
       setPosition({ lat: pos.coords.latitude, lng: pos.coords.longitude });
       setLoading(false);
       setError(null);
+      hasErrorRef.current = false;  // reset cờ lỗi
     };
 
     const onError = (err: GeolocationPositionError) => {
@@ -58,9 +64,10 @@ export function useGeolocation(): GeolocationState {
           setError('Đã xảy ra lỗi khi lấy vị trí.');
       }
       setLoading(false);
+      hasErrorRef.current = true;   // đánh dấu đang có lỗi
     };
 
-    // Hàm khởi động (hoặc khởi động lại) watchPosition
+    // Khởi động (hoặc restart) watchPosition
     const startWatch = () => {
       if (watchIdRef.current !== null) {
         navigator.geolocation.clearWatch(watchIdRef.current);
@@ -70,15 +77,16 @@ export function useGeolocation(): GeolocationState {
 
     startWatch();
 
-    // ── Permissions API: lắng nghe khi user bật GPS từ settings ──
-    // Khi permission thay đổi từ 'denied'/'prompt' → 'granted':
-    //   → tự restart watchPosition → onSuccess chạy → error = null → popup tắt
+    // ── Strategy 1: Permissions API ─────────────────────────────
+    // Hỗ trợ: Chrome Android, Firefox, Edge
+    // Khi permission thay đổi → 'granted' thì tự restart watchPosition
     let permStatus: PermissionStatus | null = null;
 
     const handlePermissionChange = () => {
       if (permStatus?.state === 'granted') {
         setError(null);
         setLoading(true);
+        hasErrorRef.current = false;
         startWatch();
       }
     };
@@ -91,16 +99,35 @@ export function useGeolocation(): GeolocationState {
           status.addEventListener('change', handlePermissionChange);
         })
         .catch(() => {
-          // Một số môi trường không hỗ trợ Permissions API → bỏ qua
+          // Safari iOS chưa hỗ trợ Permissions API cho geolocation → dùng Strategy 2
         });
     }
 
+    // ── Strategy 2: visibilitychange ────────────────────────────
+    // Hỗ trợ: iOS Safari + mọi browser
+    // Khi user quay lại từ Settings app → trang được focus lại
+    // → thử restart watchPosition nếu đang có lỗi GPS
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible' && hasErrorRef.current) {
+        // Reset và thử lại — nếu đã cấp quyền: onSuccess chạy → popup biến mất
+        // Nếu chưa cấp: onError chạy lại → popup vẫn hiện (không ảnh hưởng UX)
+        setError(null);
+        setLoading(true);
+        hasErrorRef.current = false;
+        startWatch();
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    // Cleanup khi unmount
     return () => {
       if (watchIdRef.current !== null) {
         navigator.geolocation.clearWatch(watchIdRef.current);
         watchIdRef.current = null;
       }
       permStatus?.removeEventListener('change', handlePermissionChange);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
   }, []);
 
