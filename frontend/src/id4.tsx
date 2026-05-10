@@ -106,8 +106,6 @@ const navigate = useNavigate();
             ))}
           </div>
         )}
-
-        {/* Loading Spinner mờ mờ ở dưới cùng */}
         <div className="loading-footer">
           <div className="spinner"></div>
           <p>ドライバーをさらに検索中...</p>
