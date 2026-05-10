@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import { MapPinOff } from 'lucide-react';
 import { MapContainer, TileLayer, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
@@ -47,34 +48,72 @@ function MapPanner({ position, recenterKey = 0 }: { position: LatLng; recenterKe
   return null;
 }
 
+// GPS Permission Popup — hiện khi GPS bị tắt hoặc từ chối
+// Tự biến mất khi hook phát hiện quyền được bật (Permissions API)
 // ─────────────────────────────────────────────────────────────
-// Error overlay — hiển thị khi GPS bị từ chối hoặc lỗi
-// ─────────────────────────────────────────────────────────────
-function MapErrorOverlay({ message }: { message: string }) {
+function MapErrorOverlay() {
   return (
     <div style={{
       position: 'absolute',
       inset: 0,
       zIndex: 800,
       display: 'flex',
-      flexDirection: 'column',
       alignItems: 'center',
       justifyContent: 'center',
-      gap: '12px',
-      background: 'rgba(244, 251, 241, 0.85)',
-      backdropFilter: 'blur(2px)',
+      padding: '24px',
     }}>
-      <span style={{ fontSize: '40px' }}>⚠️</span>
-      <p style={{
-        fontSize: '13px',
-        fontWeight: 600,
-        color: '#064e3b',
+      {/* Card trắng — map vẫn thấy phía sau */}
+      <div style={{
+        background: 'white',
+        borderRadius: '24px',
+        padding: '36px 24px 32px',
+        width: '100%',
+        maxWidth: '380px',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        gap: '16px',
+        boxShadow: '0 20px 48px rgba(0,0,0,0.14)',
         textAlign: 'center',
-        maxWidth: '260px',
-        letterSpacing: '-0.3px',
       }}>
-        {message}
-      </p>
+
+        {/* Icon GPS tắt trong vòng tròn hồng */}
+        <div style={{
+          width: '72px',
+          height: '72px',
+          borderRadius: '50%',
+          background: '#fde8e8',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          flexShrink: 0,
+        }}>
+          <MapPinOff size={32} color="#e53e3e" strokeWidth={2} />
+        </div>
+
+        {/* Tiêu đề */}
+        <h2 style={{
+          fontSize: '20px',
+          fontWeight: 800,
+          color: '#171d17',
+          lineHeight: 1.45,
+          margin: 0,
+          letterSpacing: '-0.5px',
+        }}>
+          位置情報へのアクセスが<br />拒否されました。
+        </h2>
+
+        {/* Mô tả */}
+        <p style={{
+          fontSize: '13px',
+          color: '#41493e',
+          lineHeight: 1.75,
+          margin: 0,
+          maxWidth: '300px',
+        }}>
+          付近の配車を探し、正確な乗車場所を提供するために、位置情報の許可が必要です。端末の設定から許可してください。
+        </p>
+      </div>
     </div>
   );
 }
@@ -149,7 +188,7 @@ export function MapView({ position, error, zoom = 15, recenterKey = 0, hasBottom
       {!position && !error && <MapLoadingOverlay />}
 
       {/* Error overlay — hiện khi GPS bị lỗi/từ chối */}
-      {error && <MapErrorOverlay message={error} />}
+      {error && <MapErrorOverlay />}
 
       <MapContainer
         center={center}

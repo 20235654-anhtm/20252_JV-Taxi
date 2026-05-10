@@ -1,53 +1,48 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 
-// Định nghĩa kiểu dữ liệu tọa độ
 export interface LatLng {
   lat: number;
   lng: number;
 }
 
-// Định nghĩa kiểu trả về của hook
 interface GeolocationState {
-  position: LatLng | null;   // Vị trí hiện tại (null nếu chưa lấy được)
-  error: string | null;       // Thông báo lỗi (null nếu không có lỗi)
-  loading: boolean;           // Đang chờ lấy vị trí hay không
+  position: LatLng | null;
+  error: string | null;
+  loading: boolean;
 }
 
 /**
- * Hook tự động lấy và theo dõi vị trí GPS của người dùng theo thời gian thực.
- * Sử dụng watchPosition để cập nhật liên tục khi user di chuyển.
+ * Hook theo dõi GPS theo thời gian thực.
+ * Tự động phát hiện khi user bật quyền GPS trong settings trình duyệt
+ * → popup lỗi tự biến mất, vị trí được lấy lại mà không cần reload.
  */
 export function useGeolocation(): GeolocationState {
   const [position, setPosition] = useState<LatLng | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError]       = useState<string | null>(null);
+  const [loading, setLoading]   = useState<boolean>(true);
+
+  // Giữ watchId trong ref để có thể clear và restart trong closure
+  const watchIdRef = useRef<number | null>(null);
 
   useEffect(() => {
-    // Kiểm tra trình duyệt có hỗ trợ Geolocation không
     if (!navigator.geolocation) {
       setError('Trình duyệt không hỗ trợ định vị GPS.');
       setLoading(false);
       return;
     }
 
-    // Tùy chọn cho Geolocation API
     const options: PositionOptions = {
-      enableHighAccuracy: true, // Dùng GPS chính xác cao (tốn pin hơn)
-      timeout: 10000,           // Chờ tối đa 10 giây
-      maximumAge: 0,            // Không dùng vị trí cache cũ
+      enableHighAccuracy: true,
+      timeout: 10000,
+      maximumAge: 0,
     };
 
-    // Callback khi lấy vị trí thành công
     const onSuccess = (pos: GeolocationPosition) => {
-      setPosition({
-        lat: pos.coords.latitude,
-        lng: pos.coords.longitude,
-      });
+      setPosition({ lat: pos.coords.latitude, lng: pos.coords.longitude });
       setLoading(false);
       setError(null);
     };
 
-    // Callback khi có lỗi
     const onError = (err: GeolocationPositionError) => {
       switch (err.code) {
         case err.PERMISSION_DENIED:
@@ -65,14 +60,49 @@ export function useGeolocation(): GeolocationState {
       setLoading(false);
     };
 
-    // watchPosition: tự động gọi lại onSuccess mỗi khi vị trí thay đổi
-    const watchId = navigator.geolocation.watchPosition(onSuccess, onError, options);
-
-    // Cleanup: hủy theo dõi khi component unmount
-    return () => {
-      navigator.geolocation.clearWatch(watchId);
+    // Hàm khởi động (hoặc khởi động lại) watchPosition
+    const startWatch = () => {
+      if (watchIdRef.current !== null) {
+        navigator.geolocation.clearWatch(watchIdRef.current);
+      }
+      watchIdRef.current = navigator.geolocation.watchPosition(onSuccess, onError, options);
     };
-  }, []); // [] nghĩa là chỉ chạy 1 lần khi component mount
+
+    startWatch();
+
+    // ── Permissions API: lắng nghe khi user bật GPS từ settings ──
+    // Khi permission thay đổi từ 'denied'/'prompt' → 'granted':
+    //   → tự restart watchPosition → onSuccess chạy → error = null → popup tắt
+    let permStatus: PermissionStatus | null = null;
+
+    const handlePermissionChange = () => {
+      if (permStatus?.state === 'granted') {
+        setError(null);
+        setLoading(true);
+        startWatch();
+      }
+    };
+
+    if (navigator.permissions) {
+      navigator.permissions
+        .query({ name: 'geolocation' })
+        .then(status => {
+          permStatus = status;
+          status.addEventListener('change', handlePermissionChange);
+        })
+        .catch(() => {
+          // Một số môi trường không hỗ trợ Permissions API → bỏ qua
+        });
+    }
+
+    return () => {
+      if (watchIdRef.current !== null) {
+        navigator.geolocation.clearWatch(watchIdRef.current);
+        watchIdRef.current = null;
+      }
+      permStatus?.removeEventListener('change', handlePermissionChange);
+    };
+  }, []);
 
   return { position, error, loading };
 }
