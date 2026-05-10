@@ -205,6 +205,8 @@ function BottomSheet(props: { navigate: (path: string) => void, gpsLocation: {la
   // State quản lý địa điểm đón và điểm đến
   const [pickupLocation, setPickupLocation] = useState("Đang tải vị trí...");
   const [destination, setDestination] = useState("");
+  const [pickupCoords, setPickupCoords] = useState<{lat: number, lng: number} | null>(null);
+  const [destinationCoords, setDestinationCoords] = useState<{lat: number, lng: number} | null>(null);
 
   // Autocomplete states
   const [pickupSuggestions, setPickupSuggestions] = useState<any[]>([]);
@@ -220,6 +222,7 @@ function BottomSheet(props: { navigate: (path: string) => void, gpsLocation: {la
           if (data && data.display_name) {
             const shortName = data.display_name.split(',').slice(0, 2).join(', ');
             setPickupLocation(shortName);
+            setPickupCoords({ lat: props.gpsLocation.lat, lng: props.gpsLocation.lng });
           }
         })
         .catch(() => setPickupLocation("Vị trí của bạn"));
@@ -231,7 +234,7 @@ function BottomSheet(props: { navigate: (path: string) => void, gpsLocation: {la
     if (activeInput === 'pickup' && pickupLocation.length > 2 && pickupLocation !== "Lotte Hotel Saigon") {
       const timer = setTimeout(async () => {
         try {
-          const res = await fetch(`http://localhost:5000/api/locations/search?q=${encodeURIComponent(pickupLocation)}`);
+          const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(pickupLocation)}&addressdetails=1&limit=5`);
           const data = await res.json();
           setPickupSuggestions(data);
         } catch (e) {
@@ -249,7 +252,7 @@ function BottomSheet(props: { navigate: (path: string) => void, gpsLocation: {la
     if (activeInput === 'destination' && destination.length > 2) {
       const timer = setTimeout(async () => {
         try {
-          const res = await fetch(`http://localhost:5000/api/locations/search?q=${encodeURIComponent(destination)}`);
+          const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(destination)}&addressdetails=1&limit=5`);
           const data = await res.json();
           setDestinationSuggestions(data);
         } catch (e) {
@@ -346,6 +349,7 @@ function BottomSheet(props: { navigate: (path: string) => void, gpsLocation: {la
                   className="px-4 py-2 hover:bg-[#eff6ec] cursor-pointer text-sm border-b border-gray-100 last:border-0"
                   onClick={() => {
                     setPickupLocation(item.display_name);
+                    setPickupCoords({ lat: parseFloat(item.lat), lng: parseFloat(item.lon) });
                     setActiveInput(null);
                   }}
                   style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", color: "#3d4a3f", textAlign: 'left' }}
@@ -414,6 +418,7 @@ function BottomSheet(props: { navigate: (path: string) => void, gpsLocation: {la
                 className="px-4 py-2 hover:bg-[#eff6ec] cursor-pointer text-sm border-b border-gray-100 last:border-0"
                 onClick={() => {
                   setDestination(item.display_name);
+                  setDestinationCoords({ lat: parseFloat(item.lat), lng: parseFloat(item.lon) });
                   setActiveInput(null);
                 }}
                 style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", color: "#3d4a3f" }}
@@ -434,12 +439,16 @@ function BottomSheet(props: { navigate: (path: string) => void, gpsLocation: {la
       <button
         onClick={(e) => {
           e.preventDefault();
-          props.navigate('/guest/search-location');
+          props.navigate('/guest/search-location', { 
+            state: { pickupLocation, destination, pickupCoords, destinationCoords } 
+          });
         }}
         onTouchStart={(e) => {
           // Fix cho một số trình duyệt mobile không nhận onClick
           e.preventDefault();
-          props.navigate('/guest/search-location');
+          props.navigate('/guest/search-location', { 
+            state: { pickupLocation, destination, pickupCoords, destinationCoords } 
+          });
         }}
         style={{
           position: "relative",
