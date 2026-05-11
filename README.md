@@ -60,40 +60,34 @@ Dưới đây là hướng dẫn để các thành viên trong team clone source
 Dự án sử dụng `react-router-dom` để quản lý điều hướng. Các route được định nghĩa tại `frontend/src/routes/index.tsx` và chia thành 2 luồng chính:
 
 ### Luồng cho Khách (Guest - Chưa đăng nhập)
-| Đường dẫn (URL) | Component (`src/pages/guest/`) | Mô tả |
-| :--- | :--- | :--- |
-| `/` | `GuestHome.tsx` | Trang chủ dành cho khách. |
-| `/guest/search-location` | `GuestSearchLocation.tsx` | Trang tìm và chọn điểm đến cho khách. |
-| `/login` | `SignIn.tsx` | Màn hình đăng nhập. |
-| `/signup` | `SignUpSelection.tsx` | Màn hình chọn vai trò đăng ký. |
-| `/signup/passenger` | `PassengerSignUp.tsx` | Màn hình đăng ký cho hành khách. |
-| `/signup/driver` | `DriverSignUp.tsx` | Màn hình đăng ký cho tài xế. |
+
+| Đường dẫn (URL)          | Component (`src/pages/guest/`) | Mô tả                                 |
+| :----------------------- | :----------------------------- | :------------------------------------ |
+| `/`                      | `GuestHome.tsx`                | Trang chủ dành cho khách.             |
+| `/guest/search-location` | `GuestSearchLocation.tsx`      | Trang tìm và chọn điểm đến cho khách. |
+| `/login`                 | `SignIn.tsx`                   | Màn hình đăng nhập.                   |
+| `/signup`                | `SignUpSelection.tsx`          | Màn hình chọn vai trò đăng ký.        |
+| `/signup/passenger`      | `PassengerSignUp.tsx`          | Màn hình đăng ký cho hành khách.      |
+| `/signup/driver`         | `DriverSignUp.tsx`             | Màn hình đăng ký cho tài xế.          |
 
 ### Luồng cho Hành Khách (Passenger - Đã đăng nhập)
-| Đường dẫn (URL) | Component (`src/pages/passenger/`) | Mô tả |
-| :--- | :--- | :--- |
-| `/passenger` | `PassengerHome.tsx` | Trang chủ dành cho hành khách. |
-| `/passenger/search-location`| `SearchLocation.tsx` | Trang tìm, chọn điểm đến để bắt xe. |
-| `/passenger/booking-options`| `BookingOptions.tsx` | Trang chọn phương thức ghép cuốc. |
-| `/passenger/select-driver` | `SelectDriver.tsx` | Trang hiển thị danh sách tài xế. |
-| `/passenger/driver-detail` | `DriverDetail.tsx` | Trang xem chi tiết một tài xế. |
-| `/passenger/profile`       | `Profile.tsx`      | Trang thông tin cá nhân và đăng xuất. |
+
+| Đường dẫn (URL)              | Component (`src/pages/passenger/`) | Mô tả                                 |
+| :--------------------------- | :--------------------------------- | :------------------------------------ |
+| `/passenger`                 | `PassengerHome.tsx`                | Trang chủ dành cho hành khách.        |
+| `/passenger/search-location` | `SearchLocation.tsx`               | Trang tìm, chọn điểm đến để bắt xe.   |
+| `/passenger/booking-options` | `BookingOptions.tsx`               | Trang chọn phương thức ghép cuốc.     |
+| `/passenger/select-driver`   | `SelectDriver.tsx`                 | Trang hiển thị danh sách tài xế.      |
+| `/passenger/driver-detail`   | `DriverDetail.tsx`                 | Trang xem chi tiết một tài xế.        |
+| `/passenger/profile`         | `Profile.tsx`                      | Trang thông tin cá nhân và đăng xuất. |
 
 ---
 
 ## 4. Lưu ý quan quan trọng về Prisma 7 & Supabase
 
-Dự án hiện tại đang sử dụng **Prisma 7**. Để đẩy schema lên Supabase mà không bị lỗi treo hoặc lỗi quyền hạn:
-
-1.  **Cấu hình .env**: File `.env` của bạn cần cả `DATABASE_URL` (cho ứng dụng) và `DIRECT_URL` (cho các lệnh Prisma).
-2.  **Lệnh đẩy Schema**: Sử dụng lệnh sau để tránh lỗi kết nối:
-    ```bash
-    npx prisma db push
-    ```
-3.  **Seed dữ liệu**: Để nạp dữ liệu mẫu khu vực Bách Khoa:
-    ```bash
-    npm run db:seed
-    ```
+1. Di chuyển vào thư mục `backend`
+2. Chạy `npx prisma generate`
+3. Muốn khởi tạo dữ liệu mock, sử dụng file `seed.ts` và câu lệnh `npm run db:seed`
 
 ## Git & File bỏ qua (.gitignore)
 
