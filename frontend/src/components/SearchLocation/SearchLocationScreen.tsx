@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Header from './Header';
 import LocationInputGroup from './LocationInputGroup';
@@ -8,109 +8,189 @@ import LocationPermissionPopup from './LocationPermissionPopup';
 import { useWatchLocation } from '../../hooks/useWatchLocation';
 import { Button } from '../ui/Button';
 import { ArrowRight } from 'lucide-react';
+import { AuthRequiredSheet } from '../features/AuthRequiredSheet';
+import { reverseGeocode, useLocationSuggestions } from '../../hooks/useLocationSuggestions';
+import { useBooking } from '../../contexts/BookingContext';
 import './SearchLocation.css';
 
 // Mock data for recent history
 const mockHistory: HistoryItem[] = [
   {
     id: '1',
-    name: 'ロイヤルシティ',
-    address: 'ハノイ市、タンスアン区、タンスアン坊、グエンチャイ通り72番'
+    name: 'Royal City',
+    address: '72A Nguyễn Trãi, Thượng Đình, Thanh Xuân, Hà Nội',
+    coords: { lat: 21.0028, lng: 105.8152 }
   },
   {
     id: '2',
-    name: 'ビンコムセンター・ファムゴックタック',
-    address: 'ハノイ市、ドンダー区、キムリエン坊、ファムゴックタック通り2番地'
+    name: 'Lotte Center',
+    address: '54 Liễu Giai, Cống Vị, Ba Đình, Hà Nội',
+    coords: { lat: 21.0313, lng: 105.8152 }
   },
   {
     id: '3',
-    name: '国立映画センター',
-    address: 'ハノイ市、ドンダー区、オチョズア坊、ランハ通り87番地'
+    name: 'Hanoi Opera House',
+    address: '1 Tràng Tiền, Phan Chu Trinh, Hoàn Kiếm, Hà Nội',
+    coords: { lat: 21.0242, lng: 105.8584 }
   }
 ];
 
 interface SearchLocationScreenProps {
   isGuest?: boolean;
+  initialSearch?: string;
 }
 
-const SearchLocationScreen: React.FC<SearchLocationScreenProps> = ({ isGuest = false }) => {
+const SearchLocationScreen: React.FC<SearchLocationScreenProps> = ({
+  isGuest = false,
+  initialSearch = ''
+}) => {
   const navigate = useNavigate();
-  const [destination, setDestination] = useState('');
-  
-  const [origin, setOrigin] = useState('');
-  
-  // Use custom hook to watch location
-  const location = useWatchLocation();
-  
-  const hasInitializedOrigin = React.useRef(false);
-  
-  React.useEffect(() => {
-    if (hasInitializedOrigin.current) return;
+  const [isAuthSheetOpen, setIsAuthSheetOpen] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-    if (location.latitude && location.longitude) {
-      setOrigin('ハノイ工科大学'); // Mocked address from GPS
-      hasInitializedOrigin.current = true;
-    } else if (location.error && !location.permissionDenied) {
-      setOrigin('位置情報を取得できません');
-      hasInitializedOrigin.current = true;
+  // Sử dụng Global State thay vì Local State
+  const { 
+    pickup, setPickup, 
+    destination, setDestination, 
+    hasAutoFilledPickup, setHasAutoFilledPickup 
+  } = useBooking();
+
+  const { suggestions: initialSuggestions } = useLocationSuggestions(initialSearch);
+  const location = useWatchLocation();
+
+  // 1. Phân giải tọa độ cho initialSearch nếu có (từ trang chủ truyền sang)
+  useEffect(() => {
+    // Chỉ ghi đè destination nếu hiện tại chưa có destination (để không đè mất kết quả cũ khi back lại)
+    if (initialSearch && !destination && initialSuggestions && initialSuggestions.length > 0) {
+      const first = initialSuggestions[0];
+      setDestination({
+        address: initialSearch,
+        coords: { lat: first.coordinates[1], lng: first.coordinates[0] }
+      });
     }
-  }, [location.latitude, location.longitude, location.error, location.permissionDenied]);
+  }, [initialSearch, initialSuggestions, destination, setDestination]);
+
+  // 2. Logic GPS CHỈ chạy 1 lần duy nhất lúc mới vào app
+  useEffect(() => {
+    const autoFillGPS = async () => {
+      // Nếu chưa từng điền GPS VÀ đã có tọa độ
+      if (!hasAutoFilledPickup && location.latitude && location.longitude) {
+        // Gán chữ hiển thị tạm trong lúc chờ
+        setPickup({ address: '位置情報取得中...', coords: null });
+        
+        // Gọi API lấy địa chỉ chữ
+        const address = await reverseGeocode(location.latitude, location.longitude);
+        
+        // Cập nhật đầy đủ tọa độ & chữ, sau đó bật cờ "đã điền"
+        setPickup({
+          address: address,
+          coords: { lat: location.latitude, lng: location.longitude }
+        });
+        setHasAutoFilledPickup(true);
+      } else if (!hasAutoFilledPickup && location.permissionDenied) {
+        setPickup({ address: 'Vị trí bị chặn (Hãy bật GPS)', coords: null });
+        setHasAutoFilledPickup(true); // Đánh dấu đã xử lý xong để khỏi lặp lại
+      }
+    };
+
+    autoFillGPS();
+  }, [location.latitude, location.longitude, location.permissionDenied, hasAutoFilledPickup, setPickup, setHasAutoFilledPickup]);
 
   const handleBackClick = () => {
-    setDestination(''); // Hủy nội dung đang nhập
-    setOrigin('');
-
+    // KHÔNG xóa destination/origin nữa để giữ nguyên State khi quay lại
     if (isGuest) {
-      navigate('/'); // Về trang chủ Guest
+      navigate('/');
     } else {
-      navigate('/passenger'); // Về trang chủ Passenger
+      navigate('/passenger');
     }
   };
 
   const handleDestinationSelect = (item: HistoryItem) => {
-    setDestination(item.name);
-    // Auto navigate to confirm route screen as required
-    // setTimeout(() => navigate('/confirm-route'), 300);
+    setDestination({
+      address: item.name,
+      coords: item.coords || null
+    });
+    setErrorMessage(null); // Xóa lỗi khi chọn hợp lệ
   };
 
   const handleNext = () => {
-    if (destination.trim()) {
+    // Xóa thông báo lỗi cũ
+    setErrorMessage(null);
+
+    // 1. Kiểm tra xem đã có chữ chưa
+    if (!destination?.address.trim()) {
+      return;
+    }
+
+    // 2. KIỂM TRA TỌA ĐỘ: Bắt buộc phải có tọa độ mới được đi tiếp
+    if (!pickup?.coords) {
+      setErrorMessage('現在地を正しく選択してください。(Vui lòng chọn Điểm đón từ danh sách gợi ý)');
+      return;
+    }
+
+    if (!destination?.coords) {
+      setErrorMessage('目的地を正しく選択してください。(Vui lòng chọn Điểm đến từ danh sách gợi ý)');
+      return;
+    }
+
+    // Nếu qua được các bước trên -> Có tọa độ thật
+    if (isGuest) {
+      setIsAuthSheetOpen(true);
+    } else {
       navigate('/passenger/booking-options');
-      console.log('Proceed to next with destination:', destination);
     }
   };
 
   return (
     <div className="sl-container">
       <Header isGuest={isGuest} onBackClick={handleBackClick} />
-      
+
       <div className="sl-content">
-        <LocationInputGroup 
-          origin={origin}
-          onOriginChange={setOrigin} 
-          destination={destination}
-          onDestinationChange={setDestination}
+        <LocationInputGroup
+          origin={pickup?.address || ''}
+          onOriginChange={(val, coords) => {
+            setPickup({ 
+              address: val, 
+              coords: coords ? { lat: coords[1], lng: coords[0] } : null 
+            });
+            setErrorMessage(null); // Xóa lỗi khi người dùng bắt đầu sửa
+          }}
+          destination={destination?.address || ''}
+          onDestinationChange={(val, coords) => {
+            setDestination({ 
+              address: val, 
+              coords: coords ? { lat: coords[1], lng: coords[0] } : null 
+            });
+            setErrorMessage(null); // Xóa lỗi khi người dùng bắt đầu sửa
+          }}
         />
-        
-        <StaticMapPreview 
-          latitude={location.latitude} 
-          longitude={location.longitude} 
-          loading={location.loading} 
+
+        {/* HIỂN THỊ THÔNG BÁO LỖI NẾU CÓ */}
+        {errorMessage && (
+          <div className="px-4 py-2 mt-2 mx-4 text-sm font-medium text-red-600 bg-red-50 rounded-md border border-red-200">
+            {errorMessage}
+          </div>
+        )}
+
+        <StaticMapPreview
+          latitude={location.latitude}
+          longitude={location.longitude}
+          loading={location.loading}
         />
-        
+
         {!isGuest && (
-          <RecentHistory 
-            history={mockHistory} 
-            onSelect={handleDestinationSelect} 
+          <RecentHistory
+            history={mockHistory}
+            onSelect={handleDestinationSelect}
           />
         )}
       </div>
 
       <div className="sl-next-btn-container">
-        <Button 
-          variant="primary" 
+        <Button
+          variant="primary"
           fullWidth
-          disabled={!destination.trim()}
+          disabled={!destination?.address?.trim()}
           onClick={handleNext}
           className="sl-next-btn"
           icon={ArrowRight}
@@ -121,6 +201,11 @@ const SearchLocationScreen: React.FC<SearchLocationScreenProps> = ({ isGuest = f
       </div>
 
       <LocationPermissionPopup isOpen={location.permissionDenied} />
+
+      <AuthRequiredSheet
+        isOpen={isAuthSheetOpen}
+        onClose={() => setIsAuthSheetOpen(false)}
+      />
     </div>
   );
 };

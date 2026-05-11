@@ -203,6 +203,17 @@
   background: linear-gradient(to right, var(--color-primary), var(--color-primary-light));
 }
 
+#root {
+  width: 1126px;
+  max-width: 100%;
+  margin: 0 auto;
+  text-align: left;
+  min-height: 100svh;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+}
+
 .gradient-overlay {
   background: linear-gradient(to top, var(--color-bg-primary), rgba(244, 251, 241, 0));
 }

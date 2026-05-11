@@ -1,17 +1,37 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { MapView } from '../../components/features/MapView';
 import { Header } from '../../components/layout/Header';
 import { BottomNavBar } from '../../components/layout/BottomNavBar';
 import type { NavTab } from '../../components/layout/BottomNavBar';
 import { FAB } from '../../components/ui/FAB';
 import { useGeolocation } from '../../hooks/useGeolocation';
+import { QuickBookingCard } from '../../components/features/QuickBookingCard';
+import { useBooking } from '../../contexts/BookingContext';
 
 const PassengerHome = () => {
+  const navigate = useNavigate();
   const { position, error } = useGeolocation();
+  const { destination, setDestination } = useBooking();
 
   const [activeTab, setActiveTab] = useState<NavTab>('home');
   const [currentLang, setCurrentLang] = useState<'jp' | 'vn'>('jp');
   const [recenterKey, setRecenterKey] = useState(0);
+  
+  // Khởi tạo ô nhập bằng địa điểm đã lưu trong Context (nếu có)
+  const [destinationInput, setDestinationInput] = useState(destination?.address || '');
+
+  // Xử lý nút đặt xe
+  const handleBookNow = () => {
+    if (destinationInput.trim()) {
+      // Lưu địa điểm vào Global State với tọa độ rỗng (để trang Search tự động phân giải)
+      setDestination({ address: destinationInput, coords: null });
+      // Chuyển sang trang Search, báo cho trang đó biết là cần tự động phân giải tọa độ
+      navigate('/passenger/search-location', { state: { initialSearch: destinationInput } });
+    } else {
+      navigate('/passenger/search-location');
+    }
+  };
 
   // TODO: thay bằng avatar thực từ user profile khi có auth
   const userAvatar = 'https://i.pravatar.cc/150?img=3';
@@ -42,19 +62,23 @@ const PassengerHome = () => {
         />
       </div>
 
-      {/*
-        ── FAB: nút re-center ──
-        Vị trí: phải góc map, dưới header 32px
-        = top: 64px (header) + 32px (gap) = 96px
-        right: 16px
-        z-index phải cao hơn map (800) nhưng thấp hơn header (1000)
-      */}
+      {/* ── Lớp phủ Gradient phía dưới để làm nền cho Card & Nav ── */}
+      <div className="absolute bottom-0 left-0 right-0 h-[400px] gradient-sheet pointer-events-none z-[1010]" />
+
+      <QuickBookingCard
+        userName="佐藤"
+        destinationValue={destinationInput}
+        setDestinationValue={setDestinationInput}
+        onBookNow={handleBookNow}
+      />
+
+      {/* ── FAB: Nút re-center (vị trí mặc định top-24 right-4) ── */}
       <FAB
         onClick={() => setRecenterKey(k => k + 1)}
         ariaLabel="現在地に戻る"
       />
 
-      {/* ── BottomNavBar: điều hướng giữa các tab ── */}
+      {/* ── BottomNavBar ── */}
       <BottomNavBar
         activeTab={activeTab}
         onTabChange={handleTabChange}
