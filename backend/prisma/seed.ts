@@ -2,22 +2,19 @@ import bcrypt from 'bcryptjs';
 import prisma from '../src/config/db';
 
 async function main() {
-  console.log('--- Bắt đầu Seed dữ liệu khu vực Bách Khoa (Bản sửa lỗi TS) ---');
+  console.log('--- Bắt đầu Seed/Update dữ liệu (Cơ chế Upsert) ---');
 
   try {
-    // 1. Tạm thời tắt kiểm tra khóa ngoại (nếu cần)
+    // 1. Tạm thời tắt kiểm tra khóa ngoại (để đảm bảo tính nhất quán khi cập nhật)
     await prisma.$executeRawUnsafe('SET session_replication_role = \'replica\';');
 
-    // 2. Không xóa dữ liệu cũ nữa
-    console.log('Bỏ qua bước vệ sinh dữ liệu cũ. Đang kiểm tra và thêm mới...');
-
-    // 3. Dữ liệu Tài xế (Dùng ID hex)
+    // 2. Dữ liệu Tài xế
     const drivers = [
       {
         id: '11111111-1111-1111-1111-111111111111',
         name: "Nguyễn Văn Nam (Taxi Vios)",
         phone: "0911111111",
-        lat: 21.0065, lng: 105.8458, // Cổng Parabol
+        lat: 21.0065, lng: 105.8458,
         car: "TOYOTA VIOS • WHITE • 29A-123.45",
         type: "CAR_4_SEATS",
         rating: 4.9, isOnline: true, isBusy: false,
@@ -27,7 +24,7 @@ async function main() {
         id: '11111111-1111-1111-1111-222222222222',
         name: "Trần Thị Mai (Mazda 3)",
         phone: "0922222222",
-        lat: 21.0045, lng: 105.8430, // Thư viện Tạ Quang Bửu
+        lat: 21.0045, lng: 105.8430,
         car: "MAZDA 3 • RED • 30F-555.66",
         type: "CAR_4_SEATS",
         rating: 4.8, isOnline: true, isBusy: false,
@@ -37,90 +34,70 @@ async function main() {
         id: '11111111-1111-1111-1111-333333333333',
         name: "Lê Hoàng Long (Honda SH)",
         phone: "0933333333",
-        lat: 21.0055, lng: 105.8420, // Hồ Tiền Phong
+        lat: 21.0055, lng: 105.8420,
         car: "HONDA SH • BLACK • 29G1-999.99",
         type: "MOTORBIKE",
         rating: 4.5, isOnline: true, isBusy: false,
         avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=160&h=160&fit=crop&crop=face"
+      },
+      {
+        id: '11111111-1111-1111-1111-444444444444',
+        name: "Phạm Minh Đức (Ga Minh Khai)",
+        phone: "0944444444",
+        lat: 21.0588, lng: 105.7485,
+        car: "VINFAST VF8 • BLUE • 30H-888.88",
+        type: "CAR_4_SEATS",
+        rating: 4.9, isOnline: true, isBusy: false,
+        avatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=160&h=160&fit=crop&crop=face"
       }
     ];
 
-    // 4. Dữ liệu Khách hàng
+    // 3. Dữ liệu Khách hàng
     const customers = [
       { id: '22222222-2222-2222-2222-111111111111', name: "Sinh Viên Bách Khoa", phone: "0988888888", email: "sinhvien@bk.edu.vn", password: "12345678" },
       { id: '22222222-2222-2222-2222-222222222222', name: "Giảng Viên HUST", phone: "0977777777", email: "giangvien@hust.edu.vn", password: "12345678" }
     ];
 
+    // Upsert Profiles Khách hàng
     for (const c of customers) {
-      const existing = await prisma.profile.findUnique({ where: { id: c.id } });
-      if (!existing) {
-        const passwordHash = await bcrypt.hash(c.password, 10);
-        await prisma.$executeRawUnsafe(`INSERT INTO "profiles" ("id", "full_name", "phone", "email", "password_hash", "role", "status") VALUES ('${c.id}'::uuid, '${c.name}', '${c.phone}', '${c.email}', '${passwordHash}', 'CUSTOMER', 'ACTIVE');`);
-        await prisma.$executeRawUnsafe(`INSERT INTO "payment_methods" ("id", "user_id", "card_details", "is_default") VALUES (uuid_generate_v4(), '${c.id}'::uuid, 'Thẻ ATM **** 9999', true);`);
-        console.log(`Đã tạo khách hàng: ${c.name}`);
-      } else {
-        console.log(`Khách hàng đã tồn tại: ${c.name}`);
-      }
+      await prisma.$executeRawUnsafe(`
+        INSERT INTO "profiles" ("id", "full_name", "phone", "role", "status") 
+        VALUES ('${c.id}'::uuid, '${c.name}', '${c.phone}', 'CUSTOMER', 'ACTIVE')
+        ON CONFLICT (id) DO UPDATE SET "full_name" = EXCLUDED."full_name", "phone" = EXCLUDED."phone";
+      `);
+      
+      // Chèn phương thức thanh toán nếu chưa có
+      await prisma.$executeRawUnsafe(`
+        INSERT INTO "payment_methods" ("id", "user_id", "card_details", "is_default") 
+        VALUES (uuid_generate_v4(), '${c.id}'::uuid, 'Thẻ ATM **** 9999', true)
+        ON CONFLICT DO NOTHING;
+      `);
     }
 
+    // Upsert Profiles & DriverProfiles Tài xế
     for (const d of drivers) {
-      const existing = await prisma.profile.findUnique({ where: { id: d.id } });
-      if (!existing) {
-        await prisma.$executeRawUnsafe(`INSERT INTO "profiles" ("id", "full_name", "phone", "role", "status") VALUES ('${d.id}'::uuid, '${d.name}', '${d.phone}', 'DRIVER', 'ACTIVE');`);
-        await prisma.$executeRawUnsafe(`INSERT INTO "driver_profiles" ("user_id", "average_rating", "is_online", "is_busy", "is_approved", "vehicle_type", "vehicle_infor", "driving_license_infor", "avatar_picture", "current_location") VALUES ('${d.id}'::uuid, ${d.rating}, ${d.isOnline}, ${d.isBusy}, true, '${d.type}', '${d.car}', 'LICENSE-${d.phone}', '${d.avatar}', ST_SetSRID(ST_MakePoint(${d.lng}, ${d.lat}), 4326)::geography);`);
-        console.log(`Đã tạo tài xế: ${d.name}`);
-      } else {
-        console.log(`Tài xế đã tồn tại: ${d.name}`);
-      }
+      await prisma.$executeRawUnsafe(`
+        INSERT INTO "profiles" ("id", "full_name", "phone", "role", "status") 
+        VALUES ('${d.id}'::uuid, '${d.name}', '${d.phone}', 'DRIVER', 'ACTIVE')
+        ON CONFLICT (id) DO UPDATE SET "full_name" = EXCLUDED."full_name", "phone" = EXCLUDED."phone";
+      `);
+
+      await prisma.$executeRawUnsafe(`
+        INSERT INTO "driver_profiles" ("user_id", "average_rating", "is_online", "is_busy", "is_approved", "vehicle_type", "vehicle_infor", "driving_license_infor", "avatar_picture", "current_location") 
+        VALUES ('${d.id}'::uuid, ${d.rating}, ${d.isOnline}, ${d.isBusy}, true, '${d.type}', '${d.car}', 'LICENSE-${d.phone}', '${d.avatar}', ST_SetSRID(ST_MakePoint(${d.lng}, ${d.lat}), 4326)::geography)
+        ON CONFLICT (user_id) DO UPDATE SET 
+          "average_rating" = EXCLUDED."average_rating",
+          "is_online" = EXCLUDED."is_online",
+          "vehicle_infor" = EXCLUDED."vehicle_infor",
+          "current_location" = EXCLUDED."current_location";
+      `);
+      console.log(`Đã cập nhật/tạo tài xế: ${d.name}`);
     }
 
-    // 5. Lịch sử chuyến đi mẫu
-    const sampleRides = [
-      {
-        id: '33333333-3333-3333-3333-111111111111',
-        passenger: customers[0]!.id, driver: drivers[0]!.id,
-        start: 'Ký túc xá Bách Khoa', end: 'Times City',
-        s_lng: 105.8460, s_lat: 21.0035, e_lng: 105.8675, e_lat: 20.9950,
-        fee: 65000, status: 'COMPLETED'
-      },
-      {
-        id: '33333333-3333-3333-3333-222222222222',
-        passenger: customers[0]!.id, driver: drivers[1]!.id,
-        start: 'Số 1 Đại Cồ Việt', end: 'Vincom Bà Triệu',
-        s_lng: 105.8465, s_lat: 21.0105, e_lng: 105.8492, e_lat: 21.0125,
-        fee: 30000, status: 'COMPLETED'
-      },
-      {
-        id: '33333333-3333-3333-3333-333333333333',
-        passenger: customers[1]!.id, driver: drivers[2]!.id,
-        start: 'Nhà C1 Bách Khoa', end: 'Ga Hà Nội',
-        s_lng: 105.8435, s_lat: 21.0050, e_lng: 105.8405, e_lat: 21.0160,
-        fee: 25000, status: 'COMPLETED'
-      }
-    ];
-
-    for (const r of sampleRides) {
-      const existing = await prisma.ride.findUnique({ where: { id: r.id } });
-      if (!existing) {
-        await prisma.$executeRawUnsafe(`
-          INSERT INTO "rides" ("id", "passenger_id", "driver_id", "start_address", "end_address", "start_location", "end_location", "match_fee", "status")
-          VALUES ('${r.id}'::uuid, '${r.passenger}'::uuid, '${r.driver}'::uuid, '${r.start}', '${r.end}', 
-                  ST_SetSRID(ST_MakePoint(${r.s_lng}, ${r.s_lat}), 4326)::geography, 
-                  ST_SetSRID(ST_MakePoint(${r.e_lng}, ${r.e_lat}), 4326)::geography, ${r.fee}, '${r.status}');
-        `);
-        
-        // Thêm đánh giá
-        await prisma.$executeRawUnsafe(`INSERT INTO "reviews" ("id", "ride_id", "reviewer_id", "driver_id", "star_review", "comment_review") VALUES (uuid_generate_v4(), '${r.id}'::uuid, '${r.passenger}'::uuid, '${r.driver}'::uuid, 5, 'Dịch vụ tuyệt vời, tài xế rất thân thiện!');`);
-        console.log(`Đã tạo chuyến đi mẫu: ${r.id}`);
-      } else {
-        console.log(`Chuyến đi đã tồn tại: ${r.id}`);
-      }
-    }
-
-    // 6. Bật lại kiểm tra khóa ngoại
+    // 4. Bật lại kiểm tra khóa ngoại
     await prisma.$executeRawUnsafe('SET session_replication_role = \'origin\';');
+    console.log('--- Seed hoàn tất (Dữ liệu cũ được giữ lại và cập nhật)! ---');
 
-    console.log('--- Seed hoàn tất thành công! ---');
   } catch (error) {
     await prisma.$executeRawUnsafe('SET session_replication_role = \'origin\';');
     console.error('Lỗi khi seed dữ liệu:', error);
@@ -128,11 +105,4 @@ async function main() {
   }
 }
 
-main()
-  .catch((e) => {
-    console.error(e);
-    process.exit(1);
-  })
-  .finally(async () => {
-    await prisma.$disconnect();
-  });
+main().catch((e) => { console.error(e); process.exit(1); }).finally(async () => { await prisma.$disconnect(); });

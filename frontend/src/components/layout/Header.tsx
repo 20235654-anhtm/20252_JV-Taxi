@@ -45,7 +45,7 @@ export const Header: React.FC<HeaderProps> = ({
             </button>
           )}
 
-          {/* Avatar (Passenger variant) */}
+          {/* Avatar (Left side - ONLY for Passenger) */}
           {variant === 'passenger' && !showBackButton && userAvatar && (
             <Avatar 
               src={userAvatar} 
@@ -54,8 +54,8 @@ export const Header: React.FC<HeaderProps> = ({
             />
           )}
 
-          {/* Logo: Guest variant → bên TRÁI */}
-          {variant === 'guest' && !title && (
+          {/* Logo (Left side - for Guest and Auth/Driver) */}
+          {(variant === 'guest' || variant === 'auth') && !title && (
             <div className="flex flex-col font-['Plus_Jakarta_Sans:ExtraBold',sans-serif] font-extrabold h-7 justify-center leading-[0] text-[#064e3b] text-xl tracking-[-0.5px]">
               <p className="leading-7">JV – Taxi</p>
             </div>
@@ -71,8 +71,8 @@ export const Header: React.FC<HeaderProps> = ({
           )}
         </div>
 
-        {/* Center Section - Logo: Passenger/Auth variant → GIỮA tuyệt đối */}
-        {!title && variant !== 'guest' && (
+        {/* Center Section - Logo (Center - ONLY for Passenger) */}
+        {!title && variant === 'passenger' && (
           <div className="absolute left-1/2 -translate-x-1/2 flex items-center">
             <div className="flex flex-col font-['Plus_Jakarta_Sans:ExtraBold',sans-serif] font-extrabold h-7 justify-center leading-[0] text-[#064e3b] text-xl tracking-[-0.5px]">
               <p className="leading-7">JV – Taxi</p>
@@ -84,6 +84,15 @@ export const Header: React.FC<HeaderProps> = ({
         <div className="flex items-center gap-3">
           {/* Custom Right Content */}
           {rightContent}
+
+          {/* Avatar (Right side - ONLY for Auth/Driver) */}
+          {variant === 'auth' && !showBackButton && userAvatar && (
+            <Avatar 
+              src={userAvatar} 
+              alt="User avatar" 
+              borderColor="#27ae60"
+            />
+          )}
 
           {/* Login/Signup Buttons (Guest variant) */}
           {variant === 'guest' && (

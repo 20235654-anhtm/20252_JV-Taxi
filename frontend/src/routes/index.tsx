@@ -21,6 +21,10 @@ import DriverHome from '../pages/driver/DriverHome';
 
 import PrivateRoute from '../components/PrivateRoute';
 import PublicRoute from '../components/PublicRoute';
+import WaitingDriver from '../pages/passenger/WaitingDriver';
+
+// Driver Pages
+import DriverDashboard from '../pages/driver/DriverDashboard';
 
 const AppRoutes = () => {
   return (
@@ -43,6 +47,23 @@ const AppRoutes = () => {
 
       {/* ======================= DRIVER FLOW (AUTHENTICATED) ======================= */}
       <Route path="/driver" element={<PrivateRoute><DriverHome /></PrivateRoute>} />
+      <Route path="/" element={<GuestHome />} />
+      <Route path="/guest/search-location" element={<GuestSearchLocation />} />
+      <Route path="/login" element={<SignIn />} />
+      <Route path="/signup" element={<SignUpSelection />} />
+      <Route path="/signup/passenger" element={<PassengerSignUp />} />
+      <Route path="/signup/driver" element={<DriverSignUp />} />
+
+      {/* PASSENGER FLOW */}
+      <Route path="/passenger" element={<PassengerHome />} />
+      <Route path="/passenger/search-location" element={<SearchLocation />} />
+      <Route path="/passenger/booking-options" element={<BookingOptions />} />
+      <Route path="/passenger/select-driver" element={<SelectDriver />} />
+      <Route path="/passenger/driver-detail" element={<DriverDetail />} />
+      <Route path="/passenger/waiting-driver" element={<WaitingDriver />} />
+
+      {/* DRIVER FLOW */}
+      <Route path="/driver" element={<DriverDashboard />} />
     </Routes>
   );
 };

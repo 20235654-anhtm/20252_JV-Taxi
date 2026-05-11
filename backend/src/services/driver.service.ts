@@ -68,6 +68,36 @@ export const getNearbyDrivers = async (
 };
 
 /**
+ * Fetch all online and available drivers
+ */
+export const getAllDrivers = async (): Promise<NearbyDriverResult[]> => {
+  try {
+    const drivers = await prisma.$queryRaw<NearbyDriverResult[]>`
+      SELECT 
+        dp."user_id",
+        p."full_name",
+        dp."average_rating",
+        dp."vehicle_type",
+        dp."vehicle_infor",
+        dp."avatar_picture",
+        0 as distance
+      FROM "driver_profiles" dp
+      INNER JOIN "profiles" p ON dp."user_id" = p."id"
+      WHERE 
+        dp."is_online" = true 
+        AND dp."is_busy" = false 
+        AND dp."is_approved" = true
+      ORDER BY dp."average_rating" DESC;
+    `;
+
+    return drivers;
+  } catch (error) {
+    console.error("Error fetching all drivers:", error);
+    throw new Error("Could not fetch driver list");
+  }
+};
+
+/**
  * Fetch nearby drivers using mock data (for development/testing without DB)
  */
 export const getNearbyDriversMock = async (): Promise<any[]> => {
