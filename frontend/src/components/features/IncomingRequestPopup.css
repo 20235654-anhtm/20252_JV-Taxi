@@ -1,0 +1,257 @@
+.irp-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  bottom: 73px;
+  background: rgba(0, 0, 0, 0.4);
+  z-index: 2000;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
+
+.irp-container {
+  width: 100%;
+  max-width: 390px;
+  padding: 12px 24px 32px !important;
+  box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.1) !important;
+  animation: slideUp 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes slideUp {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+
+.irp-drag-handle {
+  width: 48px;
+  height: 6px;
+  background: #EEF6EA;
+  border-radius: 3px;
+  margin: 0 auto 24px;
+}
+
+.irp-header-section {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.irp-badge {
+  color: #27AE60;
+  font-size: 14px;
+  font-weight: 800;
+  display: block;
+  margin-bottom: 4px;
+}
+
+.irp-title {
+  margin: 0 !important;
+}
+
+.irp-fare-card {
+  background: #27AE60 !important;
+  padding: 10px 16px !important;
+  color: white !important;
+  text-align: center;
+  min-width: 110px;
+  box-shadow: 0 8px 16px rgba(39, 174, 96, 0.2) !important;
+}
+
+.irp-fare-label {
+  font-size: 11px;
+  opacity: 0.9;
+  display: block;
+  margin-bottom: 2px;
+}
+
+.irp-fare-amount {
+  font-size: 18px;
+  font-weight: 800;
+}
+
+/* CARDS ROW */
+.irp-cards-row {
+  display: grid;
+  grid-template-columns: 1.5fr 1fr;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.irp-passenger-card {
+  background: #F4FBF1 !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 12px !important;
+  border: none !important;
+}
+
+.irp-passenger-name {
+  font-size: 16px;
+  font-weight: 800;
+  color: #171D17;
+}
+
+.irp-distance-card {
+  background: #EAF6ED !important;
+  text-align: center;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  border: none !important;
+}
+
+.irp-distance-val {
+  font-size: 20px;
+  font-weight: 900;
+  color: #171D17;
+  line-height: 1;
+  margin: 2px 0;
+}
+
+.irp-distance-label {
+  font-size: 10px;
+  font-weight: 700;
+  color: #27AE60;
+}
+
+/* ROUTE CARD */
+.irp-route-card {
+  background: #F4FBF1 !important;
+  border: none !important;
+  margin-bottom: 24px;
+  position: relative;
+}
+
+.irp-route-item {
+  display: flex;
+  gap: 16px;
+  position: relative;
+  z-index: 2;
+}
+
+.irp-dot-container {
+  width: 14px;
+  display: flex;
+  justify-content: center;
+}
+
+.irp-dot {
+  width: 14px;
+  height: 14px;
+  margin-top: 4px;
+}
+
+.irp-green {
+  background: #006D37;
+  border-radius: 50%;
+  border: 3px solid white;
+  box-shadow: 0 0 0 1px #006D37;
+}
+
+.irp-orange {
+  background: #FEA520;
+  transform: rotate(45deg);
+  width: 10px;
+  height: 10px;
+  margin-top: 6px;
+}
+
+.irp-route-line {
+  position: absolute;
+  left: 28px;
+  top: 45px;
+  bottom: 110px; /* Adjusted to stop at the orange diamond */
+  width: 1px;
+  border-left: 2px dotted #BCCABC;
+}
+
+.irp-addr {
+  flex: 1;
+}
+
+.irp-addr-label {
+  font-size: 11px;
+  font-weight: 700;
+  color: #6B7A6C;
+  display: block;
+  margin-bottom: 2px;
+}
+
+.irp-addr-text {
+  font-size: 14px;
+  font-weight: 800;
+  color: #171D17;
+  margin: 0;
+  line-height: 1.3;
+}
+
+.irp-route-item:first-child {
+  margin-bottom: 24px;
+}
+
+.irp-meta-row {
+  display: flex;
+  gap: 12px; /* Reduced gap to prevent wrapping */
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid #DDE5DB;
+}
+
+.irp-meta-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #3D4A3F;
+  white-space: nowrap; /* Prevent wrapping */
+}
+
+/* TIMER */
+.irp-timer-section {
+  padding: 0 4px;
+  margin-bottom: 24px;
+}
+
+.irp-timer-bar {
+  width: 100%;
+  height: 6px;
+  background: #EEF6EA;
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.irp-timer-progress {
+  height: 100%;
+  background: #27AE60;
+  transition: width 1s linear;
+}
+
+/* FOOTER */
+.irp-footer-section {
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  gap: 16px;
+  width: 100%;
+}
+
+.irp-cancel-btn {
+  border-radius: 24px !important;
+  color: #6B7A6C !important;
+  background-color: #E8EDE7 !important; /* Grey background */
+  padding-left: 8px !important;
+  padding-right: 8px !important;
+  min-width: 0 !important;
+}
+
+.irp-accept-btn-custom {
+  border-radius: 24px !important;
+  box-shadow: 0 12px 24px rgba(39, 174, 96, 0.2) !important;
+  padding-left: 8px !important;
+  padding-right: 8px !important;
+  min-width: 0 !important;
+}

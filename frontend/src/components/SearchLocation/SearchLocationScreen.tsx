@@ -60,8 +60,10 @@ const SearchLocationScreen: React.FC<SearchLocationScreenProps> = ({
 
   // 1. Phân giải tọa độ cho initialSearch nếu có (từ trang chủ truyền sang)
   useEffect(() => {
-    // Chỉ ghi đè destination nếu hiện tại chưa có destination (để không đè mất kết quả cũ khi back lại)
-    if (initialSearch && !destination && initialSuggestions && initialSuggestions.length > 0) {
+    // Chạy logic này nếu có initialSearch VÀ (chưa có destination HOẶC destination chưa có tọa độ)
+    const needsResolution = initialSearch && (!destination || !destination.coords);
+    
+    if (needsResolution && initialSuggestions && initialSuggestions.length > 0) {
       const first = initialSuggestions[0];
       setDestination({
         address: initialSearch,
