@@ -217,57 +217,23 @@ export default function SignIn() {
 
     setLoading(true);
     try {
-      // Mock login for frontend-only development
-      console.log("Mock Login with:", identifier);
-      
-      // For demo: if identifier contains "driver", go to driver home, else passenger home
-      if (identifier.toLowerCase().includes("driver")) {
-        console.log("Mock Driver logged in");
-        navigate("/driver/home"); // Adjust route as needed
-      } else {
-        console.log("Mock Passenger logged in");
-        navigate("/passenger/home");
-      }
-
-      /*
-      let loginEmail = identifier;
-      
-      if (!identifier.includes("@")) {
-        const { data: profileData, error: profileError } = await supabase
-          .from("profiles")
-          .select("id")
-          .eq("phone", identifier)
-          .single();
-        
-        if (profileError || !profileData) {
-          throw new Error(t.errorAuth);
-        }
-      }
-
-      const { data, error: authError } = await supabase.auth.signInWithPassword({
-        email: loginEmail,
-        password: password,
+      const response = await fetch('http://localhost:5000/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ identifier, password })
       });
 
-      if (authError) throw authError;
-
-      const { data: profile, error: roleError } = await supabase
-        .from("profiles")
-        .select("role")
-        .eq("id", data.user.id)
-        .single();
-
-      if (roleError) throw roleError;
-
-      if (profile.role === "CUSTOMER") {
-        navigate("/passenger/home");
-      } else if (profile.role === "DRIVER") {
-        navigate("/driver/home");
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.message || t.errorAuth);
       }
-      */
+
+      localStorage.setItem('authToken', data.token);
+      localStorage.setItem('user', JSON.stringify(data.user));
+      navigate('/passenger');
     } catch (err: any) {
-      setError(t.errorAuth);
-      setErrorField("both");
+      setError(err.message || t.errorAuth);
+      setErrorField('both');
     } finally {
       setLoading(false);
     }
