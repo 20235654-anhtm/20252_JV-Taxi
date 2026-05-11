@@ -1,5 +1,10 @@
 import { useState, useEffect } from 'react';
 
+interface LatLng {
+  lat: number;
+  lng: number;
+}
+
 export interface Suggestion {
   id: string | number;
   name: string;
@@ -90,4 +95,26 @@ export const reverseGeocode = async (lat: number, lon: number): Promise<string> 
     return 'Current Location';
   }
 };
+
+/**
+ * Hàm lấy tọa độ đường đi ngắn nhất (Routing) từ OSRM
+ */
+export const getRouteCoordinates = async (start: LatLng, end: LatLng): Promise<[number, number][]> => {
+  try {
+    const response = await fetch(
+      `https://router.project-osrm.org/route/v1/driving/${start.lng},${start.lat};${end.lng},${end.lat}?overview=full&geometries=geojson`
+    );
+    const data = await response.json();
+    
+    if (data.code === 'Ok' && data.routes.length > 0) {
+      // OSRM trả về [lng, lat], Leaflet cần [lat, lng] nên ta đảo lại
+      return data.routes[0].geometry.coordinates.map((coord: [number, number]) => [coord[1], coord[0]]);
+    }
+    return [];
+  } catch (error) {
+    console.error('Routing error:', error);
+    return [];
+  }
+};
+
 

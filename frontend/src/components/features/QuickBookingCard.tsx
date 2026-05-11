@@ -31,13 +31,13 @@ export const QuickBookingCard: React.FC<QuickBookingCardProps> = ({
   // Logic hiển thị: 
   // 1. Nếu đang gõ (>2 ký tự) -> Hiện kết quả từ API
   // 2. Nếu không gõ -> Hiện lịch sử (Passenger) hoặc để trống (Guest)
-  const suggestions = destinationValue.length >= 2 
-    ? apiSuggestions 
+  const suggestions = destinationValue.length >= 2
+    ? apiSuggestions
     : (isGuest ? [] : [
-        { id: 1, name: 'Vinh Yên Tower', address: 'Khai Quang, Vinh Yên, Vinh Phúc' },
-        { id: 2, name: 'Ga Vinh Yên', address: 'Phường Đống Đa, Vinh Yên' },
-        { id: 3, name: 'Big C Vinh Yên', address: 'Phường Khai Quang, Vinh Yên' },
-      ]);
+      { id: 1, name: 'Vinh Yên Tower', address: 'Khai Quang, Vinh Yên, Vinh Phúc' },
+      { id: 2, name: 'Ga Vinh Yên', address: 'Phường Đống Đa, Vinh Yên' },
+      { id: 3, name: 'Big C Vinh Yên', address: 'Phường Khai Quang, Vinh Yên' },
+    ]);
 
   const handleTouchStart = (e: React.TouchEvent) => {
     touchStartY.current = e.touches[0].clientY;
@@ -49,19 +49,19 @@ export const QuickBookingCard: React.FC<QuickBookingCardProps> = ({
 
     if (deltaY < -50 && mode === 'half') setMode('expanded'); // Vuốt lên
     if (deltaY > 50 && mode === 'expanded') setMode('half');  // Vuốt xuống
-    
+
     touchStartY.current = null;
   };
 
   return (
-    <div 
+    <div
       className={`
         fixed left-0 right-0 z-[1050] transition-all duration-500 ease-out
         ${mode === 'half' ? 'bottom-[88px] px-4' : 'top-16 bottom-0 px-0'}
       `}
     >
-      <Card 
-        variant="elevated" 
+      <Card
+        variant="elevated"
         padding="none"
         rounded={mode === 'half' ? 'xl' : 'none'}
         className={`
@@ -70,7 +70,7 @@ export const QuickBookingCard: React.FC<QuickBookingCardProps> = ({
         `}
       >
         {/* Handle Area */}
-        <div 
+        <div
           className="h-10 flex items-start justify-center cursor-pointer pt-4 flex-shrink-0"
           onTouchStart={handleTouchStart}
           onTouchEnd={handleTouchEnd}
@@ -121,7 +121,7 @@ export const QuickBookingCard: React.FC<QuickBookingCardProps> = ({
           {mode === 'expanded' && (
             <div className="flex flex-col gap-6 h-full animate-in slide-in-from-bottom-4 duration-300">
               <Heading level={2} className="text-[20px]">どこへ行きますか？</Heading>
-              
+
               <div className="relative">
                 <SearchInput
                   value={destinationValue}
@@ -144,10 +144,10 @@ export const QuickBookingCard: React.FC<QuickBookingCardProps> = ({
                     {destinationValue.length >= 2 ? '検索結果' : '最近の履歴'}
                   </Text>
                 )}
-                
+
                 {suggestions.length > 0 ? (
                   suggestions.map((item) => (
-                    <div 
+                    <div
                       key={item.id}
                       className="flex items-center gap-4 py-3 border-b border-[#f1f5f9] cursor-pointer hover:bg-slate-50 transition-colors"
                       onClick={() => {
@@ -156,7 +156,7 @@ export const QuickBookingCard: React.FC<QuickBookingCardProps> = ({
                       }}
                     >
                       <div className="w-10 h-10 rounded-full bg-[#f1f5f9] flex items-center justify-center flex-shrink-0">
-                        {destinationValue.length >= 2 
+                        {destinationValue.length >= 2
                           ? <MapPin size={18} className="text-[#64748b]" />
                           : <History size={18} className="text-[#64748b]" />
                         }
@@ -169,7 +169,7 @@ export const QuickBookingCard: React.FC<QuickBookingCardProps> = ({
                   ))
                 ) : (
                   destinationValue.length >= 2 && !isLoading && (
-                    <Text color="medium" className="text-center py-4"> kết quả không tìm thấy </Text>
+                    <Text color="medium" className="text-center py-4"> 検索結果なし </Text>
                   )
                 )}
               </div>
