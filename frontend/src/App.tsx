@@ -1,13 +1,19 @@
 import { BrowserRouter } from 'react-router-dom';
 import AppRoutes from './routes';
+import { LanguageProvider } from './context/LanguageContext';
 import { BookingProvider } from './contexts/BookingContext';
+import './App.css';
 
 function App() {
   return (
     <BrowserRouter>
-      <BookingProvider>
-        <AppRoutes />
-      </BookingProvider>
+      <LanguageProvider>
+        <BookingProvider>
+          <div className="App">
+            <AppRoutes />
+          </div>
+        </BookingProvider>
+      </LanguageProvider>
     </BrowserRouter>
   );
 }

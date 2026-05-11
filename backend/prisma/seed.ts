@@ -1,3 +1,4 @@
+import bcrypt from 'bcryptjs';
 import prisma from '../src/config/db';
 
 async function main() {
@@ -53,8 +54,8 @@ async function main() {
 
     // 3. Dữ liệu Khách hàng
     const customers = [
-      { id: '22222222-2222-2222-2222-111111111111', name: "Sinh Viên Bách Khoa", phone: "0988888888" },
-      { id: '22222222-2222-2222-2222-222222222222', name: "Giảng Viên HUST", phone: "0977777777" }
+      { id: '22222222-2222-2222-2222-111111111111', name: "Sinh Viên Bách Khoa", phone: "0988888888", email: "sinhvien@bk.edu.vn", password: "12345678" },
+      { id: '22222222-2222-2222-2222-222222222222', name: "Giảng Viên HUST", phone: "0977777777", email: "giangvien@hust.edu.vn", password: "12345678" }
     ];
 
     // Upsert Profiles Khách hàng
