@@ -191,8 +191,6 @@ function LanguageSwitcher({ lang, setLang }: { lang: "JP" | "VN"; setLang: (l: "
   );
 }
 
-import { supabase } from "../../config/supabaseClient";
-
 export default function SignIn() {
   const navigate = useNavigate();
   const { lang, setLang } = useLanguage();
@@ -200,27 +198,40 @@ export default function SignIn() {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [errorField, setErrorField] = useState<"id" | "pass" | "both" | null>(null);
   const [loading, setLoading] = useState(false);
 
   const t = TRANSLATIONS[lang];
 
   const handleLogin = async () => {
     setError(null);
+    setErrorField(null);
 
     if (!identifier || !password) {
       setError(t.errorAuth);
+      if (!identifier && !password) setErrorField("both");
+      else if (!identifier) setErrorField("id");
+      else setErrorField("pass");
       return;
     }
 
     setLoading(true);
     try {
-      // Supabase supports signing in with email. 
-      // Note: Signing in with phone usually requires a different method or a custom function if phone is used as identifier.
-      // For now, we assume email login as primary, or we can try to find the email associated with the phone first.
+      // Mock login for frontend-only development
+      console.log("Mock Login with:", identifier);
       
+      // For demo: if identifier contains "driver", go to driver home, else passenger home
+      if (identifier.toLowerCase().includes("driver")) {
+        console.log("Mock Driver logged in");
+        navigate("/driver/home"); // Adjust route as needed
+      } else {
+        console.log("Mock Passenger logged in");
+        navigate("/passenger/home");
+      }
+
+      /*
       let loginEmail = identifier;
       
-      // Nếu identifier không phải email (không có @), thử tìm email tương ứng với số điện thoại trong bảng profiles
       if (!identifier.includes("@")) {
         const { data: profileData, error: profileError } = await supabase
           .from("profiles")
@@ -231,11 +242,6 @@ export default function SignIn() {
         if (profileError || !profileData) {
           throw new Error(t.errorAuth);
         }
-        
-        // Lưu ý: Supabase auth.users không dễ dàng truy vấn email từ public.profiles mà không có admin key.
-        // Tuy nhiên, nếu user đăng ký bằng email, họ nên đăng nhập bằng email.
-        // Nếu user muốn đăng nhập bằng SĐT, chúng ta cần một cơ chế mapping.
-        // Tạm thời để đơn giản, chúng ta thử đăng nhập trực tiếp.
       }
 
       const { data, error: authError } = await supabase.auth.signInWithPassword({
@@ -245,7 +251,6 @@ export default function SignIn() {
 
       if (authError) throw authError;
 
-      // Lấy role từ bảng profiles
       const { data: profile, error: roleError } = await supabase
         .from("profiles")
         .select("role")
@@ -254,16 +259,15 @@ export default function SignIn() {
 
       if (roleError) throw roleError;
 
-      console.log("Logged in successfully:", profile.role);
-
       if (profile.role === "CUSTOMER") {
         navigate("/passenger/home");
       } else if (profile.role === "DRIVER") {
-        // Redirection for driver not implemented yet
-        console.log("Driver logged in, staying on current page or home");
+        navigate("/driver/home");
       }
+      */
     } catch (err: any) {
       setError(t.errorAuth);
+      setErrorField("both");
     } finally {
       setLoading(false);
     }

@@ -63,8 +63,6 @@ function HeaderTopAppBar({ onBack, title }: { onBack: () => void; title: string 
   );
 }
 
-import { supabase } from "../../config/supabaseClient";
-
 export default function PassengerSignUp() {
   const navigate = useNavigate();
   const { lang } = useLanguage();
@@ -91,6 +89,12 @@ export default function PassengerSignUp() {
 
     setLoading(true);
     try {
+      // Mock signup for frontend-only development
+      console.log("Mock Passenger Registration:", form);
+      alert("Registration successful (Mock)");
+      navigate("/login");
+
+      /* 
       // 1. Đăng ký tài khoản Supabase Auth
       const { data, error: signUpError } = await supabase.auth.signUp({
         email: form.email,
@@ -116,6 +120,7 @@ export default function PassengerSignUp() {
 
       console.log("Registered successfully");
       navigate("/passenger/home");
+      */
     } catch (err: any) {
       console.error("Signup error:", err.message);
       // Có thể thêm hiển thị lỗi ở đây

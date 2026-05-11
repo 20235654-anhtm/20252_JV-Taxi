@@ -278,8 +278,6 @@ function HeaderTopAppBar({ onBack, t }: { onBack: () => void; t: any }) {
   );
 }
 
-import { supabase } from "../../config/supabaseClient";
-
 export default function DriverSignUp() {
   const navigate = useNavigate();
   const { lang } = useLanguage();
@@ -305,6 +303,12 @@ export default function DriverSignUp() {
 
     setLoading(true);
     try {
+      // Mock signup for frontend-only development
+      console.log("Mock Driver Registration:", form);
+      alert("Registration successful (Mock)");
+      navigate("/login");
+
+      /* 
       // 1. Đăng ký Supabase Auth
       const { data, error: signUpError } = await supabase.auth.signUp({
         email: form.email,
@@ -343,6 +347,7 @@ export default function DriverSignUp() {
 
       console.log("Driver registered successfully");
       // navigate("/driver/pending"); // Or similar
+      */
     } catch (err: any) {
       console.error("Driver signup error:", err.message);
     } finally {
