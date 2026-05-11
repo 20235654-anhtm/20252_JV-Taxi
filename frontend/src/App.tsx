@@ -1,10 +1,13 @@
 import { BrowserRouter } from 'react-router-dom';
 import AppRoutes from './routes';
+import { BookingProvider } from './contexts/BookingContext';
 
 function App() {
   return (
     <BrowserRouter>
-      <AppRoutes />
+      <BookingProvider>
+        <AppRoutes />
+      </BookingProvider>
     </BrowserRouter>
   );
 }

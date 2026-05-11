@@ -11,6 +11,7 @@ export interface BottomSheetProps {
   maxHeight?: string;
   snapPoints?: number[];
   className?: string;
+  zIndex?: number;
 }
 
 export const BottomSheet: React.FC<BottomSheetProps> = ({
@@ -23,6 +24,7 @@ export const BottomSheet: React.FC<BottomSheetProps> = ({
   //maxHeight = '90vh',
   snapPoints = [40, 70, 90], // Default snap points in vh
   className = '',
+  zIndex,
 }) => {
   const sheetRef = useRef<HTMLDivElement>(null);
   const [currentSnapIndex, setCurrentSnapIndex] = useState(1); // Start at middle snap point
@@ -122,7 +124,8 @@ export const BottomSheet: React.FC<BottomSheetProps> = ({
 
   return (
     <div
-      className="fixed inset-0 z-[--z-modal] flex items-end justify-center"
+      className={`fixed inset-0 flex items-end justify-center ${!zIndex ? 'z-[--z-modal]' : ''}`}
+      style={zIndex ? { zIndex } : {}}
       onClick={handleBackdropClick}
     >
       {/* Backdrop */}

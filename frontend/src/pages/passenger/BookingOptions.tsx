@@ -1,36 +1,43 @@
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Navigate } from 'react-router-dom';
 import { Header } from '../../components/layout/Header';
+import { MapView } from '../../components/features/MapView';
+import { useBooking } from '../../contexts/BookingContext';
 import './BookingOptions.css';
 
 const BookingOptions = () => {
   const navigate = useNavigate();
+  const { pickup: pickupData, destination: destData } = useBooking();
+
+  // Bảo vệ an toàn: Nếu không có tọa độ (do gõ URL trực tiếp hoặc lỗi state), bắt buộc quay lại trang tìm kiếm
+  if (!pickupData?.coords || !destData?.coords) {
+    return <Navigate to="/passenger/search-location" replace />;
+  }
+
+  const pickup = pickupData.coords; 
+  const destination = destData.coords;
 
   const handleNext = () => {
-    // Navigate to select driver screen
     navigate('/passenger/select-driver');
   };
+
 
   return (
     <div className="booking-container">
       <Header
         variant="passenger"
         showBackButton={true}
-        title="予約オプションの選択"
+        title="予約オプション"
         onBackClick={() => navigate(-1)}
       />
 
-      {/* MAP AREA */}
+      {/* MAP AREA - Hiển thị bản đồ thật */}
       <div className="bo-map-area">
-        <div className="bo-map-gradient"></div>
-        {/* Markers */}
-        <div className="bo-marker bo-pickup" style={{ top: '206px', left: '79px' }}>
-          <div className="bo-dot"></div>
-          <div className="bo-label">乗車場所</div>
-        </div>
-        <div className="bo-marker bo-dropoff" style={{ top: '117px', left: '310px' }}>
-          <div className="bo-dot bo-dest"></div>
-          <div className="bo-label bo-dest">ロイヤルシティ</div>
-        </div>
+        <MapView 
+          position={pickup} 
+          pickupPosition={pickup} 
+          destinationPosition={destination}
+          routePadding={[[40, 120], [40, 180]]} // Cân đối lại: trên 120px, dưới 300px
+        />
       </div>
 
       {/* BOTTOM SHEET */}

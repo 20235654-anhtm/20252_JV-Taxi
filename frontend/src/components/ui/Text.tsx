@@ -2,7 +2,7 @@ import React from 'react';
 
 export type TextVariant = 'body' | 'caption' | 'label' | 'small';
 export type TextWeight = 'regular' | 'medium' | 'semibold' | 'bold';
-export type TextColor = 'primary' | 'secondary' | 'tertiary' | 'success' | 'error' | 'warning';
+export type TextColor = 'primary' | 'secondary' | 'tertiary' | 'medium' | 'success' | 'error' | 'warning';
 
 export interface TextProps extends React.HTMLAttributes<HTMLParagraphElement> {
   variant?: TextVariant;
@@ -37,6 +37,7 @@ export const Text: React.FC<TextProps> = ({
     primary: 'text-[--color-text-primary]',
     secondary: 'text-[--color-text-secondary]',
     tertiary: 'text-[--color-text-tertiary]',
+    medium: 'text-[--color-text-medium]',
     success: 'text-[--color-success]',
     error: 'text-[--color-error]',
     warning: 'text-[--color-warning]',

@@ -3,7 +3,7 @@ import React from 'react';
 export interface CardProps extends React.HTMLAttributes<HTMLDivElement> {
   variant?: 'default' | 'elevated' | 'outlined';
   padding?: 'none' | 'sm' | 'md' | 'lg';
-  rounded?: 'md' | 'lg' | 'xl' | '2xl';
+  rounded?: 'none' | 'md' | 'lg' | 'xl' | '2xl';
   children: React.ReactNode;
 }
 
@@ -35,6 +35,7 @@ export const Card = React.forwardRef<HTMLDivElement, CardProps>(
     };
 
     const roundedClasses = {
+      none: 'rounded-none',
       md: 'rounded-2xl',
       lg: 'rounded-[24px]',
       xl: 'rounded-[32px]',
