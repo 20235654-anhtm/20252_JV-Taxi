@@ -203,31 +203,26 @@
   background: linear-gradient(to right, var(--color-primary), var(--color-primary-light));
 }
 
+html, body {
+  background-color: var(--color-bg-primary);
+  margin: 0;
+  padding: 0;
+}
+
 #root {
-  width: 1126px;
-  max-width: 100%;
+  width: 100%;
+  max-width: 1126px;
   margin: 0 auto;
   text-align: left;
   min-height: 100svh;
   display: flex;
   flex-direction: column;
   box-sizing: border-box;
+  background-color: var(--color-bg-primary);
 }
 
 .gradient-overlay {
   background: linear-gradient(to top, var(--color-bg-primary), rgba(244, 251, 241, 0));
-}
-
-#root {
-  width: 1126px;
-  max-width: 100%;
-  margin: 0 auto;
-  text-align: left;
-  border-inline: 1px solid var(--border);
-  min-height: 100svh;
-  display: flex;
-  flex-direction: column;
-  box-sizing: border-box;
 }
 
 

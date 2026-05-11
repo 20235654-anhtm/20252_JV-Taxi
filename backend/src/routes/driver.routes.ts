@@ -1,5 +1,5 @@
 import { Router, Request, Response } from 'express';
-import { getNearbyDrivers, getNearbyDriversMock } from '../services/driver.service';
+import { getNearbyDrivers, getAllDrivers, getNearbyDriversMock } from '../services/driver.service';
 
 const router = Router();
 
@@ -86,24 +86,24 @@ router.get('/nearby', async (req: Request, res: Response) => {
 });
 
 /**
- * API: GET /api/drivers (Mock data - for development)
- * Returns mock data without requiring DB
+ * API: GET /api/drivers
+ * Returns all real drivers from DB (fallback when GPS is not available)
  */
 router.get('/', async (req: Request, res: Response) => {
   try {
-    const mockDrivers = await getNearbyDriversMock();
+    const drivers = await getAllDrivers();
 
-    const formattedDrivers = mockDrivers.map(driver => ({
+    const formattedDrivers = drivers.map(driver => ({
       id: driver.user_id,
       name: driver.full_name,
       car: driver.vehicle_infor,
       vehicleType: driver.vehicle_type,
-      distance: `${(driver.distance / 1000).toFixed(1)} KM`,
+      distance: driver.distance > 0 ? `${(driver.distance / 1000).toFixed(1)} KM` : 'N/A',
       distanceMeters: driver.distance,
-      time: `${Math.max(1, Math.ceil(driver.distance / 500))}分`,
-      rating: driver.average_rating,
+      time: driver.distance > 0 ? `${Math.max(1, Math.ceil(driver.distance / 500))} min` : '--',
+      rating: Number(driver.average_rating),
       avatar: driver.avatar_picture || 'https://placehold.co/80x80',
-      price: calculateEstimatedPrice(driver.distance),
+      price: calculateEstimatedPrice(driver.distance > 0 ? driver.distance : 5000), // Default 5km for price if no distance
     }));
 
     res.status(200).json({
@@ -111,8 +111,7 @@ router.get('/', async (req: Request, res: Response) => {
       data: formattedDrivers,
       meta: {
         total: formattedDrivers.length,
-        radiusKm: 3,
-        isMock: true,
+        isMock: false,
       }
     });
   } catch (error) {
