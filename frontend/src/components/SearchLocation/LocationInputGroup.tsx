@@ -5,9 +5,9 @@ import { MapPin, Loader2 } from 'lucide-react';
 
 interface LocationInputGroupProps {
   origin: string;
-  onOriginChange: (val: string) => void;
+  onOriginChange: (val: string, coords?: [number, number]) => void;
   destination: string;
-  onDestinationChange: (dest: string) => void;
+  onDestinationChange: (dest: string, coords?: [number, number]) => void;
 }
 
 const LocationInputGroup: React.FC<LocationInputGroupProps> = ({ 
@@ -22,11 +22,11 @@ const LocationInputGroup: React.FC<LocationInputGroupProps> = ({
   const searchQuery = activeInput === 'origin' ? origin : destination;
   const { suggestions, isLoading } = useLocationSuggestions(searchQuery);
 
-  const handleSelect = (name: string) => {
+  const handleSelect = (name: string, coords?: [number, number]) => {
     if (activeInput === 'origin') {
-      onOriginChange(name);
+      onOriginChange(name, coords);
     } else {
-      onDestinationChange(name);
+      onDestinationChange(name, coords);
     }
     setActiveInput(null);
   };
@@ -81,7 +81,7 @@ const LocationInputGroup: React.FC<LocationInputGroupProps> = ({
                 className="flex items-center gap-4 p-4 hover:bg-[#f8fafc] cursor-pointer border-b border-[#f1f5f9] last:border-none transition-colors"
                 onMouseDown={(e) => {
                   e.preventDefault(); // Ngăn chặn onBlur làm đóng dropdown trước khi click
-                  handleSelect(item.name);
+                  handleSelect(item.name, item.coordinates);
                 }}
               >
                 <div className="w-8 h-8 rounded-full bg-[#eff6ec] flex items-center justify-center flex-shrink-0">

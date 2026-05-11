@@ -9,25 +9,28 @@ import { useWatchLocation } from '../../hooks/useWatchLocation';
 import { Button } from '../ui/Button';
 import { ArrowRight } from 'lucide-react';
 import { AuthRequiredSheet } from '../features/AuthRequiredSheet';
-import { reverseGeocode } from '../../hooks/useLocationSuggestions';
+import { reverseGeocode, useLocationSuggestions } from '../../hooks/useLocationSuggestions';
 import './SearchLocation.css';
 
 // Mock data for recent history
 const mockHistory: HistoryItem[] = [
   {
     id: '1',
-    name: 'ロイヤルシティ',
-    address: 'ハノイ市、タンスアン区、タンスアン坊、グエンチャイ通り72番'
+    name: 'Royal City',
+    address: '72A Nguyễn Trãi, Thượng Đình, Thanh Xuân, Hà Nội',
+    coords: { lat: 21.0028, lng: 105.8152 }
   },
   {
     id: '2',
-    name: 'ビンコムセンター・ファムゴックタック',
-    address: 'ハノイ市、ドンダー区、キムリエン坊、ファムゴックタック通り2番地'
+    name: 'Lotte Center',
+    address: '54 Liễu Giai, Cống Vị, Ba Đình, Hà Nội',
+    coords: { lat: 21.0313, lng: 105.8152 }
   },
   {
     id: '3',
-    name: '国立映画センター',
-    address: 'ハノイ市、ドンダー区、オチョズア坊、ランハ通り87番地'
+    name: 'Hanoi Opera House',
+    address: '1 Tràng Tiền, Phan Chu Trinh, Hoàn Kiếm, Hà Nội',
+    coords: { lat: 21.0242, lng: 105.8584 }
   }
 ];
 
@@ -42,12 +45,32 @@ const SearchLocationScreen: React.FC<SearchLocationScreenProps> = ({
 }) => {
   const navigate = useNavigate();
   const [destination, setDestination] = useState(initialSearch);
+  const [destCoords, setDestCoords] = useState<{lat: number, lng: number} | null>(null);
+  const [pickupCoords, setPickupCoords] = useState<{lat: number, lng: number} | null>(null);
   const [isAuthSheetOpen, setIsAuthSheetOpen] = useState(false);
 
   const [origin, setOrigin] = useState('位置情報取得中...');
 
+  // Hook lấy gợi ý tự động cho initialSearch để lấy tọa độ ban đầu
+  const { suggestions: initialSuggestions } = useLocationSuggestions(initialSearch);
+
   // Use custom hook to watch location
   const location = useWatchLocation();
+
+  // Tự động phân giải tọa độ cho initialSearch nếu chưa có destCoords
+  useEffect(() => {
+    if (initialSearch && !destCoords && initialSuggestions && initialSuggestions.length > 0) {
+      const first = initialSuggestions[0];
+      setDestCoords({ lat: first.coordinates[1], lng: first.coordinates[0] });
+    }
+  }, [initialSearch, initialSuggestions, destCoords]);
+
+  // Cập nhật pickupCoords khi có GPS lần đầu
+  useEffect(() => {
+    if (location.latitude && location.longitude && !pickupCoords) {
+      setPickupCoords({ lat: location.latitude, lng: location.longitude });
+    }
+  }, [location.latitude, location.longitude, pickupCoords]);
 
   // Tự động lấy địa chỉ hiện tại khi có tọa độ GPS
   useEffect(() => {
@@ -76,8 +99,9 @@ const SearchLocationScreen: React.FC<SearchLocationScreenProps> = ({
 
   const handleDestinationSelect = (item: HistoryItem) => {
     setDestination(item.name);
-    // Auto navigate to confirm route screen as required
-    // setTimeout(() => navigate('/confirm-route'), 300);
+    if (item.coords) {
+      setDestCoords(item.coords);
+    }
   };
 
   const handleNext = () => {
@@ -85,8 +109,13 @@ const SearchLocationScreen: React.FC<SearchLocationScreenProps> = ({
       if (isGuest) {
         setIsAuthSheetOpen(true);
       } else {
-        navigate('/passenger/booking-options');
-        console.log('Proceed to next with destination:', destination);
+        // Truyền tọa độ thật sang trang tiếp theo
+        navigate('/passenger/booking-options', {
+          state: {
+            pickup: pickupCoords || { lat: location.latitude, lng: location.longitude },
+            destination: destCoords || { lat: 21.0313, lng: 105.8152 }
+          }
+        });
       }
     }
   };
@@ -98,9 +127,19 @@ const SearchLocationScreen: React.FC<SearchLocationScreenProps> = ({
       <div className="sl-content">
         <LocationInputGroup
           origin={origin}
-          onOriginChange={setOrigin}
+          onOriginChange={(val, coords) => {
+            setOrigin(val);
+            if (coords) {
+              setPickupCoords({ lat: coords[1], lng: coords[0] });
+            }
+          }}
           destination={destination}
-          onDestinationChange={setDestination}
+          onDestinationChange={(val, coords) => {
+            setDestination(val);
+            if (coords) {
+              setDestCoords({ lat: coords[1], lng: coords[0] }); // OSRM/Photon dùng [lng, lat]
+            }
+          }}
         />
 
         <StaticMapPreview

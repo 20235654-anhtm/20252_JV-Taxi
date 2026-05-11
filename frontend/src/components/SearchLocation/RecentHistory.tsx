@@ -7,6 +7,7 @@ export interface HistoryItem {
   id: string;
   name: string;
   address: string;
+  coords?: { lat: number; lng: number };
 }
 
 interface RecentHistoryProps {
