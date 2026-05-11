@@ -7,23 +7,28 @@ import type { NavTab } from '../../components/layout/BottomNavBar';
 import { FAB } from '../../components/ui/FAB';
 import { useGeolocation } from '../../hooks/useGeolocation';
 import { QuickBookingCard } from '../../components/features/QuickBookingCard';
+import { useBooking } from '../../contexts/BookingContext';
 
 const PassengerHome = () => {
   const navigate = useNavigate();
   const { position, error } = useGeolocation();
+  const { destination, setDestination } = useBooking();
 
   const [activeTab, setActiveTab] = useState<NavTab>('home');
   const [currentLang, setCurrentLang] = useState<'jp' | 'vn'>('jp');
   const [recenterKey, setRecenterKey] = useState(0);
-  const [destination, setDestination] = useState('');
+  
+  // Khởi tạo ô nhập bằng địa điểm đã lưu trong Context (nếu có)
+  const [destinationInput, setDestinationInput] = useState(destination?.address || '');
 
   // Xử lý nút đặt xe
   const handleBookNow = () => {
-    if (destination.trim()) {
-      // Nếu có nhập text, truyền text qua state
-      navigate('/passenger/search-location', { state: { initialSearch: destination } });
+    if (destinationInput.trim()) {
+      // Lưu địa điểm vào Global State với tọa độ rỗng (để trang Search tự động phân giải)
+      setDestination({ address: destinationInput, coords: null });
+      // Chuyển sang trang Search, báo cho trang đó biết là cần tự động phân giải tọa độ
+      navigate('/passenger/search-location', { state: { initialSearch: destinationInput } });
     } else {
-      // Nếu trống, đi tới màn hình search trống
       navigate('/passenger/search-location');
     }
   };
@@ -60,11 +65,10 @@ const PassengerHome = () => {
       {/* ── Lớp phủ Gradient phía dưới để làm nền cho Card & Nav ── */}
       <div className="absolute bottom-0 left-0 right-0 h-[400px] gradient-sheet pointer-events-none z-[1010]" />
 
-      {/* ── Quick Booking Card (Tự quản lý vị trí & vuốt lên/xuống) ── */}
       <QuickBookingCard
         userName="佐藤"
-        destinationValue={destination}
-        setDestinationValue={setDestination}
+        destinationValue={destinationInput}
+        setDestinationValue={setDestinationInput}
         onBookNow={handleBookNow}
       />
 

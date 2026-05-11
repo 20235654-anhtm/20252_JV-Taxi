@@ -1,20 +1,25 @@
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate, Navigate } from 'react-router-dom';
 import { Header } from '../../components/layout/Header';
 import { MapView } from '../../components/features/MapView';
+import { useBooking } from '../../contexts/BookingContext';
 import './BookingOptions.css';
 
 const BookingOptions = () => {
   const navigate = useNavigate();
-  const location = useLocation();
+  const { pickup: pickupData, destination: destData } = useBooking();
 
-  // Lấy dữ liệu từ trang Search truyền sang
-  // Nếu chưa có (test), tôi sẽ để tọa độ khu vực Bách Khoa - Lotte làm mẫu
-  const pickup = location.state?.pickup || { lat: 21.0051, lng: 105.8436 }; 
-  const destination = location.state?.destination || { lat: 21.0313, lng: 105.8152 };
+  // Bảo vệ an toàn: Nếu không có tọa độ (do gõ URL trực tiếp hoặc lỗi state), bắt buộc quay lại trang tìm kiếm
+  if (!pickupData?.coords || !destData?.coords) {
+    return <Navigate to="/passenger/search-location" replace />;
+  }
+
+  const pickup = pickupData.coords; 
+  const destination = destData.coords;
 
   const handleNext = () => {
     navigate('/passenger/select-driver');
   };
+
 
   return (
     <div className="booking-container">

@@ -10,6 +10,7 @@ import { Button } from '../ui/Button';
 import { ArrowRight } from 'lucide-react';
 import { AuthRequiredSheet } from '../features/AuthRequiredSheet';
 import { reverseGeocode, useLocationSuggestions } from '../../hooks/useLocationSuggestions';
+import { useBooking } from '../../contexts/BookingContext';
 import './SearchLocation.css';
 
 // Mock data for recent history
@@ -44,79 +45,99 @@ const SearchLocationScreen: React.FC<SearchLocationScreenProps> = ({
   initialSearch = ''
 }) => {
   const navigate = useNavigate();
-  const [destination, setDestination] = useState(initialSearch);
-  const [destCoords, setDestCoords] = useState<{lat: number, lng: number} | null>(null);
-  const [pickupCoords, setPickupCoords] = useState<{lat: number, lng: number} | null>(null);
   const [isAuthSheetOpen, setIsAuthSheetOpen] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  const [origin, setOrigin] = useState('位置情報取得中...');
+  // Sử dụng Global State thay vì Local State
+  const { 
+    pickup, setPickup, 
+    destination, setDestination, 
+    hasAutoFilledPickup, setHasAutoFilledPickup 
+  } = useBooking();
 
-  // Hook lấy gợi ý tự động cho initialSearch để lấy tọa độ ban đầu
   const { suggestions: initialSuggestions } = useLocationSuggestions(initialSearch);
-
-  // Use custom hook to watch location
   const location = useWatchLocation();
 
-  // Tự động phân giải tọa độ cho initialSearch nếu chưa có destCoords
+  // 1. Phân giải tọa độ cho initialSearch nếu có (từ trang chủ truyền sang)
   useEffect(() => {
-    if (initialSearch && !destCoords && initialSuggestions && initialSuggestions.length > 0) {
+    // Chỉ ghi đè destination nếu hiện tại chưa có destination (để không đè mất kết quả cũ khi back lại)
+    if (initialSearch && !destination && initialSuggestions && initialSuggestions.length > 0) {
       const first = initialSuggestions[0];
-      setDestCoords({ lat: first.coordinates[1], lng: first.coordinates[0] });
+      setDestination({
+        address: initialSearch,
+        coords: { lat: first.coordinates[1], lng: first.coordinates[0] }
+      });
     }
-  }, [initialSearch, initialSuggestions, destCoords]);
+  }, [initialSearch, initialSuggestions, destination, setDestination]);
 
-  // Cập nhật pickupCoords khi có GPS lần đầu
+  // 2. Logic GPS CHỈ chạy 1 lần duy nhất lúc mới vào app
   useEffect(() => {
-    if (location.latitude && location.longitude && !pickupCoords) {
-      setPickupCoords({ lat: location.latitude, lng: location.longitude });
-    }
-  }, [location.latitude, location.longitude, pickupCoords]);
-
-  // Tự động lấy địa chỉ hiện tại khi có tọa độ GPS
-  useEffect(() => {
-    const updateCurrentLocation = async () => {
-      if (location.latitude && location.longitude && origin === '位置情報取得中...') {
+    const autoFillGPS = async () => {
+      // Nếu chưa từng điền GPS VÀ đã có tọa độ
+      if (!hasAutoFilledPickup && location.latitude && location.longitude) {
+        // Gán chữ hiển thị tạm trong lúc chờ
+        setPickup({ address: '位置情報取得中...', coords: null });
+        
+        // Gọi API lấy địa chỉ chữ
         const address = await reverseGeocode(location.latitude, location.longitude);
-        setOrigin(address);
-      } else if (location.permissionDenied) {
-        setOrigin('Vị trí bị chặn (Hãy bật GPS)');
+        
+        // Cập nhật đầy đủ tọa độ & chữ, sau đó bật cờ "đã điền"
+        setPickup({
+          address: address,
+          coords: { lat: location.latitude, lng: location.longitude }
+        });
+        setHasAutoFilledPickup(true);
+      } else if (!hasAutoFilledPickup && location.permissionDenied) {
+        setPickup({ address: 'Vị trí bị chặn (Hãy bật GPS)', coords: null });
+        setHasAutoFilledPickup(true); // Đánh dấu đã xử lý xong để khỏi lặp lại
       }
     };
 
-    updateCurrentLocation();
-  }, [location.latitude, location.longitude, location.permissionDenied, origin]);
+    autoFillGPS();
+  }, [location.latitude, location.longitude, location.permissionDenied, hasAutoFilledPickup, setPickup, setHasAutoFilledPickup]);
 
   const handleBackClick = () => {
-    setDestination(''); // Hủy nội dung đang nhập
-    setOrigin('');
-
+    // KHÔNG xóa destination/origin nữa để giữ nguyên State khi quay lại
     if (isGuest) {
-      navigate('/'); // Về trang chủ Guest
+      navigate('/');
     } else {
-      navigate('/passenger'); // Về trang chủ Passenger
+      navigate('/passenger');
     }
   };
 
   const handleDestinationSelect = (item: HistoryItem) => {
-    setDestination(item.name);
-    if (item.coords) {
-      setDestCoords(item.coords);
-    }
+    setDestination({
+      address: item.name,
+      coords: item.coords || null
+    });
+    setErrorMessage(null); // Xóa lỗi khi chọn hợp lệ
   };
 
   const handleNext = () => {
-    if (destination.trim()) {
-      if (isGuest) {
-        setIsAuthSheetOpen(true);
-      } else {
-        // Truyền tọa độ thật sang trang tiếp theo
-        navigate('/passenger/booking-options', {
-          state: {
-            pickup: pickupCoords || { lat: location.latitude, lng: location.longitude },
-            destination: destCoords || { lat: 21.0313, lng: 105.8152 }
-          }
-        });
-      }
+    // Xóa thông báo lỗi cũ
+    setErrorMessage(null);
+
+    // 1. Kiểm tra xem đã có chữ chưa
+    if (!destination?.address.trim()) {
+      return;
+    }
+
+    // 2. KIỂM TRA TỌA ĐỘ: Bắt buộc phải có tọa độ mới được đi tiếp
+    if (!pickup?.coords) {
+      setErrorMessage('現在地を正しく選択してください。(Vui lòng chọn Điểm đón từ danh sách gợi ý)');
+      return;
+    }
+
+    if (!destination?.coords) {
+      setErrorMessage('目的地を正しく選択してください。(Vui lòng chọn Điểm đến từ danh sách gợi ý)');
+      return;
+    }
+
+    // Nếu qua được các bước trên -> Có tọa độ thật
+    if (isGuest) {
+      setIsAuthSheetOpen(true);
+    } else {
+      navigate('/passenger/booking-options');
     }
   };
 
@@ -126,21 +147,30 @@ const SearchLocationScreen: React.FC<SearchLocationScreenProps> = ({
 
       <div className="sl-content">
         <LocationInputGroup
-          origin={origin}
+          origin={pickup?.address || ''}
           onOriginChange={(val, coords) => {
-            setOrigin(val);
-            if (coords) {
-              setPickupCoords({ lat: coords[1], lng: coords[0] });
-            }
+            setPickup({ 
+              address: val, 
+              coords: coords ? { lat: coords[1], lng: coords[0] } : null 
+            });
+            setErrorMessage(null); // Xóa lỗi khi người dùng bắt đầu sửa
           }}
-          destination={destination}
+          destination={destination?.address || ''}
           onDestinationChange={(val, coords) => {
-            setDestination(val);
-            if (coords) {
-              setDestCoords({ lat: coords[1], lng: coords[0] }); // OSRM/Photon dùng [lng, lat]
-            }
+            setDestination({ 
+              address: val, 
+              coords: coords ? { lat: coords[1], lng: coords[0] } : null 
+            });
+            setErrorMessage(null); // Xóa lỗi khi người dùng bắt đầu sửa
           }}
         />
+
+        {/* HIỂN THỊ THÔNG BÁO LỖI NẾU CÓ */}
+        {errorMessage && (
+          <div className="px-4 py-2 mt-2 mx-4 text-sm font-medium text-red-600 bg-red-50 rounded-md border border-red-200">
+            {errorMessage}
+          </div>
+        )}
 
         <StaticMapPreview
           latitude={location.latitude}
@@ -160,7 +190,7 @@ const SearchLocationScreen: React.FC<SearchLocationScreenProps> = ({
         <Button
           variant="primary"
           fullWidth
-          disabled={!destination.trim()}
+          disabled={!destination?.address?.trim()}
           onClick={handleNext}
           className="sl-next-btn"
           icon={ArrowRight}
