@@ -9,6 +9,11 @@ export default defineConfig({
     path: "prisma/migrations",
   },
   datasource: {
-    url: process.env["DATABASE_URL"] + "?pgbouncer=true",
+    url: process.env.DATABASE_URL ? (process.env.DATABASE_URL.includes('?') ? `${process.env.DATABASE_URL}&pgbouncer=true` : `${process.env.DATABASE_URL}?pgbouncer=true`) : "",
+    directUrl: process.env.DIRECT_URL || "",
   },
 });
+
+if (!process.env.DATABASE_URL || !process.env.DIRECT_URL) {
+  console.error("❌ Error: DATABASE_URL or DIRECT_URL is missing in .env file!");
+}

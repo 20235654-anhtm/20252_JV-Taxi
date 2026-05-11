@@ -14,47 +14,35 @@ import SearchLocation from '../pages/passenger/SearchLocation';
 import BookingOptions from '../pages/passenger/BookingOptions';
 import SelectDriver from '../pages/passenger/SelectDriver';
 import DriverDetail from '../pages/passenger/DriverDetail';
+import Profile from '../pages/passenger/Profile';
+
+// Driver Pages
+import DriverHome from '../pages/driver/DriverHome';
 
 import PrivateRoute from '../components/PrivateRoute';
+import PublicRoute from '../components/PublicRoute';
 
 const AppRoutes = () => {
   return (
     <Routes>
       {/* ======================= GUEST FLOW (UNAUTHENTICATED) ======================= */}
-      {/* Guest home page */}
-      <Route path="/" element={<GuestHome />} />
-      
-      {/* Search/select destination for guests */}
-      <Route path="/guest/search-location" element={<GuestSearchLocation />} />
-      
-      {/* Sign-in screen */}
-      <Route path="/login" element={<SignIn />} />
-      
-      {/* Role selection screen (for registration) */}
-      <Route path="/signup" element={<SignUpSelection />} />
-      
-      {/* Passenger registration screen */}
-      <Route path="/signup/passenger" element={<PassengerSignUp />} />
-      
-      {/* Driver registration screen */}
-      <Route path="/signup/driver" element={<DriverSignUp />} />
-
+      <Route path="/" element={<PublicRoute><GuestHome /></PublicRoute>} />
+      <Route path="/guest/search-location" element={<PublicRoute><GuestSearchLocation /></PublicRoute>} />
+      <Route path="/login" element={<PublicRoute><SignIn /></PublicRoute>} />
+      <Route path="/signup" element={<PublicRoute><SignUpSelection /></PublicRoute>} />
+      <Route path="/signup/passenger" element={<PublicRoute><PassengerSignUp /></PublicRoute>} />
+      <Route path="/signup/driver" element={<PublicRoute><DriverSignUp /></PublicRoute>} />
 
       {/* ======================= PASSENGER FLOW (AUTHENTICATED) ======================= */}
-      {/* Passenger dashboard */}
       <Route path="/passenger" element={<PrivateRoute><PassengerHome /></PrivateRoute>} />
-      
-      {/* Search/select destination */}
       <Route path="/passenger/search-location" element={<PrivateRoute><SearchLocation /></PrivateRoute>} />
-      
-      {/* Select booking options */}
       <Route path="/passenger/booking-options" element={<PrivateRoute><BookingOptions /></PrivateRoute>} />
-      
-      {/* Driver selection screen */}
       <Route path="/passenger/select-driver" element={<PrivateRoute><SelectDriver /></PrivateRoute>} />
-      
-      {/* Driver details screen */}
       <Route path="/passenger/driver-detail" element={<PrivateRoute><DriverDetail /></PrivateRoute>} />
+      <Route path="/passenger/profile" element={<PrivateRoute><Profile /></PrivateRoute>} />
+
+      {/* ======================= DRIVER FLOW (AUTHENTICATED) ======================= */}
+      <Route path="/driver" element={<PrivateRoute><DriverHome /></PrivateRoute>} />
     </Routes>
   );
 };

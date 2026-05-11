@@ -303,53 +303,32 @@ export default function DriverSignUp() {
 
     setLoading(true);
     try {
-      // Mock signup for frontend-only development
-      console.log("Mock Driver Registration:", form);
-      alert("Registration successful (Mock)");
-      navigate("/login");
-
-      /* 
-      // 1. Đăng ký Supabase Auth
-      const { data, error: signUpError } = await supabase.auth.signUp({
-        email: form.email,
-        password: form.pass,
+      const response = await fetch('http://localhost:5000/api/auth/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          email: form.email, 
+          phone: form.phone, 
+          password: form.pass, 
+          fullName: form.name,
+          role: 'DRIVER'
+        })
       });
 
-      if (signUpError) throw signUpError;
-      if (!data.user) throw new Error("Registration failed");
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.message || 'Đăng ký thất bại');
+      }
 
-      // 2. Cập nhật role thành DRIVER trong profiles
-      const { error: profileError } = await supabase
-        .from("profiles")
-        .update({
-          full_name: form.name,
-          phone: form.phone,
-          role: "DRIVER",
-          status: "ACTIVE"
-        })
-        .eq("id", data.user.id);
-
-      if (profileError) throw profileError;
-
-      // 3. Tạo driver_profile
-      const { error: driverError } = await supabase
-        .from("driver_profiles")
-        .insert({
-          user_id: data.user.id,
-          vehicle_type: form.carType,
-          vehicle_infor: form.plate,
-          japanese_cer_infor: form.jlpt,
-          driving_license_infor: "PENDING_UPLOAD", // placeholder
-          is_approved: false
-        });
-
-      if (driverError) throw driverError;
-
-      console.log("Driver registered successfully");
-      // navigate("/driver/pending"); // Or similar
-      */
+      // Lưu token và user giống như login
+      localStorage.setItem('authToken', data.token);
+      localStorage.setItem('user', JSON.stringify(data.user));
+      
+      console.log("Registered successfully as Driver");
+      navigate("/driver");
     } catch (err: any) {
       console.error("Driver signup error:", err.message);
+      alert(err.message);
     } finally {
       setLoading(false);
     }

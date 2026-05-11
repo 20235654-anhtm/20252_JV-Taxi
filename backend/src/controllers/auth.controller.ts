@@ -5,7 +5,7 @@ import prisma from '../config/db';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'change_this_secret';
 
-export const loginPassenger = async (req: Request, res: Response) => {
+export const login = async (req: Request, res: Response) => {
   try {
     const { identifier, password } = req.body;
 
@@ -18,8 +18,7 @@ export const loginPassenger = async (req: Request, res: Response) => {
         OR: [
           { email: identifier },
           { phone: identifier }
-        ],
-        role: 'CUSTOMER'
+        ]
       }
     });
 
@@ -53,3 +52,73 @@ export const loginPassenger = async (req: Request, res: Response) => {
     return res.status(500).json({ message: 'Lỗi server khi đăng nhập.' });
   }
 };
+
+export const register = async (req: Request, res: Response) => {
+  try {
+    const { email, phone, password, fullName, role } = req.body;
+
+    if (!password || (!email && !phone)) {
+      return res.status(400).json({ message: 'Vui lòng cung cấp đầy đủ thông tin đăng ký.' });
+    }
+
+    // Kiểm tra tồn tại
+    const existingUser = await prisma.profile.findFirst({
+      where: {
+        OR: [
+          email ? { email } : {},
+          phone ? { phone } : {}
+        ].filter(condition => Object.keys(condition).length > 0)
+      }
+    });
+
+    if (existingUser) {
+      return res.status(400).json({ message: 'Email hoặc số điện thoại đã được sử dụng.' });
+    }
+
+    const passwordHash = await bcrypt.hash(password, 10);
+
+    // Tạo profile
+    const profile = await prisma.profile.create({
+      data: {
+        email,
+        phone,
+        passwordHash,
+        fullName,
+        role: role || 'CUSTOMER',
+        status: 'ACTIVE'
+      }
+    });
+
+    // Nếu là tài xế, tạo thêm bản ghi DriverProfile trống
+    if (role === 'DRIVER') {
+      await prisma.driverProfile.create({
+        data: {
+          userId: profile.id,
+          drivingLicenseInfor: 'N/A', // Thông tin cơ bản ban đầu
+          vehicleInfor: 'N/A'
+        }
+      });
+    }
+
+    const token = jwt.sign(
+      { userId: profile.id, role: profile.role },
+      JWT_SECRET,
+      { expiresIn: '7d' }
+    );
+
+    return res.status(201).json({
+      token,
+      user: {
+        id: profile.id,
+        fullName: profile.fullName,
+        email: profile.email,
+        phone: profile.phone,
+        role: profile.role
+      }
+    });
+  } catch (error) {
+    console.error('Registration error:', error);
+    return res.status(500).json({ message: 'Lỗi server khi đăng ký.' });
+  }
+};
+

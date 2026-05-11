@@ -230,7 +230,13 @@ export default function SignIn() {
 
       localStorage.setItem('authToken', data.token);
       localStorage.setItem('user', JSON.stringify(data.user));
-      navigate('/passenger');
+      
+      // Điều hướng dựa trên vai trò (Role)
+      if (data.user.role === 'DRIVER') {
+        navigate('/driver');
+      } else {
+        navigate('/passenger');
+      }
     } catch (err: any) {
       setError(err.message || t.errorAuth);
       setErrorField('both');

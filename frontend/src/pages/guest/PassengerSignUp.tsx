@@ -89,41 +89,32 @@ export default function PassengerSignUp() {
 
     setLoading(true);
     try {
-      // Mock signup for frontend-only development
-      console.log("Mock Passenger Registration:", form);
-      alert("Registration successful (Mock)");
-      navigate("/login");
-
-      /* 
-      // 1. Đăng ký tài khoản Supabase Auth
-      const { data, error: signUpError } = await supabase.auth.signUp({
-        email: form.email,
-        password: form.pass,
+      const response = await fetch('http://localhost:5000/api/auth/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          email: form.email, 
+          phone: form.phone, 
+          password: form.pass, 
+          fullName: form.name,
+          role: 'CUSTOMER'
+        })
       });
 
-      if (signUpError) throw signUpError;
-      if (!data.user) throw new Error("Registration failed");
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.message || 'Đăng ký thất bại');
+      }
 
-      // 2. Cập nhật profile (Trigger SQL sẽ tạo hàng sẵn, chúng ta chỉ cập nhật thêm info)
-      // Lưu ý: role mặc định là CUSTOMER theo schema SQL
-      const { error: profileError } = await supabase
-        .from("profiles")
-        .update({
-          full_name: form.name,
-          phone: form.phone,
-          role: "CUSTOMER",
-          status: "ACTIVE"
-        })
-        .eq("id", data.user.id);
-
-      if (profileError) throw profileError;
-
-      console.log("Registered successfully");
-      navigate("/passenger/home");
-      */
+      // Lưu token và user giống như login
+      localStorage.setItem('authToken', data.token);
+      localStorage.setItem('user', JSON.stringify(data.user));
+      
+      console.log("Registered successfully as Passenger");
+      navigate("/passenger");
     } catch (err: any) {
       console.error("Signup error:", err.message);
-      // Có thể thêm hiển thị lỗi ở đây
+      alert(err.message);
     } finally {
       setLoading(false);
     }

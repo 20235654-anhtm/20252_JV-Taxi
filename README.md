@@ -77,8 +77,23 @@ Dự án sử dụng `react-router-dom` để quản lý điều hướng. Các 
 | `/passenger/booking-options`| `BookingOptions.tsx` | Trang chọn phương thức ghép cuốc. |
 | `/passenger/select-driver` | `SelectDriver.tsx` | Trang hiển thị danh sách tài xế. |
 | `/passenger/driver-detail` | `DriverDetail.tsx` | Trang xem chi tiết một tài xế. |
+| `/passenger/profile`       | `Profile.tsx`      | Trang thông tin cá nhân và đăng xuất. |
 
 ---
+
+## 4. Lưu ý quan quan trọng về Prisma 7 & Supabase
+
+Dự án hiện tại đang sử dụng **Prisma 7**. Để đẩy schema lên Supabase mà không bị lỗi treo hoặc lỗi quyền hạn:
+
+1.  **Cấu hình .env**: File `.env` của bạn cần cả `DATABASE_URL` (cho ứng dụng) và `DIRECT_URL` (cho các lệnh Prisma).
+2.  **Lệnh đẩy Schema**: Sử dụng lệnh sau để tránh lỗi kết nối:
+    ```bash
+    npx prisma db push
+    ```
+3.  **Seed dữ liệu**: Để nạp dữ liệu mẫu khu vực Bách Khoa:
+    ```bash
+    npm run db:seed
+    ```
 
 ## Git & File bỏ qua (.gitignore)
 
