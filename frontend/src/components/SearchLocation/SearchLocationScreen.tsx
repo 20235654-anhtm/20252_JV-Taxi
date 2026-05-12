@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Header from './Header';
 import LocationInputGroup from './LocationInputGroup';
-import StaticMapPreview from './StaticMapPreview';
+import { MapView } from '../features/MapView';
 import RecentHistory, { type HistoryItem } from './RecentHistory';
 import LocationPermissionPopup from './LocationPermissionPopup';
 import { useWatchLocation } from '../../hooks/useWatchLocation';
@@ -112,12 +112,12 @@ const SearchLocationScreen: React.FC<SearchLocationScreenProps> = ({
 
     // 2. KIỂM TRA TỌA ĐỘ: Bắt buộc phải có tọa độ mới được đi tiếp
     if (!pickup?.coords) {
-      setErrorMessage('現在地を正しく選択してください。(Vui lòng chọn Điểm đón từ danh sách gợi ý)');
+      setErrorMessage('現在地を正しく選択してください。');
       return;
     }
 
     if (!destination?.coords) {
-      setErrorMessage('目的地を正しく選択してください。(Vui lòng chọn Điểm đến từ danh sách gợi ý)');
+      setErrorMessage('目的地を正しく選択してください。');
       return;
     }
 
@@ -160,11 +160,14 @@ const SearchLocationScreen: React.FC<SearchLocationScreenProps> = ({
           </div>
         )}
 
-        <StaticMapPreview
-          latitude={location.latitude}
-          longitude={location.longitude}
-          loading={location.loading}
-        />
+        <div className="h-[500px] rounded-[24px] overflow-hidden border border-[rgba(0,109,55,0.1)] shadow-sm relative">
+          <MapView
+            position={location.latitude && location.longitude ? { lat: location.latitude, lng: location.longitude } : null}
+            pickupPosition={pickup?.coords}
+            zoom={12}
+            showZoomControl={true}
+          />
+        </div>
 
         {!isGuest && recentDestinations.length > 0 && (
           <RecentHistory

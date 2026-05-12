@@ -8,7 +8,7 @@ import { QuickBookingCard } from '../../components/features/QuickBookingCard';
 
 const GuestHome = () => {
   const navigate = useNavigate();
-  const { position, error } = useGeolocation();
+  const { position, error, permissionDenied } = useGeolocation();
   
   const [recenterKey, setRecenterKey] = useState(0);
   const [destination, setDestination] = useState('');
@@ -16,7 +16,6 @@ const GuestHome = () => {
   // Xử lý nút đặt xe
   const handleBookNow = () => {
     if (destination.trim()) {
-      // Chế độ Guest đi tới màn hình search của Guest
       navigate('/guest/search-location', { state: { initialSearch: destination } });
     } else {
       navigate('/guest/search-location');
@@ -25,40 +24,43 @@ const GuestHome = () => {
 
   return (
     <div style={styles.pageWrapper}>
-      {/* Header: Chế độ Guest (Đã đăng nhập là false) */}
+      {/* Header */}
       <Header
         variant="guest"
         onLoginClick={() => navigate('/login')}
         onSignupClick={() => navigate('/signup')}
       />
 
-      {/* MapView */}
+      {/* MapView - luôn hiển thị, popup sẽ phủ lên nếu GPS bị từ chối */}
       <div style={styles.mapWrapper}>
         <MapView
           position={position}
           error={error}
+          permissionDenied={permissionDenied}
           zoom={15}
           recenterKey={recenterKey}
           showPickupLabel
         />
       </div>
 
-      {/* Lớp phủ Gradient phía dưới */}
-      <div className="absolute bottom-0 left-0 right-0 h-[400px] gradient-sheet pointer-events-none z-[1010]" />
+      {/* Chỉ hiển thị khi có quyền GPS */}
+      {!permissionDenied && (
+        <>
+          <div className="absolute bottom-0 left-0 right-0 h-[400px] gradient-sheet pointer-events-none z-[1010]" />
 
-      {/* Quick Booking Card (Chế độ Guest: isGuest={true}) */}
-      <QuickBookingCard
-        isGuest={true}
-        destinationValue={destination}
-        setDestinationValue={setDestination}
-        onBookNow={handleBookNow}
-      />
+          <QuickBookingCard
+            isGuest={true}
+            destinationValue={destination}
+            setDestinationValue={setDestination}
+            onBookNow={handleBookNow}
+          />
 
-      {/* FAB: Nút re-center */}
-      <FAB
-        onClick={() => setRecenterKey(k => k + 1)}
-        ariaLabel="現在地に戻る"
-      />
+          <FAB
+            onClick={() => setRecenterKey(k => k + 1)}
+            ariaLabel="現在地に戻る"
+          />
+        </>
+      )}
     </div>
   );
 };

@@ -11,29 +11,24 @@ import { useBooking } from '../../contexts/BookingContext';
 
 const PassengerHome = () => {
   const navigate = useNavigate();
-  const { position, error } = useGeolocation();
+  const { position, error, permissionDenied } = useGeolocation();
   const { destination, setDestination } = useBooking();
 
   const [activeTab, setActiveTab] = useState<NavTab>('home');
   const [currentLang, setCurrentLang] = useState<'jp' | 'vn'>('jp');
   const [recenterKey, setRecenterKey] = useState(0);
   
-  // Khởi tạo ô nhập bằng địa điểm đã lưu trong Context (nếu có)
   const [destinationInput, setDestinationInput] = useState(destination?.address || '');
 
-  // Xử lý nút đặt xe
   const handleBookNow = () => {
     if (destinationInput.trim()) {
-      // Lưu địa điểm vào Global State với tọa độ rỗng (để trang Search tự động phân giải)
       setDestination({ address: destinationInput, coords: null });
-      // Chuyển sang trang Search, báo cho trang đó biết là cần tự động phân giải tọa độ
       navigate('/passenger/search-location', { state: { initialSearch: destinationInput } });
     } else {
       navigate('/passenger/search-location');
     }
   };
 
-  // TODO: thay bằng avatar thực từ user profile khi có auth
   const userAvatar = 'https://i.pravatar.cc/150?img=3';
 
   const handleTabChange = (tab: NavTab) => {
@@ -42,7 +37,7 @@ const PassengerHome = () => {
 
   return (
     <div style={styles.pageWrapper}>
-      {/* ── Header: variant passenger (logo giữa, avatar trái, JP/VN phải) ── */}
+      {/* Header */}
       <Header
         variant="passenger"
         userAvatar={userAvatar}
@@ -50,11 +45,12 @@ const PassengerHome = () => {
         onLanguageChange={setCurrentLang}
       />
 
-      {/* ── Bản đồ chiếm toàn màn hình ── */}
+      {/* Bản đồ - luôn hiển thị, popup phủ lên nếu GPS bị từ chối */}
       <div style={styles.mapWrapper}>
         <MapView
           position={position}
           error={error}
+          permissionDenied={permissionDenied}
           zoom={15}
           recenterKey={recenterKey}
           hasBottomNav
@@ -62,23 +58,26 @@ const PassengerHome = () => {
         />
       </div>
 
-      {/* ── Lớp phủ Gradient phía dưới để làm nền cho Card & Nav ── */}
-      <div className="absolute bottom-0 left-0 right-0 h-[400px] gradient-sheet pointer-events-none z-[1010]" />
+      {/* Chỉ hiển thị khi có quyền GPS */}
+      {!permissionDenied && (
+        <>
+          <div className="absolute bottom-0 left-0 right-0 h-[400px] gradient-sheet pointer-events-none z-[1010]" />
 
-      <QuickBookingCard
-        userName="佐藤"
-        destinationValue={destinationInput}
-        setDestinationValue={setDestinationInput}
-        onBookNow={handleBookNow}
-      />
+          <QuickBookingCard
+            userName="佐藤"
+            destinationValue={destinationInput}
+            setDestinationValue={setDestinationInput}
+            onBookNow={handleBookNow}
+          />
 
-      {/* ── FAB: Nút re-center (vị trí mặc định top-24 right-4) ── */}
-      <FAB
-        onClick={() => setRecenterKey(k => k + 1)}
-        ariaLabel="現在地に戻る"
-      />
+          <FAB
+            onClick={() => setRecenterKey(k => k + 1)}
+            ariaLabel="現在地に戻る"
+          />
+        </>
+      )}
 
-      {/* ── BottomNavBar ── */}
+      {/* BottomNavBar luôn hiển thị */}
       <BottomNavBar
         activeTab={activeTab}
         onTabChange={handleTabChange}
