@@ -70,18 +70,32 @@ export default function PassengerSignUp() {
 
   const [form, setForm] = useState({ name: "", email: "", phone: "", pass: "", agree: false });
   const [errors, setErrors] = useState<Record<string, boolean>>({});
+  const [touched, setTouched] = useState<Record<string, boolean>>({});
   const [showPass, setShowPass] = useState(false);
   const [loading, setLoading] = useState(false);
+
+  const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+  const phoneRegex = /^\+?[0-9]{10,15}$/;
 
   const validate = () => {
     const newErrors: Record<string, boolean> = {};
     if (!form.name) newErrors.name = true;
-    if (!form.email.includes("@")) newErrors.email = true;
-    if (!/^\d+$/.test(form.phone)) newErrors.phone = true;
+    if (!emailRegex.test(form.email)) newErrors.email = true;
+    if (!phoneRegex.test(form.phone)) newErrors.phone = true;
     if (form.pass.length < 8) newErrors.pass = true;
     if (!form.agree) newErrors.agree = true;
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
+  };
+
+  const isInvalid = (field: string) => {
+    if (errors[field]) return true;
+    const val = field === 'email' ? form.email : form.phone;
+    if (val !== "") {
+      if (field === 'email') return !emailRegex.test(val);
+      if (field === 'phone') return !phoneRegex.test(val);
+    }
+    return false;
   };
 
   const handleSubmit = async () => {
@@ -161,7 +175,7 @@ export default function PassengerSignUp() {
             <div className="flex justify-between items-center px-[4px]">
               <label className="font-bold text-[14px] text-[#171d17] uppercase">{t.emailLabel}</label>
             </div>
-            <div className={`bg-[#eff6ec] relative rounded-[24px] flex items-center p-[16px] gap-[12px] border ${errors.email ? "border-red-500" : "border-transparent"}`}>
+            <div className={`bg-[#eff6ec] relative rounded-[24px] flex items-center p-[16px] gap-[12px] border ${isInvalid('email') ? "border-red-500" : "border-transparent"}`}>
               <div className="size-[20px] shrink-0">
                 <svg className="block size-full" fill="none" viewBox="0 0 20 16">
                   <path d={svgPaths.p13e73800} fill="#6D7A6E" />
@@ -172,7 +186,12 @@ export default function PassengerSignUp() {
                 placeholder={t.emailPlaceholder}
                 className="bg-transparent border-none outline-none w-full text-[16px] text-[#171d17] placeholder-[#bccabc]"
                 value={form.email}
-                onChange={(e) => setForm({ ...form, email: e.target.value })}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  setForm({ ...form, email: val });
+                  if (emailRegex.test(val)) setErrors((prev) => ({ ...prev, email: false }));
+                }}
+                onBlur={() => setTouched({ ...touched, email: true })}
               />
             </div>
           </div>
@@ -182,7 +201,7 @@ export default function PassengerSignUp() {
             <div className="flex justify-between items-center px-[4px]">
               <label className="font-bold text-[14px] text-[#171d17] uppercase">{t.phoneLabel}</label>
             </div>
-            <div className={`bg-[#eff6ec] relative rounded-[24px] flex items-center p-[16px] gap-[12px] border ${errors.phone ? "border-red-500" : "border-transparent"}`}>
+            <div className={`bg-[#eff6ec] relative rounded-[24px] flex items-center p-[16px] gap-[12px] border ${isInvalid('phone') ? "border-red-500" : "border-transparent"}`}>
               <div className="size-[18px] shrink-0">
                 <svg className="block size-full" fill="none" viewBox="0 0 18 18">
                   <path d={svgPaths.p143e1930} fill="#6D7A6E" />
@@ -193,7 +212,11 @@ export default function PassengerSignUp() {
                 placeholder={t.phonePlaceholder}
                 className="bg-transparent border-none outline-none w-full text-[16px] text-[#171d17] placeholder-[#bccabc]"
                 value={form.phone}
-                onChange={(e) => setForm({ ...form, phone: e.target.value })}
+                onChange={(e) => {
+                  const val = e.target.value.replace(/[^0-9+]/g, '');
+                  setForm({ ...form, phone: val });
+                  if (phoneRegex.test(val)) setErrors((prev) => ({ ...prev, phone: false }));
+                }}
               />
             </div>
           </div>
