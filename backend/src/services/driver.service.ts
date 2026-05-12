@@ -28,8 +28,8 @@ export interface NearbyDriverResult {
  * @returns List of matching drivers, sorted by distance ascending
  */
 export const getNearbyDrivers = async (
-  lng: number,
-  lat: number,
+  longitude: number,
+  latitude: number,
   radiusInMeters: number = 3000
 ): Promise<NearbyDriverResult[]> => {
   try {
@@ -43,7 +43,7 @@ export const getNearbyDrivers = async (
         dp."avatar_picture",
         ST_Distance(
           dp."current_location", 
-          ST_SetSRID(ST_MakePoint(${lng}, ${lat}), 4326)::geography
+          ST_SetSRID(ST_MakePoint(${longitude}, ${latitude}), 4326)::geography
         ) as distance
       FROM "driver_profiles" dp
       INNER JOIN "profiles" p ON dp."user_id" = p."id"
@@ -54,7 +54,7 @@ export const getNearbyDrivers = async (
         AND dp."current_location" IS NOT NULL
         AND ST_DWithin(
           dp."current_location", 
-          ST_SetSRID(ST_MakePoint(${lng}, ${lat}), 4326)::geography, 
+          ST_SetSRID(ST_MakePoint(${longitude}, ${latitude}), 4326)::geography, 
           ${radiusInMeters}
         )
       ORDER BY distance ASC;
