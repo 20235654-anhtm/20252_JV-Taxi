@@ -9,6 +9,7 @@ interface GeolocationState {
   position: LatLng | null;
   error: string | null;
   loading: boolean;
+  permissionDenied: boolean;
 }
 
 /**
@@ -23,6 +24,7 @@ export function useGeolocation(): GeolocationState {
   const [position, setPosition] = useState<LatLng | null>(null);
   const [error, setError]       = useState<string | null>(null);
   const [loading, setLoading]   = useState<boolean>(true);
+  const [permissionDenied, setPermissionDenied] = useState<boolean>(false);
 
   // Ref giữ watchId để có thể clear/restart trong closure
   const watchIdRef  = useRef<number | null>(null);
@@ -46,6 +48,7 @@ export function useGeolocation(): GeolocationState {
       setPosition({ lat: pos.coords.latitude, lng: pos.coords.longitude });
       setLoading(false);
       setError(null);
+      setPermissionDenied(false);
       hasErrorRef.current = false;  // reset cờ lỗi
     };
 
@@ -53,6 +56,7 @@ export function useGeolocation(): GeolocationState {
       switch (err.code) {
         case err.PERMISSION_DENIED:
           setError('Bạn đã từ chối quyền truy cập vị trí. Hãy cho phép trong cài đặt trình duyệt.');
+          setPermissionDenied(true);
           break;
         case err.POSITION_UNAVAILABLE:
           setError('Không thể xác định vị trí. Hãy thử lại sau.');
@@ -85,9 +89,15 @@ export function useGeolocation(): GeolocationState {
     const handlePermissionChange = () => {
       if (permStatus?.state === 'granted') {
         setError(null);
+        setPermissionDenied(false);
         setLoading(true);
         hasErrorRef.current = false;
         startWatch();
+      } else if (permStatus?.state === 'denied') {
+        setPermissionDenied(true);
+        setError('Bạn đã từ chối quyền truy cập vị trí. Hãy cho phép trong cài đặt trình duyệt.');
+        setLoading(false);
+        hasErrorRef.current = true;
       }
     };
 
@@ -131,5 +141,5 @@ export function useGeolocation(): GeolocationState {
     };
   }, []);
 
-  return { position, error, loading };
+  return { position, error, loading, permissionDenied };
 }
