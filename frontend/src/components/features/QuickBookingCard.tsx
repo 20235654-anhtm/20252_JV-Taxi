@@ -6,6 +6,7 @@ import { SearchInput } from '../ui/SearchInput';
 import { Button } from '../ui/Button';
 import { Clock, ArrowRight, History, MapPin } from 'lucide-react';
 import { useLocationSuggestions } from '../../hooks/useLocationSuggestions';
+import { useRecentDestinations } from '../../hooks/useRecentDestinations';
 
 interface QuickBookingCardProps {
   userName?: string;
@@ -28,16 +29,17 @@ export const QuickBookingCard: React.FC<QuickBookingCardProps> = ({
   // --- SỬ DỤNG HOOK TÌM KIẾM THẬT ---
   const { suggestions: apiSuggestions, isLoading } = useLocationSuggestions(destinationValue);
 
+  // Lấy thông tin user để gọi API lịch sử
+  const userStr = localStorage.getItem('user');
+  const user = userStr ? JSON.parse(userStr) : null;
+  const { recentDestinations } = useRecentDestinations(user?.id);
+
   // Logic hiển thị: 
   // 1. Nếu đang gõ (>2 ký tự) -> Hiện kết quả từ API
   // 2. Nếu không gõ -> Hiện lịch sử (Passenger) hoặc để trống (Guest)
   const suggestions = destinationValue.length >= 2
     ? apiSuggestions
-    : (isGuest ? [] : [
-      { id: 1, name: 'Vinh Yên Tower', address: 'Khai Quang, Vinh Yên, Vinh Phúc' },
-      { id: 2, name: 'Ga Vinh Yên', address: 'Phường Đống Đa, Vinh Yên' },
-      { id: 3, name: 'Big C Vinh Yên', address: 'Phường Khai Quang, Vinh Yên' },
-    ]);
+    : (isGuest ? [] : recentDestinations);
 
   const handleTouchStart = (e: React.TouchEvent) => {
     touchStartY.current = e.touches[0].clientY;
@@ -139,7 +141,8 @@ export const QuickBookingCard: React.FC<QuickBookingCardProps> = ({
               </div>
 
               <div className="flex flex-col gap-4 overflow-y-auto">
-                {(destinationValue.length >= 2 || !isGuest) && (
+                {/* Chỉ hiện nhãn nếu có kết quả tìm kiếm hoặc có lịch sử (và lịch sử không trống) */}
+                {((destinationValue.length >= 2) || (!isGuest && suggestions.length > 0)) && (
                   <Text variant="label" color="tertiary" className="text-[11px] font-bold">
                     {destinationValue.length >= 2 ? '検索結果' : '最近の履歴'}
                   </Text>

@@ -11,29 +11,10 @@ import { ArrowRight } from 'lucide-react';
 import { AuthRequiredSheet } from '../features/AuthRequiredSheet';
 import { reverseGeocode, useLocationSuggestions } from '../../hooks/useLocationSuggestions';
 import { useBooking } from '../../contexts/BookingContext';
+import { useRecentDestinations } from '../../hooks/useRecentDestinations';
 import './SearchLocation.css';
 
-// Mock data for recent history
-const mockHistory: HistoryItem[] = [
-  {
-    id: '1',
-    name: 'Royal City',
-    address: '72A Nguyễn Trãi, Thượng Đình, Thanh Xuân, Hà Nội',
-    coords: { lat: 21.0028, lng: 105.8152 }
-  },
-  {
-    id: '2',
-    name: 'Lotte Center',
-    address: '54 Liễu Giai, Cống Vị, Ba Đình, Hà Nội',
-    coords: { lat: 21.0313, lng: 105.8152 }
-  },
-  {
-    id: '3',
-    name: 'Hanoi Opera House',
-    address: '1 Tràng Tiền, Phan Chu Trinh, Hoàn Kiếm, Hà Nội',
-    coords: { lat: 21.0242, lng: 105.8584 }
-  }
-];
+// Mock data has been removed and replaced with API call
 
 interface SearchLocationScreenProps {
   isGuest?: boolean;
@@ -57,6 +38,11 @@ const SearchLocationScreen: React.FC<SearchLocationScreenProps> = ({
 
   const { suggestions: initialSuggestions } = useLocationSuggestions(initialSearch);
   const location = useWatchLocation();
+
+  // Lấy thông tin user để gọi API lịch sử
+  const userStr = localStorage.getItem('user');
+  const user = userStr ? JSON.parse(userStr) : null;
+  const { recentDestinations, isLoading: isHistoryLoading } = useRecentDestinations(user?.id);
 
   // 1. Phân giải tọa độ cho initialSearch nếu có (từ trang chủ truyền sang)
   useEffect(() => {
@@ -180,9 +166,9 @@ const SearchLocationScreen: React.FC<SearchLocationScreenProps> = ({
           loading={location.loading}
         />
 
-        {!isGuest && (
+        {!isGuest && recentDestinations.length > 0 && (
           <RecentHistory
-            history={mockHistory}
+            history={recentDestinations}
             onSelect={handleDestinationSelect}
           />
         )}
