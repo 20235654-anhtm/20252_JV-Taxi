@@ -87,7 +87,7 @@ function BrandIdentitySection() {
   );
 }
 
-function IdentityInput({ t, value, onChange, error }: { t: any; value: string; onChange: (v: string) => void; error: boolean }) {
+function IdentityInput({ t, value, onChange, onBlur, error }: { t: any; value: string; onChange: (v: string) => void; onBlur?: () => void; error: boolean }) {
   return (
     <div className="content-stretch flex flex-col gap-[8px] items-start relative shrink-0 w-full" data-name="Identity Input">
       <div className="relative shrink-0 w-full" data-name="Label">
@@ -107,6 +107,7 @@ function IdentityInput({ t, value, onChange, error }: { t: any; value: string; o
                 placeholder={t.idPlaceholder}
                 value={value}
                 onChange={(e) => onChange(e.target.value)}
+                onBlur={onBlur}
                 maxLength={1000}
               />
             </div>
@@ -200,8 +201,16 @@ export default function SignIn() {
   const [error, setError] = useState<string | null>(null);
   const [errorField, setErrorField] = useState<"id" | "pass" | "both" | null>(null);
   const [loading, setLoading] = useState(false);
+  const [touched, setTouched] = useState(false);
 
   const t = TRANSLATIONS[lang];
+
+  const validateIdentifier = (val: string) => {
+    if (!val) return false;
+    const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+    const phoneRegex = /^\+?[0-9]{10,15}$/;
+    return emailRegex.test(val) || phoneRegex.test(val);
+  };
 
   const handleLogin = async () => {
     setError(null);
@@ -212,6 +221,12 @@ export default function SignIn() {
       if (!identifier && !password) setErrorField("both");
       else if (!identifier) setErrorField("id");
       else setErrorField("pass");
+      return;
+    }
+
+    if (!validateIdentifier(identifier)) {
+      setError(t.errorInvalidId);
+      setErrorField("id");
       return;
     }
 
@@ -270,8 +285,15 @@ export default function SignIn() {
                   <IdentityInput 
                     t={t} 
                     value={identifier} 
-                    onChange={setIdentifier} 
-                    error={errorField === "id" || errorField === "both"} 
+                    onChange={(v) => {
+                      setIdentifier(v);
+                      if (validateIdentifier(v)) {
+                        if (errorField === "id") setErrorField(null);
+                        if (errorField === "both") setErrorField("pass");
+                      }
+                    }} 
+                    onBlur={() => setTouched(true)}
+                    error={(errorField === "id" || errorField === "both") || (identifier !== "" && !validateIdentifier(identifier))} 
                   />
                   <PasswordInput 
                     t={t} 

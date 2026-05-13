@@ -144,7 +144,7 @@ function Heading1({ label }: { label: string }) {
   );
 }
 
-function InputField({ label, placeholder, value, onChange, error }: { label: string; placeholder: string; value: string; onChange: (v: string) => void; error?: boolean }) {
+function InputField({ label, placeholder, value, onChange, onBlur, error }: { label: string; placeholder: string; value: string; onChange: (v: string) => void; onBlur?: () => void; error?: boolean }) {
   return (
     <div className="bg-[#eff6ec] col-1 justify-self-stretch relative rounded-[24px] self-start shrink-0 w-full" data-name="Input Field">
       <div className="content-stretch flex flex-col gap-[4px] items-start p-[20px] relative size-full">
@@ -162,6 +162,7 @@ function InputField({ label, placeholder, value, onChange, error }: { label: str
               placeholder={placeholder}
               value={value}
               onChange={(e) => onChange(e.target.value)}
+              onBlur={onBlur}
               className="bg-transparent border-none outline-none font-['Plus_Jakarta_Sans:Medium','Noto_Sans_JP:Medium',sans-serif] font-medium text-[#171d17] text-[16px] w-full placeholder-[#bccabc]"
             />
           </div>
@@ -285,17 +286,31 @@ export default function DriverSignUp() {
 
   const [form, setForm] = useState({ name: "", phone: "", email: "", pass: "", carType: "Sedan", plate: "", jlpt: "" });
   const [errors, setErrors] = useState<Record<string, boolean>>({});
+  const [touched, setTouched] = useState<Record<string, boolean>>({});
   const [showPass, setShowPass] = useState(false);
   const [loading, setLoading] = useState(false);
+
+  const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+  const phoneRegex = /^\+?[0-9]{10,15}$/;
 
   const validate = () => {
     const newErrors: Record<string, boolean> = {};
     if (!form.name) newErrors.name = true;
-    if (!/^\d+$/.test(form.phone)) newErrors.phone = true;
-    if (!form.email.includes("@")) newErrors.email = true;
+    if (!phoneRegex.test(form.phone)) newErrors.phone = true;
+    if (!emailRegex.test(form.email)) newErrors.email = true;
     if (form.pass.length < 8) newErrors.pass = true;
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
+  };
+
+  const isInvalid = (field: string) => {
+    if (errors[field]) return true;
+    const val = field === 'email' ? form.email : form.phone;
+    if (val !== "") {
+      if (field === 'email') return !emailRegex.test(val);
+      if (field === 'phone') return !phoneRegex.test(val);
+    }
+    return false;
   };
 
   const handleSubmit = async () => {
@@ -347,9 +362,16 @@ export default function DriverSignUp() {
             <Heading1 label={t.identity} />
             <div className="gap-x-[16px] gap-y-[16px] grid grid-cols-[repeat(1,minmax(0,1fr))] grid-rows-[__103px_103px] relative shrink-0 w-full" data-name="Container">
               <InputField label={t.fullName} placeholder={t.namePlaceholder} value={form.name} onChange={(v) => setForm({ ...form, name: v })} error={errors.name} />
-              <InputField label={t.phone} placeholder={t.phonePlaceholder} value={form.phone} onChange={(v) => setForm({ ...form, phone: v })} error={errors.phone} />
+              <InputField label={t.phone} placeholder={t.phonePlaceholder} value={form.phone} onChange={(v) => {
+                const val = v.replace(/[^0-9+]/g, '');
+                setForm({ ...form, phone: val });
+                if (phoneRegex.test(val)) setErrors((prev) => ({ ...prev, phone: false }));
+              }} error={isInvalid('phone')} />
             </div>
-            <InputField label={t.email} placeholder={t.emailPlaceholder} value={form.email} onChange={(v) => setForm({ ...form, email: v })} error={errors.email} />
+            <InputField label={t.email} placeholder={t.emailPlaceholder} value={form.email} onChange={(v) => {
+              setForm({ ...form, email: v });
+              if (emailRegex.test(v)) setErrors((prev) => ({ ...prev, email: false }));
+            }} error={isInvalid('email')} />
             <PasswordField t={t} value={form.pass} onChange={(v) => setForm({ ...form, pass: v })} error={errors.pass} showPass={showPass} onTogglePass={() => setShowPass(!showPass)} />
           </div>
 
