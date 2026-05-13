@@ -23,14 +23,14 @@ interface LatLng {
 }
 
 // Sub-component để điều khiển bản đồ (Pan & Zoom & Padding)
-function MapController({ 
-  position, 
-  pickupPosition, 
-  destinationPosition, 
+function MapController({
+  position,
+  pickupPosition,
+  destinationPosition,
   recenterKey,
-  routePadding = [[20, 80], [20, 80]] 
-}: { 
-  position: LatLng | null; 
+  routePadding = [[20, 80], [20, 80]]
+}: {
+  position: LatLng | null;
   pickupPosition?: LatLng | null;
   destinationPosition?: LatLng | null;
   recenterKey: number;
@@ -45,13 +45,13 @@ function MapController({
         [pickupPosition.lat, pickupPosition.lng],
         [destinationPosition.lat, destinationPosition.lng]
       ]);
-      
-      map.fitBounds(bounds, { 
+
+      map.fitBounds(bounds, {
         paddingTopLeft: routePadding[0],
         paddingBottomRight: routePadding[1],
-        animate: true 
+        animate: true
       });
-    } 
+    }
     // Nếu chỉ có 1 điểm hoặc user muốn recenter về vị trí GPS
     else if (position && !pickupPosition) {
       map.setView([position.lat, position.lng], map.getZoom(), { animate: true });
@@ -73,18 +73,18 @@ interface MapViewProps {
   routePadding?: [[number, number], [number, number]];
 }
 
-export function MapView({ 
-  position, 
+export function MapView({
+  position,
   pickupPosition,
   destinationPosition,
-  error, 
-  zoom = 15, 
-  recenterKey = 0, 
-  hasBottomNav = false, 
+  error,
+  zoom = 15,
+  recenterKey = 0,
+  hasBottomNav = false,
   showPickupLabel = false,
   routePadding
 }: MapViewProps) {
-  
+
   if (error) {
     return (
       <div className="flex items-center justify-center h-full bg-slate-50 text-slate-400 p-8 text-center">
@@ -101,12 +101,12 @@ export function MapView({
     );
   }
 
-  const center: [number, number] = pickupPosition 
-    ? [pickupPosition.lat, pickupPosition.lng] 
+  const center: [number, number] = pickupPosition
+    ? [pickupPosition.lat, pickupPosition.lng]
     : (position ? [position.lat, position.lng] : [21.0285, 105.8542]);
 
   return (
-    <div className={`w-full h-full relative ${hasBottomNav ? 'pb-[88px]' : ''}`}>
+    <div className="w-full h-full relative">
       <MapContainer
         center={center}
         zoom={zoom}
@@ -117,11 +117,11 @@ export function MapView({
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           attribution='&copy; OpenStreetMap contributors'
         />
-        
-        <MapController 
-          position={position} 
-          pickupPosition={pickupPosition} 
-          destinationPosition={destinationPosition} 
+
+        <MapController
+          position={position}
+          pickupPosition={pickupPosition}
+          destinationPosition={destinationPosition}
           recenterKey={recenterKey}
           routePadding={routePadding}
         />
@@ -136,17 +136,17 @@ export function MapView({
 
         {/* Hiển thị lộ trình với nhãn chuẩn */}
         {pickupPosition && (
-          <LocationMarker 
-            position={pickupPosition} 
-            label="現在地" 
-            type="pickup" 
+          <LocationMarker
+            position={pickupPosition}
+            label="現在地"
+            type="pickup"
           />
         )}
         {destinationPosition && (
-          <LocationMarker 
-            position={destinationPosition} 
-            label="目的地" 
-            type="destination" 
+          <LocationMarker
+            position={destinationPosition}
+            label="目的地"
+            type="destination"
           />
         )}
       </MapContainer>
