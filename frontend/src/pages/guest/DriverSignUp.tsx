@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useLanguage } from "../../context/LanguageContext";
 import svgPaths from "./svg-6k5pihgtjb";
@@ -29,9 +29,7 @@ const TRANSLATIONS = {
     jlpt: "JLPT",
     jlptPlaceholder: "N3",
     docs: "書類提出",
-    licenseLabel: "運転免許証をアップロード",
-    registrationLabel: "車両登録証をアップロード",
-    insuranceLabel: "自動車保険をアップロード",
+    uploadDocs: "書類をアップロード (免許証、登録証、保険...)",
     submit: "ドライバーとして登録",
   },
   VN: {
@@ -58,9 +56,7 @@ const TRANSLATIONS = {
     jlpt: "JLPT",
     jlptPlaceholder: "N3",
     docs: "Nộp hồ sơ",
-    licenseLabel: "Tải lên bằng lái xe",
-    registrationLabel: "Tải lên giấy đăng ký xe",
-    insuranceLabel: "Tải lên bảo hiểm xe",
+    uploadDocs: "Tải lên tài liệu (Bằng lái, Đăng ký xe, Bảo hiểm...)",
     submit: "Đăng ký làm tài xế",
   },
 };
@@ -204,7 +200,7 @@ function PasswordField({ t, value, onChange, error, showPass, onTogglePass }: { 
 
 function CarTypeButton({ label, selected, onClick, iconPath }: { label: string; selected: boolean; onClick: () => void; iconPath: string }) {
   return (
-    <button onClick={onClick} className={`${selected ? 'bg-white' : 'bg-[#dde5db] opacity-60'} flex-[1_0_0] min-w-px relative rounded-[8px] transition-all`} data-name="Button">
+    <button type="button" onClick={onClick} className={`${selected ? 'bg-white' : 'bg-[#dde5db] opacity-60'} flex-[1_0_0] min-w-px relative rounded-[8px] transition-all`} data-name="Button">
       <div aria-hidden="true" className={`absolute border-2 ${selected ? 'border-[#006d37]' : 'border-transparent'} border-solid inset-0 pointer-events-none rounded-[8px]`} />
       <div className="flex flex-col items-center justify-center size-full">
         <div className="content-stretch flex flex-col items-center justify-center px-[10px] py-[14px] relative size-full">
@@ -230,31 +226,104 @@ function CarTypeButton({ label, selected, onClick, iconPath }: { label: string; 
   );
 }
 
-function FileUploadCard({ label }: { label: string }) {
+function FileUploadCard({ label, files, setFiles }: { label: string; files: File[]; setFiles: (files: File[]) => void }) {
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const selected = Array.from(e.target.files || []);
+    // Append new files to existing list
+    setFiles((prev) => [...prev, ...selected]);
+    // Reset input value so the same file can be selected again if needed
+    e.target.value = "";
+  };
+
+  const removeFile = (index: number) => {
+    setFiles((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const previewFile = (file: File) => {
+    const url = URL.createObjectURL(file);
+    window.open(url, '_blank');
+    // We don't revoke here because it might close the tab if we do it too fast, 
+    // but in a production app you'd want to manage this carefully.
+  };
+
   return (
-    <button className="content-stretch flex flex-col items-start relative shrink-0 w-full hover:brightness-95 transition-all" data-name="Container">
-      <div className="bg-[#eff6ec] content-stretch flex flex-col h-[160px] items-center justify-center p-[2px] relative rounded-[24px] shrink-0 w-full" data-name="Background+Border">
-        <div aria-hidden="true" className="absolute border-2 border-[#bccabc] border-dashed inset-0 pointer-events-none rounded-[24px]" />
-        <div className="h-[60px] relative shrink-0 w-[48px]" data-name="Margin">
-          <div className="bg-clip-padding border-0 border-[transparent] border-solid content-stretch flex flex-col items-start pb-[12px] relative size-full">
-            <div className="bg-[rgba(0,109,55,0.1)] content-stretch flex items-center justify-center relative rounded-[9999px] shrink-0 size-[48px]" data-name="Overlay">
-              <div className="h-[20px] relative shrink-0 w-[16px]" data-name="Container">
-                <svg className="absolute block inset-0 size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 16 20">
-                  <path d={svgPaths.p11fdd840} fill="var(--fill-0, #006D37)" />
-                </svg>
+    <div className="w-full">
+      <button
+        type="button"
+        className="content-stretch flex flex-col items-start relative shrink-0 w-full hover:brightness-95 transition-all"
+        data-name="Container"
+        onClick={handleClick}
+      >
+        <div className="bg-[#eff6ec] content-stretch flex flex-col h-[160px] items-center justify-center p-[2px] relative rounded-[24px] w-full" data-name="Background+Border">
+          <div aria-hidden="true" className="absolute border-2 border-[#bccabc] border-dashed inset-0 pointer-events-none rounded-[24px]" />
+          <div className="h-[60px] relative shrink-0 w-[48px]" data-name="Margin">
+            <div className="bg-clip-padding border-0 border-[transparent] border-solid content-stretch flex flex-col items-start pb-[12px] relative size-full">
+              <div className="bg-[rgba(0,109,55,0.1)] content-stretch flex items-center justify-center relative rounded-[9999px] shrink-0 size-[48px]" data-name="Overlay">
+                <div className="h-[20px] relative shrink-0 w-[16px]" data-name="Container">
+                  <svg className="absolute block inset-0 size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 16 20">
+                    <path d={svgPaths.p11fdd840} fill="var(--fill-0, #006D37)" />
+                  </svg>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div className="relative shrink-0" data-name="Container">
+            <div className="bg-clip-padding border-0 border-[transparent] border-solid content-stretch flex flex-col items-start relative size-full">
+              <div className="flex flex-col font-['Plus_Jakarta_Sans:Bold','Noto_Sans_JP:Bold',sans-serif] font-bold h-[15px] justify-center leading-[0] relative shrink-0 text-[#3d4a3f] text-[14px] tracking-[-0.5px] uppercase w-fit px-2" data-name="Label">
+                <p className="leading-[15px]">{label}</p>
               </div>
             </div>
           </div>
         </div>
-        <div className="relative shrink-0" data-name="Container">
-          <div className="bg-clip-padding border-0 border-[transparent] border-solid content-stretch flex flex-col items-start relative size-full">
-            <div className="flex flex-col font-['Plus_Jakarta_Sans:Bold','Noto_Sans_JP:Bold',sans-serif] font-bold h-[15px] justify-center leading-[0] relative shrink-0 text-[#3d4a3f] text-[14px] tracking-[-0.5px] uppercase w-fit px-2">
-              <p className="leading-[15px]">{label}</p>
-            </div>
-          </div>
-        </div>
-      </div>
-    </button>
+      </button>
+      {/* Hidden file input for multiple selection */}
+      <input
+        type="file"
+        multiple
+        ref={fileInputRef}
+        style={{ display: "none" }}
+        onChange={handleChange}
+      />
+      {/* Display selected file names if any */}
+      {files && files.length > 0 && (
+        <ul className="mt-3 flex flex-col gap-2">
+          {files.map((file, idx) => (
+            <li key={idx} className="flex items-center justify-between bg-white/50 p-3 rounded-xl border border-[#006d37]/10 group transition-all hover:bg-white/80">
+              <div 
+                className="flex items-center gap-3 cursor-pointer flex-1"
+                onClick={() => previewFile(file)}
+                title="Click to preview"
+              >
+                <div className="size-8 rounded-lg bg-[#006d37]/10 flex items-center justify-center">
+                  <svg className="size-4 text-[#006d37]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                  </svg>
+                </div>
+                <div className="flex flex-col">
+                  <span className="text-sm font-medium text-[#171d17] truncate max-w-[200px]">{file.name}</span>
+                  <span className="text-[10px] text-[#3d4a3f] opacity-60">Click to preview</span>
+                </div>
+              </div>
+              <button 
+                type="button"
+                onClick={() => removeFile(idx)}
+                className="size-8 rounded-lg flex items-center justify-center text-[#3d4a3f] hover:text-red-500 hover:bg-red-50 transition-all opacity-100 lg:opacity-0 lg:group-hover:opacity-100"
+              >
+                <svg className="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
   );
 }
 
@@ -289,6 +358,8 @@ export default function DriverSignUp() {
   const [touched, setTouched] = useState<Record<string, boolean>>({});
   const [showPass, setShowPass] = useState(false);
   const [loading, setLoading] = useState(false);
+  // State for uploaded files
+  const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
 
   const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
   const phoneRegex = /^\+?[0-9]{10,15}$/;
@@ -318,16 +389,22 @@ export default function DriverSignUp() {
 
     setLoading(true);
     try {
+      // Build multipart form data
+      const formData = new FormData();
+      formData.append('email', form.email);
+      formData.append('phone', form.phone);
+      formData.append('password', form.pass);
+      formData.append('fullName', form.name);
+      formData.append('role', 'DRIVER');
+      // Append files
+      uploadedFiles.forEach((file) => {
+        formData.append('documents', file);
+      });
+
       const response = await fetch('http://localhost:5000/api/auth/register', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          email: form.email, 
-          phone: form.phone, 
-          password: form.pass, 
-          fullName: form.name,
-          role: 'DRIVER'
-        })
+        // Let browser set the correct multipart boundary
+        body: formData,
       });
 
       const data = await response.json();
@@ -335,12 +412,12 @@ export default function DriverSignUp() {
         throw new Error(data.message || 'Đăng ký thất bại');
       }
 
-      // Lưu token và user giống như login
+      // Save token and user info
       localStorage.setItem('authToken', data.token);
       localStorage.setItem('user', JSON.stringify(data.user));
-      
-      console.log("Registered successfully as Driver");
-      navigate("/driver");
+
+      console.log('Registered successfully as Driver');
+      navigate('/driver');
     } catch (err: any) {
       console.error("Driver signup error:", err.message);
       alert(err.message);
@@ -398,9 +475,12 @@ export default function DriverSignUp() {
 
           {/* Upload Section */}
           <div className="content-stretch flex flex-col gap-[16px] items-start relative shrink-0 w-full" data-name="Upload Section">
-            <Heading1 label={t.docs} />
+            <div className="flex flex-col gap-[4px]">
+              <Heading1 label={t.docs} />
+              <p className="text-xs text-[#3d4a3f] opacity-70 px-1">{t.uploadDocs}</p>
+            </div>
             <div className="flex flex-col gap-[16px] w-full">
-              <FileUploadCard label={t.licenseLabel} />
+              <FileUploadCard label={t.docs} files={uploadedFiles} setFiles={setUploadedFiles} />
             </div>
           </div>
 
