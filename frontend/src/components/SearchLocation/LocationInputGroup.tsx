@@ -72,7 +72,7 @@ const LocationInputGroup: React.FC<LocationInputGroupProps> = ({
           {isLoading ? (
             <div className="flex items-center justify-center p-6 gap-2 text-[#64748b]">
               <Loader2 size={20} className="animate-spin" />
-              <span className="text-[14px]">Địa điểm đang tải...</span>
+              <span className="text-[14px]">読み込み中...</span>
             </div>
           ) : suggestions.length > 0 ? (
             suggestions.map((item) => (
@@ -95,7 +95,7 @@ const LocationInputGroup: React.FC<LocationInputGroupProps> = ({
             ))
           ) : (
             <div className="p-6 text-center text-[#64748b] text-[14px]">
-              Không tìm thấy địa điểm nào khớp
+              該当する場所が見つかりません
             </div>
           )}
         </div>

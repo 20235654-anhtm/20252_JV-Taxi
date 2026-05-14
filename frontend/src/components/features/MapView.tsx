@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import { useEffect } from 'react';
 import { MapContainer, TileLayer, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
@@ -28,15 +28,25 @@ function MapController({
   pickupPosition,
   destinationPosition,
   recenterKey,
-  routePadding = [[20, 80], [20, 80]]
+  routePadding = [[20, 80], [20, 80]],
+  viewPadding
 }: {
   position: LatLng | null;
   pickupPosition?: LatLng | null;
   destinationPosition?: LatLng | null;
   recenterKey: number;
   routePadding?: [[number, number], [number, number]];
+  viewPadding?: { top?: number; bottom?: number; left?: number; right?: number };
 }) {
   const map = useMap();
+
+  useEffect(() => {
+    // Sửa lỗi lệch tâm khi container thay đổi kích thước
+    const timer = setTimeout(() => {
+      map.invalidateSize();
+    }, 100);
+    return () => clearTimeout(timer);
+  }, [map]);
 
   useEffect(() => {
     // Ưu tiên FitBounds nếu có lộ trình 2 điểm
@@ -52,11 +62,29 @@ function MapController({
         animate: true
       });
     }
-    // Nếu chỉ có 1 điểm hoặc user muốn recenter về vị trí GPS
-    else if (position && !pickupPosition) {
+    // Nếu có viewPadding -> Sử dụng fitBounds để căn chỉnh tâm theo vùng đệm
+    else if (viewPadding && (pickupPosition || position)) {
+      const target = pickupPosition || position;
+      if (target) {
+        const bounds = L.latLngBounds([[target.lat, target.lng], [target.lat, target.lng]]);
+        map.fitBounds(bounds, {
+          paddingTopLeft: [viewPadding.left || 0, viewPadding.top || 0],
+          paddingBottomRight: [viewPadding.right || 0, viewPadding.bottom || 0],
+          maxZoom: 18, 
+          animate: true,
+          duration: 1
+        });
+      }
+    }
+    // Nếu có điểm đón nhưng chưa có điểm đến -> Căn giữa vào điểm đón
+    else if (pickupPosition) {
+      map.setView([pickupPosition.lat, pickupPosition.lng], map.getZoom(), { animate: true });
+    }
+    // Nếu chỉ có vị trí GPS thực tế
+    else if (position) {
       map.setView([position.lat, position.lng], map.getZoom(), { animate: true });
     }
-  }, [position, pickupPosition, destinationPosition, recenterKey, map, routePadding]);
+  }, [position, pickupPosition, destinationPosition, recenterKey, map, routePadding, viewPadding]);
 
   return null;
 }
@@ -91,28 +119,32 @@ interface MapViewProps {
   position: LatLng | null;
   pickupPosition?: LatLng | null;
   destinationPosition?: LatLng | null;
-  error?: string | null;
   permissionDenied?: boolean;
+  error?: string | null;
+  hasBottomNav?: boolean;
   zoom?: number;
   recenterKey?: number;
-  hasBottomNav?: boolean;
   showPickupLabel?: boolean;
   showZoomControl?: boolean;
+  interactive?: boolean;
   routePadding?: [[number, number], [number, number]];
+  viewPadding?: { top?: number; bottom?: number; left?: number; right?: number };
 }
 
 export function MapView({
   position,
   pickupPosition,
   destinationPosition,
-  error,
   permissionDenied = false,
+  error,
+  hasBottomNav = false,
   zoom = 15,
   recenterKey = 0,
-  hasBottomNav = false,
   showPickupLabel = false,
   showZoomControl = false,
-  routePadding
+  interactive = true,
+  routePadding,
+  viewPadding
 }: MapViewProps) {
 
   // Loading spinner (chỉ khi CHƯA bị denied và chưa có vị trí)
@@ -136,10 +168,17 @@ export function MapView({
         zoom={zoom}
         style={{ width: '100%', height: '100%' }}
         zoomControl={showZoomControl}
+        dragging={interactive}
+        touchZoom={interactive}
+        doubleClickZoom={interactive}
+        scrollWheelZoom={interactive}
+        boxZoom={interactive}
+        keyboard={interactive}
+        attributionControl={interactive}
       >
         <TileLayer
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-          attribution='&copy; OpenStreetMap contributors'
+          attribution={interactive ? '&copy; OpenStreetMap contributors' : ''}
         />
 
         <MapController
@@ -148,6 +187,7 @@ export function MapView({
           destinationPosition={destinationPosition}
           recenterKey={recenterKey}
           routePadding={routePadding}
+          viewPadding={viewPadding}
         />
 
         {/* Vẽ đường đi giữa 2 điểm */}

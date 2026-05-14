@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useLanguage } from "../../context/LanguageContext";
+import { Eye, EyeOff } from 'lucide-react';
 import svgPaths from "./svg-6rrnxvk6hs";
 
 const TRANSLATIONS = {
@@ -70,7 +71,6 @@ export default function PassengerSignUp() {
 
   const [form, setForm] = useState({ name: "", email: "", phone: "", pass: "", agree: false });
   const [errors, setErrors] = useState<Record<string, boolean>>({});
-  const [touched, setTouched] = useState<Record<string, boolean>>({});
   const [showPass, setShowPass] = useState(false);
   const [loading, setLoading] = useState(false);
 
@@ -191,7 +191,6 @@ export default function PassengerSignUp() {
                   setForm({ ...form, email: val });
                   if (emailRegex.test(val)) setErrors((prev) => ({ ...prev, email: false }));
                 }}
-                onBlur={() => setTouched({ ...touched, email: true })}
               />
             </div>
           </div>
@@ -239,10 +238,8 @@ export default function PassengerSignUp() {
                 value={form.pass}
                 onChange={(e) => setForm({ ...form, pass: e.target.value })}
               />
-              <button onClick={() => setShowPass(!showPass)} className="shrink-0 size-[22px]">
-                <svg className="block size-full" fill="none" viewBox="0 0 22 15">
-                  <path d={svgPaths.p8f0c00} fill="#6D7A6E" />
-                </svg>
+              <button onClick={() => setShowPass(!showPass)} className="shrink-0 flex items-center justify-center text-[#6D7A6E] hover:text-[#006d37] transition-colors outline-none focus:outline-none">
+                {showPass ? <Eye size={20} /> : <EyeOff size={20} />}
               </button>
             </div>
           </div>
@@ -267,10 +264,11 @@ export default function PassengerSignUp() {
           {/* Submit Button */}
           <button 
             onClick={handleSubmit}
-            className="w-full py-[16px] rounded-[24px] shadow-lg text-white font-bold text-[18px] transition-all active:scale-[0.98] hover:brightness-105"
+            disabled={loading}
+            className={`w-full py-[16px] rounded-[24px] shadow-lg text-white font-bold text-[18px] transition-all active:scale-[0.98] hover:brightness-105 ${loading ? 'opacity-70 cursor-not-allowed' : ''}`}
             style={{ backgroundImage: "linear-gradient(141.147deg, rgb(0, 109, 55) 0%, rgb(39, 174, 96) 100%)" }}
           >
-            {t.btnSubmit}
+            {loading ? "..." : t.btnSubmit}
           </button>
 
           {/* Footer Link */}

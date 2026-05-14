@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useLanguage } from "../../context/LanguageContext";
+import { Eye, EyeOff } from 'lucide-react';
 import svgPaths from "./svg-6k5pihgtjb";
 import imgDriverRegistration from "./98b93cf9247a1a1d9ae9842376a80cf8c192fa1a.png";
 
@@ -192,10 +193,8 @@ function PasswordField({ t, value, onChange, error, showPass, onTogglePass }: { 
             className="bg-transparent border-none outline-none font-['Plus_Jakarta_Sans:Medium','Noto_Sans_JP:Medium',sans-serif] font-medium text-[#171d17] text-[16px] w-full placeholder-[#bccabc]"
           />
         </div>
-        <button onClick={onTogglePass} className="col-2 h-[15px] justify-self-end relative row-2 shrink-0 w-[22px]" data-name="Icon">
-          <svg className="absolute block inset-0 size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 22 15">
-            <path d={svgPaths.p8f0c00} fill="var(--fill-0, #6D7A6E)" />
-          </svg>
+        <button onClick={onTogglePass} className="absolute right-[20px] bottom-[22px] flex items-center justify-center text-[#6D7A6E] hover:text-[#006d37] transition-colors outline-none focus:outline-none" data-name="Icon">
+          {showPass ? <Eye size={18} /> : <EyeOff size={18} />}
         </button>
       </div>
     </div>
@@ -286,7 +285,6 @@ export default function DriverSignUp() {
 
   const [form, setForm] = useState({ name: "", phone: "", email: "", pass: "", carType: "Sedan", plate: "", jlpt: "" });
   const [errors, setErrors] = useState<Record<string, boolean>>({});
-  const [touched, setTouched] = useState<Record<string, boolean>>({});
   const [showPass, setShowPass] = useState(false);
   const [loading, setLoading] = useState(false);
 
@@ -406,10 +404,15 @@ export default function DriverSignUp() {
 
           {/* Submit Button Area */}
           <div className="content-stretch flex flex-col gap-[15.315px] items-start pt-[24px] relative shrink-0 w-full" data-name="Submit Button Area">
-            <button onClick={handleSubmit} className="bg-gradient-to-r content-stretch flex flex-col from-[#006d37] items-center justify-center pb-[20px] pt-[19px] relative rounded-[24px] shrink-0 to-[#27ae60] w-full hover:brightness-105 active:scale-[0.98] transition-all shadow-lg" data-name="Button">
+            <button 
+              onClick={handleSubmit} 
+              disabled={loading}
+              className={`bg-gradient-to-r content-stretch flex flex-col from-[#006d37] items-center justify-center pb-[20px] pt-[19px] relative rounded-[24px] shrink-0 to-[#27ae60] w-full hover:brightness-105 active:scale-[0.98] transition-all shadow-lg ${loading ? 'opacity-70 cursor-not-allowed' : ''}`} 
+              data-name="Button"
+            >
               <div className="content-stretch flex flex-col items-center relative shrink-0">
                 <div className="flex flex-col font-['Plus_Jakarta_Sans:Bold','Noto_Sans_JP:Bold',sans-serif] font-bold h-[23px] justify-center leading-[0] relative shrink-0 text-[18px] text-center text-white w-fit px-4">
-                  <p className="leading-[22.5px]">{t.submit}</p>
+                  <p className="leading-[22.5px]">{loading ? "..." : t.submit}</p>
                 </div>
               </div>
             </button>
