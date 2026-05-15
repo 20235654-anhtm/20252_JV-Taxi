@@ -22,6 +22,7 @@ import DriverHome from '../pages/driver/DriverHome';
 import PrivateRoute from '../components/PrivateRoute';
 import PublicRoute from '../components/PublicRoute';
 import WaitingDriver from '../pages/passenger/WaitingDriver';
+import BookingConfirmation from '../pages/passenger/BookingConfirmationWrapper';
 
 // Driver Pages
 import DriverDashboard from '../pages/driver/DriverDashboard';
@@ -43,6 +44,7 @@ const AppRoutes = () => {
       <Route path="/passenger/booking-options" element={<PrivateRoute><BookingOptions /></PrivateRoute>} />
       <Route path="/passenger/select-driver" element={<PrivateRoute><SelectDriver /></PrivateRoute>} />
       <Route path="/passenger/driver-detail" element={<PrivateRoute><DriverDetail /></PrivateRoute>} />
+      <Route path="/passenger/booking-confirmation" element={<PrivateRoute><BookingConfirmation /></PrivateRoute>} />
       <Route path="/passenger/profile" element={<PrivateRoute><Profile /></PrivateRoute>} />
 
       {/* ======================= DRIVER FLOW (AUTHENTICATED) ======================= */}
@@ -60,6 +62,7 @@ const AppRoutes = () => {
       <Route path="/passenger/booking-options" element={<BookingOptions />} />
       <Route path="/passenger/select-driver" element={<SelectDriver />} />
       <Route path="/passenger/driver-detail" element={<DriverDetail />} />
+      <Route path="/passenger/booking-confirmation" element={<BookingConfirmation />} />
       <Route path="/passenger/waiting-driver" element={<WaitingDriver />} />
 
       {/* DRIVER FLOW */}
