@@ -55,6 +55,7 @@ const PassengerHome = () => {
           recenterKey={recenterKey}
           hasBottomNav
           showPickupLabel
+          viewPadding={{ top: 64, bottom: 380 }}
         />
       </div>
 

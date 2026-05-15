@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useNavigate, Navigate } from 'react-router-dom';
+import { CarFront, User, Search } from 'lucide-react';
 import { Header } from '../../components/layout/Header';
 import { MapView } from '../../components/features/MapView';
 import { useBooking } from '../../contexts/BookingContext';
@@ -32,7 +33,7 @@ const BookingOptions = () => {
       <Header
         variant="passenger"
         showBackButton={true}
-        title="予約オプション"
+        title="予約オプションの選択"
         onBackClick={() => navigate(-1)}
       />
 
@@ -54,11 +55,13 @@ const BookingOptions = () => {
           className={`bo-option-card ${selectedOption === 'auto' ? 'bo-active' : ''}`}
           onClick={() => setSelectedOption('auto')}
         >
-          <div className="bo-icon-box bo-green">🚘</div>
+          <div className="bo-icon-box bo-green">
+            <CarFront size={32} color="#006D37" strokeWidth={2.5} />
+          </div>
           <div className="bo-option-content">
             <div className="bo-info">
               <div className="bo-text">
-                <h3>自動マッチング（無料）</h3>
+                <h3>今すぐ配車</h3>
                 <p>お急ぎ便・システム割当</p>
               </div>
               <div className="bo-price">
@@ -78,11 +81,21 @@ const BookingOptions = () => {
           className={`bo-option-card ${selectedOption === 'designated' ? 'bo-active' : ''}`}
           onClick={() => setSelectedOption('designated')}
         >
-          <div className="bo-icon-box bo-orange">👨‍✈️</div>
+          <div className="bo-icon-box bo-orange">
+            <div className="relative">
+              <User size={28} color="#84592B" strokeWidth={2.5} />
+              <Search 
+                size={16} 
+                color="#84592B" 
+                strokeWidth={3} 
+                className="absolute -bottom-1 -right-1 bg-[#F9F5E8] rounded-full"
+              />
+            </div>
+          </div>
           <div className="bo-option-content">
             <div className="bo-info">
               <div className="bo-text">
-                <h3>ドライバー指名（+15,000VND）</h3>
+                <h3>ドライバー選択</h3>
                 <p>近くのドライバーを自分で選ぶ</p>
               </div>
               <div className="bo-price">

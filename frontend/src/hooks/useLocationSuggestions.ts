@@ -44,7 +44,7 @@ export const useLocationSuggestions = (query: string) => {
           const props = feature.properties;
           return {
             id: props.osm_id + '-' + Math.random().toString(36).substr(2, 9),
-            name: props.name || props.street || 'Địa điểm không tên',
+            name: props.name || props.street || '名前のない場所',
             address: [
               props.house_number,
               props.street,
@@ -59,7 +59,7 @@ export const useLocationSuggestions = (query: string) => {
         setSuggestions(formatted);
       } catch (err) {
         console.error('Search error:', err);
-        setError('Không thể tìm kiếm địa điểm');
+        setError('検索できませんでした');
       } finally {
         setIsLoading(false);
       }

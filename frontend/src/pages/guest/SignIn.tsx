@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useLanguage } from "../../context/LanguageContext";
+import { Eye, EyeOff } from 'lucide-react';
 import svgPaths from "./svg-d322lkxk63";
 
 const TRANSLATIONS = {
@@ -33,6 +34,7 @@ const TRANSLATIONS = {
     newUser: "Chưa có tài khoản?",
     createAccount: "Tạo tài khoản",
     errorAuth: "Mật khẩu không chính xác. Vui lòng thử lại.",
+    errorInvalidId: "Vui lòng nhập Email hoặc Số điện thoại hợp lệ.",
   },
 };
 
@@ -156,12 +158,8 @@ function PasswordInput({ t, value, onChange, show, onToggleShow, error }: { t: a
             </svg>
           </div>
         </div>
-        <button type="button" className="absolute bottom-[22.17px] right-[16.83px] top-[21.33px] w-[18.333px]" data-name="Icon" onClick={onToggleShow}>
-          <div className="absolute inset-[0_0_-8.7%_0]">
-            <svg className="block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 18.3333 12.5">
-              <path d={svgPaths.p2e870a60} fill={show ? "#006d37" : "#6D7A6E"} id="Icon" />
-            </svg>
-          </div>
+        <button type="button" className="absolute bottom-[21px] right-[16px] top-[21px] flex items-center justify-center text-[#6D7A6E] hover:text-[#006d37] transition-colors outline-none focus:outline-none" onClick={onToggleShow}>
+          {show ? <Eye size={18} /> : <EyeOff size={18} />}
         </button>
       </div>
     </div>
@@ -201,7 +199,6 @@ export default function SignIn() {
   const [error, setError] = useState<string | null>(null);
   const [errorField, setErrorField] = useState<"id" | "pass" | "both" | null>(null);
   const [loading, setLoading] = useState(false);
-  const [touched, setTouched] = useState(false);
 
   const t = TRANSLATIONS[lang];
 
@@ -292,7 +289,7 @@ export default function SignIn() {
                         if (errorField === "both") setErrorField("pass");
                       }
                     }} 
-                    onBlur={() => setTouched(true)}
+                    onBlur={() => {}} // Đã xóa biến touched
                     error={(errorField === "id" || errorField === "both") || (identifier !== "" && !validateIdentifier(identifier))} 
                   />
                   <PasswordInput 
@@ -321,12 +318,20 @@ export default function SignIn() {
                     </div>
                   </div>
 
-                  <button onClick={handleLogin} className="bg-gradient-to-r from-[#006d37] to-[#27ae60] relative rounded-[24px] shrink-0 w-full hover:brightness-110 transition-all active:scale-[0.98]">
+                  <button 
+                    onClick={handleLogin} 
+                    disabled={loading}
+                    className={`bg-gradient-to-r from-[#006d37] to-[#27ae60] relative rounded-[24px] shrink-0 w-full hover:brightness-110 transition-all active:scale-[0.98] ${loading ? 'opacity-70 cursor-not-allowed' : ''}`}
+                  >
                     <div className="flex flex-row items-center justify-center p-[16px] gap-[8px]">
-                      <span className="font-bold text-white text-[16px]">{t.login}</span>
-                      <svg className="size-[14px]" fill="none" viewBox="0 0 13.5 13.5">
-                        <path d={svgPaths.pad382c0} fill="white" />
-                      </svg>
+                      <span className="font-bold text-white text-[16px]">
+                        {loading ? '...' : t.login}
+                      </span>
+                      {!loading && (
+                        <svg className="size-[14px]" fill="none" viewBox="0 0 13.5 13.5">
+                          <path d={svgPaths.pad382c0} fill="white" />
+                        </svg>
+                      )}
                     </div>
                   </button>
                 </div>

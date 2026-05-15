@@ -28,6 +28,7 @@ const SearchLocationScreen: React.FC<SearchLocationScreenProps> = ({
   const navigate = useNavigate();
   const [isAuthSheetOpen, setIsAuthSheetOpen] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [hasResolvedInitial, setHasResolvedInitial] = useState(false);
 
   // Sử dụng Global State thay vì Local State
   const { 
@@ -42,21 +43,23 @@ const SearchLocationScreen: React.FC<SearchLocationScreenProps> = ({
   // Lấy thông tin user để gọi API lịch sử
   const userStr = localStorage.getItem('user');
   const user = userStr ? JSON.parse(userStr) : null;
-  const { recentDestinations, isLoading: isHistoryLoading } = useRecentDestinations(user?.id);
+  const { recentDestinations } = useRecentDestinations(user?.id);
 
   // 1. Phân giải tọa độ cho initialSearch nếu có (từ trang chủ truyền sang)
   useEffect(() => {
-    // Chạy logic này nếu có initialSearch VÀ (chưa có destination HOẶC destination chưa có tọa độ)
-    const needsResolution = initialSearch && (!destination || !destination.coords);
+    // Chạy logic này nếu có initialSearch VÀ chưa từng xử lý VÀ (chưa có destination HOẶC destination chưa có tọa độ)
+    const needsResolution = initialSearch && !hasResolvedInitial && (!destination || !destination.coords);
     
     if (needsResolution && initialSuggestions && initialSuggestions.length > 0) {
       const first = initialSuggestions[0];
+      // CHỈ gán cho destination, tuyệt đối không chạm vào pickup
       setDestination({
         address: initialSearch,
         coords: { lat: first.coordinates[1], lng: first.coordinates[0] }
       });
+      setHasResolvedInitial(true);
     }
-  }, [initialSearch, initialSuggestions, destination, setDestination]);
+  }, [initialSearch, initialSuggestions, destination, setDestination, hasResolvedInitial]);
 
   // 2. Logic GPS CHỈ chạy 1 lần duy nhất lúc mới vào app
   useEffect(() => {
@@ -160,12 +163,13 @@ const SearchLocationScreen: React.FC<SearchLocationScreenProps> = ({
           </div>
         )}
 
-        <div className="h-[500px] rounded-[24px] overflow-hidden border border-[rgba(0,109,55,0.1)] shadow-sm relative">
+        <div className="h-[400px] rounded-[24px] overflow-hidden border border-[rgba(0,109,55,0.1)] shadow-sm relative z-0">
           <MapView
             position={location.latitude && location.longitude ? { lat: location.latitude, lng: location.longitude } : null}
             pickupPosition={pickup?.coords}
-            zoom={12}
-            showZoomControl={true}
+            zoom={18}
+            showZoomControl={false}
+            interactive={false}
           />
         </div>
 

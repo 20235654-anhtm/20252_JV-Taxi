@@ -1,7 +1,7 @@
 import React from 'react';
 import { Heading } from '../ui/Heading';
 import { Text } from '../ui/Text';
-import { MapPin, RotateCcw } from 'lucide-react';
+import { MapPin, History } from 'lucide-react';
 
 export interface HistoryItem {
   id: string;
@@ -34,7 +34,7 @@ const RecentHistory: React.FC<RecentHistoryProps> = ({ history, onSelect }) => {
               <Text variant="caption" color="secondary" className="sl-history-address">{item.address}</Text>
             </div>
             <div className="sl-history-action">
-              <RotateCcw size={18} />
+              <History size={18} />
             </div>
           </div>
         ))}
