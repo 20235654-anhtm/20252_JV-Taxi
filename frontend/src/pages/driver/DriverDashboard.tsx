@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Header } from '../../components/layout/Header';
 import { MapView } from '../../components/features/MapView';
 import { BottomNavBar, type NavTab } from '../../components/layout/BottomNavBar';
@@ -8,11 +9,16 @@ import IncomingRequestPopup from '../../components/features/IncomingRequestPopup
 import './DriverDashboard.css';
 
 const DriverDashboard = () => {
+  const navigate = useNavigate();
   const { position, error } = useGeolocation();
   const [activeTab, setActiveTab] = useState<NavTab>('home');
   const [isOnline, setIsOnline] = useState(true);
   const [recenterKey, setRecenterKey] = useState(0);
   const [showPopup, setShowPopup] = useState(false);
+
+  const handleTabChange = (tab: NavTab) => {
+    setActiveTab(tab);
+  };
 
   // Mock data for weekly income
   const weeklyData = [
@@ -40,8 +46,7 @@ const DriverDashboard = () => {
     <div className="driver-dashboard-page">
       {/* HEADER */}
       <Header
-        variant="auth"
-        userAvatar="https://i.pravatar.cc/150?img=12"
+        variant="passenger"
       />
 
       {/* MAP BACKGROUND */}
@@ -118,8 +123,7 @@ const DriverDashboard = () => {
 
       {/* BOTTOM NAV */}
       <BottomNavBar
-        activeTab={activeTab}
-        onTabChange={setActiveTab}
+        activeTab="home"
       />
 
       {/* INCOMING REQUEST POPUP */}

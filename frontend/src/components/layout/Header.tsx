@@ -1,11 +1,8 @@
 import React from 'react';
-import { ChevronLeft } from 'lucide-react';
-import {Avatar} from '../ui/Avatar';
+import { ArrowLeft } from 'lucide-react';
 
-export type HeaderVariant = 'guest' | 'passenger' | 'auth';
-
-export interface HeaderProps {
-  variant?: HeaderVariant;
+interface HeaderProps {
+  variant?: 'passenger' | 'driver' | 'guest' | 'auth';
   showBackButton?: boolean;
   title?: string;
   userAvatar?: string;
@@ -14,7 +11,9 @@ export interface HeaderProps {
   onLoginClick?: () => void;
   onSignupClick?: () => void;
   onLanguageChange?: (lang: 'jp' | 'vn') => void;
+  onAvatarClick?: () => void;
   rightContent?: React.ReactNode;
+  isFixed?: boolean;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -27,130 +26,94 @@ export const Header: React.FC<HeaderProps> = ({
   onLoginClick,
   onSignupClick,
   onLanguageChange,
+  onAvatarClick,
   rightContent,
+  isFixed = true,
 }) => {
   return (
-    <header className="fixed top-0 left-0 right-0 h-16 z-[1000] backdrop-blur-[6px] bg-[rgba(255,255,255,0.8)] shadow-[0px_1px_2px_0px_rgba(0,0,0,0.05)]">
+    <header className={`${isFixed ? 'fixed' : 'absolute'} top-0 left-0 right-0 h-16 z-[1000] bg-white border-b border-gray-100`}>
       <div className="flex items-center justify-between h-full px-6 max-w-[1280px] mx-auto">
         {/* Left Section */}
         <div className="flex items-center gap-4">
-          {/* Back Button */}
           {showBackButton && (
-            <button
+            <button 
               onClick={onBackClick}
-              className="flex flex-col items-center justify-center p-2 rounded-full"
-              aria-label="戻る"
+              className="p-2 -ml-2 text-gray-600 hover:bg-gray-50 rounded-full transition-colors"
             >
-              <ChevronLeft size={16} className="text-[#064e3b]" />
+              <ArrowLeft size={24} />
+            </button>
+          )}
+          
+          <div className="flex items-center">
+            <span className="text-[20px] font-black text-[#1a4d2e] tracking-tight">
+              JV – Taxi
+            </span>
+            {title && (
+              <>
+                <div className="w-[1px] h-4 bg-gray-300 mx-3" />
+                <span className="text-sm font-bold text-gray-700">{title}</span>
+              </>
+            )}
+          </div>
+        </div>
+
+        {/* Right Section */}
+        <div className="flex items-center gap-4">
+          {/* Language Toggle (Clean pill design from image) */}
+          {(variant === 'passenger' || variant === 'auth') && (
+            <div className="flex items-center bg-[#f5f5f5] rounded-full p-1 min-w-[86px] relative h-[36px]">
+              <button 
+                onClick={() => onLanguageChange?.('jp')} 
+                className={`relative z-10 w-1/2 h-full flex justify-center items-center text-[10px] font-black transition-all duration-300 ${currentLang === 'jp' ? 'text-white' : 'text-[#8e8e8e]'}`}
+              >
+                JP
+              </button>
+              <button 
+                onClick={() => onLanguageChange?.('vn')} 
+                className={`relative z-10 w-1/2 h-full flex justify-center items-center text-[10px] font-black transition-all duration-300 ${currentLang === 'vn' ? 'text-white' : 'text-[#8e8e8e]'}`}
+              >
+                VN
+              </button>
+              {/* Sliding Indicator */}
+              <div 
+                className={`absolute top-1 bottom-1 w-[calc(50%-4px)] bg-[#1a4d2e] rounded-full transition-all duration-300 shadow-sm ${currentLang === 'jp' ? 'left-1' : 'left-[calc(50%+3px)]'}`}
+              />
+            </div>
+          )}
+
+          {/* Avatar (Only for 'auth' variant) */}
+          {variant === 'auth' && (
+            <button 
+              onClick={onAvatarClick}
+              className="w-9 h-9 rounded-full border-2 border-[#1a4d2e] p-0.5 hover:scale-105 transition-transform"
+            >
+              <img 
+                src={userAvatar || "https://i.pravatar.cc/150?img=33"} 
+                alt="Avatar" 
+                className="w-full h-full rounded-full object-cover"
+              />
             </button>
           )}
 
-          {/* Avatar (Left side - ONLY for Passenger) */}
-          {variant === 'passenger' && !showBackButton && userAvatar && (
-            <Avatar 
-              src={userAvatar} 
-              alt="User avatar" 
-              borderColor="#27ae60"
-            />
-          )}
-
-          {/* Logo (Left side - for Guest and Auth/Driver) */}
-          {(variant === 'guest' || variant === 'auth') && !title && (
-            <div className="flex flex-col font-['Plus_Jakarta_Sans:ExtraBold',sans-serif] font-extrabold h-7 justify-center leading-[0] text-[#064e3b] text-xl tracking-[-0.5px]">
-              <p className="leading-7">JV – Taxi</p>
-            </div>
-          )}
-
-          {/* Title (if provided) */}
-          {title && (
-            <div className="flex flex-col items-start">
-              <div className="flex flex-col font-['Plus_Jakarta_Sans:Bold','Noto_Sans_JP:Bold',sans-serif] font-bold h-7 justify-center leading-[0] text-[#064e3b] text-lg tracking-[-0.45px]">
-                <p className="leading-7">{title}</p>
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* Center Section - Logo (Center - ONLY for Passenger) */}
-        {!title && variant === 'passenger' && (
-          <div className="absolute left-1/2 -translate-x-1/2 flex items-center">
-            <div className="flex flex-col font-['Plus_Jakarta_Sans:ExtraBold',sans-serif] font-extrabold h-7 justify-center leading-[0] text-[#064e3b] text-xl tracking-[-0.5px]">
-              <p className="leading-7">JV – Taxi</p>
-            </div>
-          </div>
-        )}
-
-        {/* Right Section */}
-        <div className="flex items-center gap-3">
-          {/* Custom Right Content */}
-          {rightContent}
-
-          {/* Avatar (Right side - ONLY for Auth/Driver) */}
-          {variant === 'auth' && !showBackButton && userAvatar && (
-            <Avatar 
-              src={userAvatar} 
-              alt="User avatar" 
-              borderColor="#27ae60"
-            />
-          )}
-
-          {/* Login/Signup Buttons (Guest variant) */}
+          {/* Guest Buttons */}
           {variant === 'guest' && (
             <div className="flex items-center gap-2">
-              <button
+              <button 
                 onClick={onLoginClick}
-                className="bg-[#006d37] font-['Plus_Jakarta_Sans:Bold','Noto_Sans_JP:Bold',sans-serif] font-bold text-sm text-white px-5 py-1.5 rounded-full shadow-[0px_4px_6px_-1px_rgba(0,0,0,0.1),0px_2px_4px_-2px_rgba(0,0,0,0.1)] whitespace-nowrap"
+                className="px-4 py-2 text-sm font-bold text-[#1a4d2e] hover:bg-gray-50 rounded-full transition-all"
               >
                 ログイン
               </button>
-              <button
+              <button 
                 onClick={onSignupClick}
-                className="bg-[#006d37] font-['Plus_Jakarta_Sans:Bold','Noto_Sans_JP:Bold',sans-serif] font-bold text-sm text-white px-5 py-1.5 rounded-full shadow-[0px_4px_6px_-1px_rgba(0,0,0,0.1),0px_2px_4px_-2px_rgba(0,0,0,0.1)] whitespace-nowrap"
+                className="px-5 py-2 text-sm font-black text-white bg-[#1a4d2e] rounded-full hover:bg-[#0e2b1a] transition-all shadow-md"
               >
-                サインアップ
+                新規登録
               </button>
             </div>
           )}
-
-          {/* Language Switcher (Passenger variant) */}
-          {variant === 'passenger' && onLanguageChange && (
-            <div className="bg-[rgba(244,244,245,0.8)] flex items-center p-[5px] rounded-full">
-              <div aria-hidden="true" className="absolute border border-[rgba(192,201,187,0.1)] border-solid inset-0 pointer-events-none rounded-full" />
-              <div className="bg-[rgba(255,255,255,0.5)] rounded-full">
-                <div className="flex gap-0.5 items-center p-0.5">
-                  <button
-                    onClick={() => onLanguageChange('jp')}
-                    className={`flex flex-col items-center justify-center px-4 py-1 rounded-full w-[33px] ${
-                      currentLang === 'jp'
-                        ? 'bg-[#1b5e20] shadow-[0px_1px_1px_rgba(0,0,0,0.05)]'
-                        : ''
-                    }`}
-                  >
-                    <div className={`flex flex-col font-['Inter:Semi_Bold',sans-serif] font-semibold h-[17px] justify-center leading-[0] not-italic text-[11px] text-center tracking-[-0.275px] ${
-                      currentLang === 'jp' ? 'text-white' : 'text-[#41493e]'
-                    }`}>
-                      <p className="leading-[16.5px]">JP</p>
-                    </div>
-                  </button>
-
-                  <button
-                    onClick={() => onLanguageChange('vn')}
-                    className={`flex flex-col items-center justify-center px-4 py-1 rounded-full w-[32px] ${
-                      currentLang === 'vn'
-                        ? 'bg-[#1b5e20] shadow-[0px_1px_1px_rgba(0,0,0,0.05)]'
-                        : ''
-                    }`}
-                  >
-                    <div className={`flex flex-col font-['Inter:Medium',sans-serif] font-medium h-[17px] justify-center leading-[0] not-italic text-[11px] text-center tracking-[-0.275px] ${
-                      currentLang === 'vn' ? 'text-white' : 'text-[#41493e]'
-                    }`}>
-                      <p className="leading-[16.5px]">VN</p>
-                    </div>
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
+          
+          {rightContent}
         </div>
       </div>
     </header>
