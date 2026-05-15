@@ -47,9 +47,9 @@
   transition: all 0.2s; cursor: pointer;
 }
 .bo-option-card.bo-active { outline: 2px solid #006D37; background: #E5F0E1; }
-.bo-icon-box { width: 70px; height: 70px; border-radius: 16px; display: flex; justify-content: center; align-items: center; font-size: 28px; }
-.bo-icon-box.bo-green { background: rgba(0,109,55,0.1); }
-.bo-icon-box.bo-orange { background: rgba(254,165,32,0.1); }
+.bo-icon-box { width: 70px; height: 70px; border-radius: 16px; display: flex; justify-content: center; align-items: center; font-size: 28px; flex-shrink: 0; }
+.bo-icon-box.bo-green { background: #D4E6D0; }
+.bo-icon-box.bo-orange { background: #F9F5E8; }
 
 .bo-option-content { flex: 1; }
 .bo-info { display: flex; justify-content: space-between; margin-bottom: 8px; }

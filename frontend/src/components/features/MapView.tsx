@@ -202,7 +202,7 @@ export function MapView({
         {pickupPosition && (
           <LocationMarker
             position={pickupPosition}
-            label="現在地"
+            label="乗車場所"
             type="pickup"
           />
         )}
