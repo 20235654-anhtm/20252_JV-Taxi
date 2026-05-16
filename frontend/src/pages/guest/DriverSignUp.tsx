@@ -21,15 +21,25 @@ const TRANSLATIONS = {
     pass: "パスワード",
     passPlaceholder: "最小8文字以上",
     vehicle: "車両詳細",
-    carType: "車種",
+    carType: "車種モデル",
     carSedan: "セダン",
     carSUV: "SUV",
     carEV: "EV",
-    licensePlate: "免許証番号",
-    platePlaceholder: "最大20文字",
-    jlpt: "JLPT",
-    jlptPlaceholder: "N3",
-    docs: "書類提出",
+    vehicleType: "車種タイプ",
+    vehicleTypePlaceholder: "Toyota Vios",
+    licensePlate: "ナンバープレート",
+    platePlaceholder: "ABC-12345",
+    year: "年",
+    yearPlaceholder: "2022",
+    docsHeader: "証明書類",
+    drivingLicense: "運転免許証",
+    licensePlaceholder: "B2",
+    jlpt: "日本語能力",
+    jlptPlaceholder: "JLPT N3",
+    imageHeader: "画像",
+    uploadImage: "画像をアップロード",
+    docsSubmitHeader: "書類提出",
+    uploadLicense: "運転免許証をアップロード",
     uploadDocs: "書類をアップロード (免許証、登録証、保険...)",
     submit: "ドライバーとして登録",
   },
@@ -52,10 +62,21 @@ const TRANSLATIONS = {
     carSedan: "Sedan",
     carSUV: "SUV",
     carEV: "EV",
-    licensePlate: "Số bằng lái",
-    platePlaceholder: "Tối đa 20 ký tự",
-    jlpt: "JLPT",
-    jlptPlaceholder: "N3",
+    vehicleType: "Dòng xe",
+    vehicleTypePlaceholder: "Toyota Vios",
+    licensePlate: "Biển số xe",
+    platePlaceholder: "ABC-12345",
+    year: "Năm sản xuất",
+    yearPlaceholder: "2022",
+    docsHeader: "Tài liệu chứng minh",
+    drivingLicense: "Bằng lái xe",
+    licensePlaceholder: "B2",
+    jlpt: "Năng lực tiếng Nhật",
+    jlptPlaceholder: "JLPT N3",
+    imageHeader: "Hình ảnh",
+    uploadImage: "Tải ảnh lên",
+    docsSubmitHeader: "Nộp hồ sơ",
+    uploadLicense: "Tải lên bằng lái xe",
     docs: "Nộp hồ sơ",
     uploadDocs: "Tải lên tài liệu (Bằng lái, Đăng ký xe, Bảo hiểm...)",
     submit: "Đăng ký làm tài xế",
@@ -225,7 +246,7 @@ function CarTypeButton({ label, selected, onClick, iconPath }: { label: string; 
   );
 }
 
-function FileUploadCard({ label, files, setFiles }: { label: string; files: File[]; setFiles: (files: File[]) => void }) {
+function FileUploadCard({ label, files, setFiles, iconPath, multiple = true, width = "w-full", accept }: { label: string; files: File[]; setFiles: (files: File[]) => void; iconPath?: string; multiple?: boolean; width?: string; accept?: string }) {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleClick = () => {
@@ -234,8 +255,13 @@ function FileUploadCard({ label, files, setFiles }: { label: string; files: File
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selected = Array.from(e.target.files || []);
-    // Append new files to existing list
-    setFiles((prev) => [...prev, ...selected]);
+    if (multiple) {
+      // Append new files to existing list
+      setFiles((prev) => [...prev, ...selected]);
+    } else {
+      // Replace existing file
+      setFiles(selected.slice(0, 1));
+    }
     // Reset input value so the same file can be selected again if needed
     e.target.value = "";
   };
@@ -255,7 +281,7 @@ function FileUploadCard({ label, files, setFiles }: { label: string; files: File
     <div className="w-full">
       <button
         type="button"
-        className="content-stretch flex flex-col items-start relative shrink-0 w-full hover:brightness-95 transition-all"
+        className={`content-stretch flex flex-col items-start relative shrink-0 ${width} hover:brightness-95 transition-all`}
         data-name="Container"
         onClick={handleClick}
       >
@@ -266,7 +292,7 @@ function FileUploadCard({ label, files, setFiles }: { label: string; files: File
               <div className="bg-[rgba(0,109,55,0.1)] content-stretch flex items-center justify-center relative rounded-[9999px] shrink-0 size-[48px]" data-name="Overlay">
                 <div className="h-[20px] relative shrink-0 w-[16px]" data-name="Container">
                   <svg className="absolute block inset-0 size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 16 20">
-                    <path d={svgPaths.p11fdd840} fill="var(--fill-0, #006D37)" />
+                    <path d={iconPath || svgPaths.p11fdd840} fill="var(--fill-0, #006D37)" />
                   </svg>
                 </div>
               </div>
@@ -284,7 +310,8 @@ function FileUploadCard({ label, files, setFiles }: { label: string; files: File
       {/* Hidden file input for multiple selection */}
       <input
         type="file"
-        multiple
+        multiple={multiple}
+        accept={accept}
         ref={fileInputRef}
         style={{ display: "none" }}
         onChange={handleChange}
@@ -352,12 +379,24 @@ export default function DriverSignUp() {
   const { lang } = useLanguage();
   const t = TRANSLATIONS[lang];
 
-  const [form, setForm] = useState({ name: "", phone: "", email: "", pass: "", carType: "Sedan", plate: "", jlpt: "" });
+  const [form, setForm] = useState({ 
+    name: "", 
+    phone: "", 
+    email: "", 
+    pass: "", 
+    carType: "Sedan", 
+    vehicleType: "", 
+    plate: "", 
+    year: "", 
+    drivingLicense: "", 
+    jlpt: "" 
+  });
   const [errors, setErrors] = useState<Record<string, boolean>>({});
   const [showPass, setShowPass] = useState(false);
   const [loading, setLoading] = useState(false);
   // State for uploaded files
-  const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
+  const [imageFiles, setImageFiles] = useState<File[]>([]);
+  const [licenseFiles, setLicenseFiles] = useState<File[]>([]);
 
   const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
   const phoneRegex = /^\+?[0-9]{10,15}$/;
@@ -394,8 +433,17 @@ export default function DriverSignUp() {
       formData.append('password', form.pass);
       formData.append('fullName', form.name);
       formData.append('role', 'DRIVER');
+      formData.append('carType', form.carType);
+      formData.append('vehicleType', form.vehicleType);
+      formData.append('plate', form.plate);
+      formData.append('year', form.year);
+      formData.append('drivingLicense', form.drivingLicense);
+      formData.append('jlpt', form.jlpt);
       // Append files
-      uploadedFiles.forEach((file) => {
+      imageFiles.forEach((file) => {
+        formData.append('images', file);
+      });
+      licenseFiles.forEach((file) => {
         formData.append('documents', file);
       });
 
@@ -453,8 +501,8 @@ export default function DriverSignUp() {
           {/* Vehicle Section */}
           <div className="content-stretch flex flex-col gap-[16px] items-start relative shrink-0 w-full" data-name="Vehicle Details Group">
             <Heading1 label={t.vehicle} />
-            <div className="gap-x-[16px] gap-y-[16px] grid grid-cols-[repeat(1,minmax(0,1fr))] grid-rows-[___158px_103px_fit-content(100%)] relative shrink-0 w-full" data-name="Container">
-              <div className="bg-[#eff6ec] col-1 justify-self-stretch relative rounded-[24px] row-1 self-start shrink-0" data-name="Vehicle Type">
+            <div className="flex flex-col gap-[16px] relative shrink-0 w-full" data-name="Container">
+              <div className="bg-[#eff6ec] col-1 justify-self-stretch relative rounded-[24px] self-start shrink-0 w-full" data-name="Vehicle Type Selector">
                 <div className="content-stretch flex flex-col gap-[12px] items-start p-[20px] relative size-full">
                   <div className="flex flex-col font-['Plus_Jakarta_Sans:Bold','Noto_Sans_JP:Bold',sans-serif] font-bold justify-center leading-[0] relative shrink-0 text-[#3d4a3f] text-[12px] tracking-[-0.5px] uppercase w-full">
                     <p className="leading-[15px]">{t.carType}</p>
@@ -466,19 +514,35 @@ export default function DriverSignUp() {
                   </div>
                 </div>
               </div>
+              <InputField label={t.vehicleType} placeholder={t.vehicleTypePlaceholder} value={form.vehicleType} onChange={(v) => setForm({ ...form, vehicleType: v })} />
               <InputField label={t.licensePlate} placeholder={t.platePlaceholder} value={form.plate} onChange={(v) => setForm({ ...form, plate: v })} />
+              <InputField label={t.year} placeholder={t.yearPlaceholder} value={form.year} onChange={(v) => setForm({ ...form, year: v })} />
+              
+              <div className="mt-4">
+                <Heading1 label={t.docsHeader} />
+              </div>
+              
+              <InputField label={t.drivingLicense} placeholder={t.licensePlaceholder} value={form.drivingLicense} onChange={(v) => setForm({ ...form, drivingLicense: v })} />
               <InputField label={t.jlpt} placeholder={t.jlptPlaceholder} value={form.jlpt} onChange={(v) => setForm({ ...form, jlpt: v })} />
             </div>
           </div>
 
-          {/* Upload Section */}
-          <div className="content-stretch flex flex-col gap-[16px] items-start relative shrink-0 w-full" data-name="Upload Section">
-            <div className="flex flex-col gap-[4px]">
-              <Heading1 label={t.docs} />
-              <p className="text-xs text-[#3d4a3f] opacity-70 px-1">{t.uploadDocs}</p>
+          {/* Upload Sections */}
+          <div className="content-stretch flex flex-col gap-[32px] items-start relative shrink-0 w-full" data-name="Upload Sections Container">
+            {/* Image Upload Section */}
+            <div className="content-stretch flex flex-col gap-[16px] items-start relative shrink-0 w-full" data-name="Image Upload Section">
+              <Heading1 label={t.imageHeader} />
+              <div className="flex flex-col gap-[16px] w-fit">
+                <FileUploadCard label={t.uploadImage} files={imageFiles} setFiles={setImageFiles} iconPath={svgPaths.plusIcon} multiple={false} width="w-[160px]" accept="image/*" />
+              </div>
             </div>
-            <div className="flex flex-col gap-[16px] w-full">
-              <FileUploadCard label={t.docs} files={uploadedFiles} setFiles={setUploadedFiles} />
+
+            {/* Document Upload Section */}
+            <div className="content-stretch flex flex-col gap-[16px] items-start relative shrink-0 w-full" data-name="Document Upload Section">
+              <Heading1 label={t.docsSubmitHeader} />
+              <div className="flex flex-col gap-[16px] w-full">
+                <FileUploadCard label={t.uploadLicense} files={licenseFiles} setFiles={setLicenseFiles} iconPath={svgPaths.p11fdd840} />
+              </div>
             </div>
           </div>
 
