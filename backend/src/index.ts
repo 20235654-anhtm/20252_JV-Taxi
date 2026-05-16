@@ -19,6 +19,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/drivers', driverRoutes);
 app.use('/api/destinations', destinationRoutes);
 app.use('/api/reviews', reviewRoutes);
+
 app.get('/', (req: Request, res: Response) => {
     res.send('Backend Express Server is running');
 });

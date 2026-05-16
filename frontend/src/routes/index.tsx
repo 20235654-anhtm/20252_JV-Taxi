@@ -17,6 +17,9 @@ import DriverDetail from '../pages/passenger/DriverDetail';
 import Profile from '../pages/passenger/Profile';
 import WaitingDriver from '../pages/passenger/WaitingDriver';
 import Rateyourtrip from '../pages/passenger/Rateyourtrip';
+import ChatwithDriver from '../pages/passenger/ChatwithDriver';
+import CallDriver from '../pages/passenger/CallDriver';
+import InTrip from '../pages/passenger/InTrip';
 
 // Driver Pages
 import DriverDashboard from '../pages/driver/DriverDashboard';
@@ -43,8 +46,11 @@ const AppRoutes = () => {
       <Route path="/passenger/select-driver" element={<PrivateRoute><SelectDriver /></PrivateRoute>} />
       <Route path="/passenger/driver-detail" element={<PrivateRoute><DriverDetail /></PrivateRoute>} />
       <Route path="/passenger/profile" element={<PrivateRoute><Profile /></PrivateRoute>} />
-      <Route path="/passenger/waiting-driver" element={<WaitingDriver />} />
-      <Route path="/passenger/rate-trip" element={<Rateyourtrip />} />
+      <Route path="/passenger/chat" element={<PrivateRoute><ChatwithDriver /></PrivateRoute>} />
+      <Route path="/passenger/waiting-driver" element={<PrivateRoute><WaitingDriver /></PrivateRoute>} />
+      <Route path="/passenger/call-driver" element={<PrivateRoute><CallDriver /></PrivateRoute>} />
+      <Route path="/passenger/in-trip" element={<PrivateRoute><InTrip /></PrivateRoute>} />
+      <Route path="/passenger/rate-trip" element={<PrivateRoute><Rateyourtrip /></PrivateRoute>} />
 
       {/* ======================= DRIVER FLOW (AUTHENTICATED) ======================= */}
       <Route path="/driver" element={<PrivateRoute><DriverDashboard /></PrivateRoute>} />
