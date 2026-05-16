@@ -43,13 +43,13 @@
 
 /* CARDS */
 .bo-option-card {
-  display: flex; gap: 16px; padding: 20px; background: #EFF6EC; border-radius: 24px; margin-bottom: 16px;
+  display: flex; align-items: center; gap: 16px; padding: 20px; background: #EFF6EC; border-radius: 24px; margin-bottom: 16px;
   transition: all 0.2s; cursor: pointer;
 }
 .bo-option-card.bo-active { outline: 2px solid #006D37; background: #E5F0E1; }
-.bo-icon-box { width: 70px; height: 70px; border-radius: 16px; display: flex; justify-content: center; align-items: center; font-size: 28px; }
-.bo-icon-box.bo-green { background: rgba(0,109,55,0.1); }
-.bo-icon-box.bo-orange { background: rgba(254,165,32,0.1); }
+.bo-icon-box { width: 64px; height: 64px; border-radius: 20px; display: flex; justify-content: center; align-items: center; }
+.bo-icon-box.bo-green { background: #E1ECE0; }
+.bo-icon-box.bo-beige { background: #F6F1E3; }
 
 .bo-option-content { flex: 1; }
 .bo-info { display: flex; justify-content: space-between; margin-bottom: 8px; }

@@ -22,6 +22,7 @@ import DriverHome from '../pages/driver/DriverHome';
 import PrivateRoute from '../components/PrivateRoute';
 import PublicRoute from '../components/PublicRoute';
 import WaitingDriver from '../pages/passenger/WaitingDriver';
+import Rateyourtrip from '../pages/passenger/Rateyourtrip';
 
 // Driver Pages
 import DriverDashboard from '../pages/driver/DriverDashboard';
@@ -44,6 +45,7 @@ const AppRoutes = () => {
       <Route path="/passenger/select-driver" element={<PrivateRoute><SelectDriver /></PrivateRoute>} />
       <Route path="/passenger/driver-detail" element={<PrivateRoute><DriverDetail /></PrivateRoute>} />
       <Route path="/passenger/profile" element={<PrivateRoute><Profile /></PrivateRoute>} />
+      <Route path="/passenger/rate-trip" element={<PrivateRoute><Rateyourtrip /></PrivateRoute>} />
 
       {/* ======================= DRIVER FLOW (AUTHENTICATED) ======================= */}
       <Route path="/driver" element={<PrivateRoute><DriverHome /></PrivateRoute>} />
@@ -61,6 +63,7 @@ const AppRoutes = () => {
       <Route path="/passenger/select-driver" element={<SelectDriver />} />
       <Route path="/passenger/driver-detail" element={<DriverDetail />} />
       <Route path="/passenger/waiting-driver" element={<WaitingDriver />} />
+      <Route path="/passenger/rate-trip" element={<Rateyourtrip />} />
 
       {/* DRIVER FLOW */}
       <Route path="/driver" element={<DriverDashboard />} />
