@@ -51,6 +51,7 @@ model Profile {
   ridesAsDriver    Ride[] @relation("DriverRides")
   reviewsGiven    Review[] @relation("ReviewsGiven")
   reviewsReceived Review[] @relation("ReviewsReceived")
+  messagesSent    Message[] @relation("MessagesSent")
 
   @@map("profiles")
 }
@@ -109,6 +110,7 @@ model Ride {
   driver    Profile? @relation("DriverRides", fields: [driverId], references: [id])
   payment   Payment?
   reviews   Review[]
+  messages  Message[]
 
   @@map("rides")
 }
@@ -142,4 +144,17 @@ model Payment {
   paymentMethod PaymentMethod? @relation(fields: [paymentMethodId], references: [id])
 
   @@map("payments")
+}
+
+model Message {
+  id        String   @id @default(uuid()) @db.Uuid
+  rideId    String   @map("ride_id") @db.Uuid
+  senderId  String   @map("sender_id") @db.Uuid
+  content   String   @db.Text
+  createdAt DateTime @default(now()) @map("created_at")
+
+  ride   Ride    @relation(fields: [rideId], references: [id], onDelete: Cascade)
+  sender Profile @relation("MessagesSent", fields: [senderId], references: [id])
+
+  @@map("messages")
 }

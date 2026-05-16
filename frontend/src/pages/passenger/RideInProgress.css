@@ -1,0 +1,244 @@
+.rip-page {
+  position: relative;
+  width: 100%;
+  height: 100dvh;
+  background: #f5f5f5;
+  display: flex;
+  flex-direction: column;
+  font-family: 'Inter', sans-serif;
+  overflow: hidden;
+}
+
+/* Header */
+.rip-header {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 14px 16px;
+  background: #fff;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.rip-back-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  color: #1a1a1a;
+  display: flex;
+  align-items: center;
+}
+
+.rip-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: #1a1a1a;
+  flex: 1;
+}
+
+.rip-live-badge {
+  font-size: 11px;
+  background: #e8f5e9;
+  color: #2e7d32;
+  padding: 3px 10px;
+  border-radius: 12px;
+  font-weight: 600;
+}
+
+/* Map fills the screen */
+.rip-map {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+}
+
+/* ETA Card floats above map */
+.rip-eta-card {
+  position: absolute;
+  top: 64px;
+  left: 16px;
+  right: 16px;
+  z-index: 50;
+  background: #fff;
+  border-radius: 16px;
+  padding: 14px 18px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+}
+
+.rip-eta-label {
+  font-size: 11px;
+  color: #888;
+  margin: 0 0 2px;
+}
+
+.rip-eta-time {
+  font-size: 30px;
+  font-weight: 800;
+  color: #1a1a1a;
+  margin: 0;
+}
+
+.rip-eta-clock {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+  color: #555;
+  background: #f0fdf4;
+  border-radius: 10px;
+  padding: 8px 12px;
+}
+
+/* Driver Info Card fixed at bottom */
+.rip-driver-card {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
+  background: #fff;
+  border-radius: 28px 28px 0 0;
+  padding: 20px 20px 36px;
+  box-shadow: 0 -4px 24px rgba(0,0,0,0.12);
+}
+
+.rip-driver-main {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 18px;
+}
+
+.rip-avatar-wrapper {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.rip-avatar {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid #e8f5e9;
+}
+
+.rip-rating-badge {
+  position: absolute;
+  bottom: -4px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #1a1a1a;
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 8px;
+  display: flex;
+  gap: 3px;
+  align-items: center;
+  white-space: nowrap;
+}
+
+.rip-star { color: #FEA520; }
+
+.rip-driver-info {
+  flex: 1;
+}
+
+.rip-driver-name {
+  font-size: 16px;
+  font-weight: 700;
+  color: #1a1a1a;
+  margin: 0 0 3px;
+}
+
+.rip-car-info {
+  font-size: 13px;
+  color: #555;
+  margin: 0 0 2px;
+}
+
+.rip-verified {
+  font-size: 11px;
+  color: #2e7d32;
+  font-weight: 600;
+  margin: 0;
+}
+
+/* Action Buttons */
+.rip-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.rip-action-btn {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.15s;
+  text-decoration: none;
+}
+
+.rip-action-btn:active { transform: scale(0.92); }
+
+.rip-call {
+  background: #e8f5e9;
+  color: #2e7d32;
+}
+
+.rip-chat {
+  background: #e8f5e9;
+  color: #2e7d32;
+}
+
+/* Locations */
+.rip-locations {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding-top: 14px;
+  border-top: 1px solid #f0f0f0;
+}
+
+.rip-location-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.rip-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  margin-top: 4px;
+}
+
+.rip-dot-green { background: #4caf50; }
+.rip-dot-brown { background: #795548; }
+
+.rip-loc-label {
+  font-size: 11px;
+  color: #999;
+  margin: 0;
+}
+
+.rip-loc-text {
+  font-size: 14px;
+  font-weight: 600;
+  color: #1a1a1a;
+  margin: 0;
+}
