@@ -1,20 +1,23 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { socketService } from "../../services/socketService";
 
 export default function Profile() {
   const navigate = useNavigate();
   const [user, setUser] = useState<any>(null);
 
   useEffect(() => {
-    const userStr = localStorage.getItem('user');
+    const userStr = sessionStorage.getItem('user');
     if (userStr) {
       setUser(JSON.parse(userStr));
     }
   }, []);
 
   const handleLogout = () => {
-    localStorage.removeItem('authToken');
-    localStorage.removeItem('user');
+    // Ngắt socket trước khi xóa thông tin user
+    socketService.disconnect();
+    sessionStorage.removeItem('authToken');
+    sessionStorage.removeItem('user');
     navigate('/login');
   };
 

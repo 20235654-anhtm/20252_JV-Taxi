@@ -465,9 +465,9 @@ export default function DriverSignUp() {
         throw new Error(data.message || 'Đăng ký thất bại');
       }
 
-      // Save token and user info (optional if redirecting to login, but kept for consistency)
-      // localStorage.setItem('authToken', data.token);
-      // localStorage.setItem('user', JSON.stringify(data.user));
+      // Save token and user info
+      sessionStorage.setItem('authToken', data.token);
+      sessionStorage.setItem('user', JSON.stringify(data.user));
 
       navigate('/login');
     } catch (err: any) {

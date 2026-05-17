@@ -1,9 +1,10 @@
-
 import express, { Express, Request, Response } from 'express';
+import { createServer } from 'http';           // ← THÊM: tạo HTTP server
+import { Server as SocketIOServer } from 'socket.io'; // ← THÊM: Socket.io
 import driverRoutes from './routes/driver.routes';
 import destinationRoutes from './routes/destination.routes';
 import authRoutes from './routes/auth.routes';
-import reviewRoutes from './routes/review.routes';
+import callRoutes from './routes/call.routes';  // ← THÊM: routes cho call (sẽ tạo sau)
 import dotenv from 'dotenv';
 import cors from 'cors';
 
@@ -12,19 +13,46 @@ dotenv.config();
 const app: Express = express();
 const port = process.env.PORT || 5000;
 
+const httpServer = createServer(app);
+
+const io = new SocketIOServer(httpServer, {
+    cors: { origin: '*' }
+});
+const userSocketMap = new Map<string, string>();
+
+io.on('connection', (socket) => {
+    console.log('🔌 Socket connected:', socket.id);
+
+    socket.on('register', (userId: string) => {
+        userSocketMap.set(userId, socket.id);
+        console.log(`📝 Registered: userId=${userId} → socketId=${socket.id}`);
+    });
+    socket.on('disconnect', () => {
+        for (const [userId, socketId] of userSocketMap.entries()) {
+            if (socketId === socket.id) {
+                userSocketMap.delete(userId);
+                console.log(`🗑️ Unregistered: userId=${userId}`);
+                break;
+            }
+        }
+    });
+});
+
+export { io, userSocketMap };
+
 app.use(cors());
 app.use(express.json());
 app.use('/uploads', express.static('uploads'));
 app.use('/api/auth', authRoutes);
 app.use('/api/drivers', driverRoutes);
 app.use('/api/destinations', destinationRoutes);
-app.use('/api/reviews', reviewRoutes);
-
+app.use('/api/call', callRoutes);  // ← THÊM
 app.get('/', (req: Request, res: Response) => {
     res.send('Backend Express Server is running');
 });
 
-app.listen(port, () => {
+httpServer.listen(port, () => {
     console.log(`⚡️[server]: Server is running at http://localhost:${port}`);
     console.log(`Prisma client fully synchronized on port 5432.`);
+    console.log(`🔌 Socket.io is ready for connections`);
 });

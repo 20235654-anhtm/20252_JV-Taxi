@@ -10,6 +10,8 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@daily-co/daily-js": "^0.90.0",
+    "@daily-co/daily-react": "^0.25.2",
     "@tailwindcss/vite": "^4.2.4",
     "@types/leaflet": "^1.9.21",
     "leaflet": "^1.9.4",
@@ -17,7 +19,8 @@
     "react": "^19.2.5",
     "react-dom": "^19.2.5",
     "react-leaflet": "^5.0.0",
-    "react-router-dom": "^7.15.0"
+    "react-router-dom": "^7.15.0",
+    "socket.io-client": "^4.8.3"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",

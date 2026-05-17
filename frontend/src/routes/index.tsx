@@ -24,6 +24,7 @@ import InTrip from '../pages/passenger/InTrip';
 // Driver Pages
 import DriverDashboard from '../pages/driver/DriverDashboard';
 import DriverProfile from '../pages/driver/DriverProfile';
+import DriverCallTest from '../pages/driver/DriverCallTest';
 
 const AppRoutes = () => {
   return (
@@ -52,6 +53,7 @@ const AppRoutes = () => {
       {/* ======================= DRIVER FLOW (AUTHENTICATED) ======================= */}
       <Route path="/driver" element={<DriverDashboard />} />
       <Route path="/driver/profile" element={<DriverProfile />} />
+      <Route path="/driver/call-test" element={<DriverCallTest />} />
     </Routes>
   );
 };
