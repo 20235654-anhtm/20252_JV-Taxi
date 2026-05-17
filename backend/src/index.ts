@@ -13,6 +13,7 @@ const port = process.env.PORT || 5000;
 
 app.use(cors());
 app.use(express.json());
+app.use('/uploads', express.static('uploads'));
 app.use('/api/auth', authRoutes);
 app.use('/api/drivers', driverRoutes);
 app.use('/api/destinations', destinationRoutes);
@@ -22,4 +23,5 @@ app.get('/', (req: Request, res: Response) => {
 
 app.listen(port, () => {
     console.log(`⚡️[server]: Server is running at http://localhost:${port}`);
+    console.log(`Prisma client fully synchronized on port 5432.`);
 });

@@ -15,16 +15,15 @@ import BookingOptions from '../pages/passenger/BookingOptions';
 import SelectDriver from '../pages/passenger/SelectDriver';
 import DriverDetail from '../pages/passenger/DriverDetail';
 import Profile from '../pages/passenger/Profile';
-
-// Driver Pages
-import DriverHome from '../pages/driver/DriverHome';
-
-import PrivateRoute from '../components/PrivateRoute';
-import PublicRoute from '../components/PublicRoute';
 import WaitingDriver from '../pages/passenger/WaitingDriver';
 
 // Driver Pages
+import DriverHome from '../pages/driver/DriverHome';
 import DriverDashboard from '../pages/driver/DriverDashboard';
+import DriverProfile from '../pages/driver/DriverProfile';
+
+import PrivateRoute from '../components/PrivateRoute';
+import PublicRoute from '../components/PublicRoute';
 
 const AppRoutes = () => {
   return (
@@ -44,26 +43,11 @@ const AppRoutes = () => {
       <Route path="/passenger/select-driver" element={<PrivateRoute><SelectDriver /></PrivateRoute>} />
       <Route path="/passenger/driver-detail" element={<PrivateRoute><DriverDetail /></PrivateRoute>} />
       <Route path="/passenger/profile" element={<PrivateRoute><Profile /></PrivateRoute>} />
+      <Route path="/passenger/waiting-driver" element={<PrivateRoute><WaitingDriver /></PrivateRoute>} />
 
       {/* ======================= DRIVER FLOW (AUTHENTICATED) ======================= */}
-      <Route path="/driver" element={<PrivateRoute><DriverHome /></PrivateRoute>} />
-      <Route path="/" element={<GuestHome />} />
-      <Route path="/guest/search-location" element={<GuestSearchLocation />} />
-      <Route path="/login" element={<SignIn />} />
-      <Route path="/signup" element={<SignUpSelection />} />
-      <Route path="/signup/passenger" element={<PassengerSignUp />} />
-      <Route path="/signup/driver" element={<DriverSignUp />} />
-
-      {/* PASSENGER FLOW */}
-      <Route path="/passenger" element={<PassengerHome />} />
-      <Route path="/passenger/search-location" element={<SearchLocation />} />
-      <Route path="/passenger/booking-options" element={<BookingOptions />} />
-      <Route path="/passenger/select-driver" element={<SelectDriver />} />
-      <Route path="/passenger/driver-detail" element={<DriverDetail />} />
-      <Route path="/passenger/waiting-driver" element={<WaitingDriver />} />
-
-      {/* DRIVER FLOW */}
-      <Route path="/driver" element={<DriverDashboard />} />
+      <Route path="/driver" element={<PrivateRoute><DriverDashboard /></PrivateRoute>} />
+      <Route path="/driver/profile" element={<PrivateRoute><DriverProfile /></PrivateRoute>} />
     </Routes>
   );
 };

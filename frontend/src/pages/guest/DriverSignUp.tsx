@@ -42,6 +42,8 @@ const TRANSLATIONS = {
     uploadLicense: "運転免許証をアップロード",
     uploadDocs: "書類をアップロード (免許証、登録証、保険...)",
     submit: "ドライバーとして登録",
+    cccd: "本人確認書類",
+    cccdPlaceholder: "079xxxxxx889",
   },
   VN: {
     headerTitle: "JV - Taxi",
@@ -80,6 +82,8 @@ const TRANSLATIONS = {
     docs: "Nộp hồ sơ",
     uploadDocs: "Tải lên tài liệu (Bằng lái, Đăng ký xe, Bảo hiểm...)",
     submit: "Đăng ký làm tài xế",
+    cccd: "Số CCCD/CMND",
+    cccdPlaceholder: "079xxxxxx889",
   },
 };
 
@@ -389,7 +393,8 @@ export default function DriverSignUp() {
     plate: "", 
     year: "", 
     drivingLicense: "", 
-    jlpt: "" 
+    jlpt: "",
+    cccd: ""
   });
   const [errors, setErrors] = useState<Record<string, boolean>>({});
   const [showPass, setShowPass] = useState(false);
@@ -407,6 +412,7 @@ export default function DriverSignUp() {
     if (!phoneRegex.test(form.phone)) newErrors.phone = true;
     if (!emailRegex.test(form.email)) newErrors.email = true;
     if (form.pass.length < 8) newErrors.pass = true;
+    if (!form.cccd) newErrors.cccd = true;
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -439,6 +445,7 @@ export default function DriverSignUp() {
       formData.append('year', form.year);
       formData.append('drivingLicense', form.drivingLicense);
       formData.append('jlpt', form.jlpt);
+      formData.append('cccd', form.cccd);
       // Append files
       imageFiles.forEach((file) => {
         formData.append('images', file);
@@ -458,12 +465,11 @@ export default function DriverSignUp() {
         throw new Error(data.message || 'Đăng ký thất bại');
       }
 
-      // Save token and user info
-      localStorage.setItem('authToken', data.token);
-      localStorage.setItem('user', JSON.stringify(data.user));
+      // Save token and user info (optional if redirecting to login, but kept for consistency)
+      // localStorage.setItem('authToken', data.token);
+      // localStorage.setItem('user', JSON.stringify(data.user));
 
-      console.log('Registered successfully as Driver');
-      navigate('/driver');
+      navigate('/login');
     } catch (err: any) {
       console.error("Driver signup error:", err.message);
       alert(err.message);
@@ -491,6 +497,11 @@ export default function DriverSignUp() {
                 if (phoneRegex.test(val)) setErrors((prev) => ({ ...prev, phone: false }));
               }} error={isInvalid('phone')} />
             </div>
+            <InputField label={t.cccd} placeholder={t.cccdPlaceholder} value={form.cccd} onChange={(v) => {
+              const val = v.replace(/[^0-9]/g, '');
+              setForm({ ...form, cccd: val });
+              if (val) setErrors((prev) => ({ ...prev, cccd: false }));
+            }} error={errors.cccd} />
             <InputField label={t.email} placeholder={t.emailPlaceholder} value={form.email} onChange={(v) => {
               setForm({ ...form, email: v });
               if (emailRegex.test(v)) setErrors((prev) => ({ ...prev, email: false }));
