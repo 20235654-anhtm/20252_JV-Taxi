@@ -120,11 +120,12 @@ export default function PassengerSignUp() {
         throw new Error(data.message || 'Đăng ký thất bại');
       }
 
-      // Lưu token và user giống như login (tùy chọn)
-      // localStorage.setItem('authToken', data.token);
-      // localStorage.setItem('user', JSON.stringify(data.user));
+      // Lưu token và user giống như login
+      sessionStorage.setItem('authToken', data.token);
+      sessionStorage.setItem('user', JSON.stringify(data.user));
       
-      navigate("/login");
+      console.log("Registered successfully as Passenger");
+      navigate("/passenger");
     } catch (err: any) {
       console.error("Signup error:", err.message);
       alert(err.message);
