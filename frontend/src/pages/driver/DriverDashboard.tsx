@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Header } from '../../components/layout/Header';
 import { MapView } from '../../components/features/MapView';
 import { BottomNavBar, type NavTab } from '../../components/layout/BottomNavBar';
@@ -8,11 +9,39 @@ import IncomingRequestPopup from '../../components/features/IncomingRequestPopup
 import './DriverDashboard.css';
 
 const DriverDashboard = () => {
+  const navigate = useNavigate();
   const { position, error } = useGeolocation();
   const [activeTab, setActiveTab] = useState<NavTab>('home');
   const [isOnline, setIsOnline] = useState(true);
   const [recenterKey, setRecenterKey] = useState(0);
   const [showPopup, setShowPopup] = useState(false);
+  const [driverData, setDriverData] = useState<any>(null);
+
+  useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        const token = localStorage.getItem('authToken');
+        if (!token) return;
+        const response = await fetch('http://localhost:5000/api/auth/me', {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (response.ok) {
+          const data = await response.json();
+          setDriverData(data.user);
+        }
+      } catch (error) {
+        console.error('Error fetching dashboard profile:', error);
+      }
+    };
+    fetchProfile();
+  }, []);
+
+  const handleTabChange = (tab: NavTab) => {
+    setActiveTab(tab);
+    if (tab === 'profile') {
+      navigate('/driver/profile');
+    }
+  };
 
   // Mock data for weekly income
   const weeklyData = [
@@ -41,7 +70,7 @@ const DriverDashboard = () => {
       {/* HEADER */}
       <Header
         variant="auth"
-        userAvatar="https://i.pravatar.cc/150?img=12"
+        userAvatar={driverData?.driverProfile?.avatarPicture || "https://i.pravatar.cc/150?img=12"}
       />
 
       {/* MAP BACKGROUND */}
@@ -107,19 +136,12 @@ const DriverDashboard = () => {
           ))}
         </div>
         
-        {/* Test Trigger Button */}
-        <button 
-          onClick={() => setShowPopup(true)}
-          className="dd-demo-btn"
-        >
-          🔔 配車依頼をテスト (Demo)
-        </button>
       </div>
 
       {/* BOTTOM NAV */}
       <BottomNavBar
         activeTab={activeTab}
-        onTabChange={setActiveTab}
+        onTabChange={handleTabChange}
       />
 
       {/* INCOMING REQUEST POPUP */}

@@ -33,6 +33,9 @@ const PassengerHome = () => {
 
   const handleTabChange = (tab: NavTab) => {
     setActiveTab(tab);
+    if (tab === 'profile') {
+      navigate('/passenger/profile');
+    }
   };
 
   return (
