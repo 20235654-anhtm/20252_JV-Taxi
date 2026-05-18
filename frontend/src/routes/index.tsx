@@ -14,7 +14,9 @@ import SearchLocation from '../pages/passenger/SearchLocation';
 import BookingOptions from '../pages/passenger/BookingOptions';
 import SelectDriver from '../pages/passenger/SelectDriver';
 import DriverDetail from '../pages/passenger/DriverDetail';
-import Profile from '../pages/passenger/Profile';
+import PassengerProfile from '../pages/passenger/Profile';
+import PassengerProfileEdit from '../pages/passenger/ProfileEdit';
+import AddCard from '../pages/passenger/AddCard';
 import WaitingDriver from '../pages/passenger/WaitingDriver';
 import BookingConfirmation from '../pages/passenger/BookingConfirmationWrapper';
 import Rateyourtrip from '../pages/passenger/Rateyourtrip';
@@ -24,7 +26,8 @@ import InTrip from '../pages/passenger/InTrip';
 
 // Driver Pages
 import DriverDashboard from '../pages/driver/DriverDashboard';
-import DriverProfile from '../pages/driver/DriverProfile';
+import DriverProfile from '../pages/driver/Profile';
+import DriverProfileEdit from '../pages/driver/ProfileEdit';
 import DriverCallTest from '../pages/driver/DriverCallTest';
 
 const AppRoutes = () => {
@@ -45,7 +48,9 @@ const AppRoutes = () => {
       <Route path="/passenger/select-driver" element={<SelectDriver />} />
       <Route path="/passenger/driver-detail" element={<DriverDetail />} />
       <Route path="/passenger/booking-confirmation" element={<BookingConfirmation />} />
-      <Route path="/passenger/profile" element={<Profile />} />
+      <Route path="/passenger/profile" element={<PassengerProfile />} />
+      <Route path="/passenger/profile/edit" element={<PassengerProfileEdit />} />
+      <Route path="/passenger/add-card" element={<AddCard />} />
       <Route path="/passenger/waiting-driver" element={<WaitingDriver />} />
       <Route path="/passenger/chat" element={<ChatwithDriver />} />
       <Route path="/passenger/call-driver" element={<CallDriver />} />
@@ -55,6 +60,7 @@ const AppRoutes = () => {
       {/* ======================= DRIVER FLOW (AUTHENTICATED) ======================= */}
       <Route path="/driver" element={<DriverDashboard />} />
       <Route path="/driver/profile" element={<DriverProfile />} />
+      <Route path="/driver/profile/edit" element={<DriverProfileEdit />} />
       <Route path="/driver/call-test" element={<DriverCallTest />} />
     </Routes>
   );

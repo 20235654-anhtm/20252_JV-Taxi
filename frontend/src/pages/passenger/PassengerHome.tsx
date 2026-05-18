@@ -83,8 +83,7 @@ const PassengerHome = () => {
 
       {/* BottomNavBar luôn hiển thị */}
       <BottomNavBar
-        activeTab={activeTab}
-        onTabChange={handleTabChange}
+        activeTab="home"
       />
     </div>
   );

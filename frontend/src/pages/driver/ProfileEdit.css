@@ -1,0 +1,237 @@
+.pe-container {
+  width: 100%;
+  max-width: 450px;
+  margin: 0 auto;
+  background: #f4fbf1; /* Màu nền xanh nhạt theo ảnh */
+  min-height: 100vh;
+  font-family: 'Plus Jakarta Sans', 'Noto Sans JP', sans-serif;
+  padding-bottom: 40px;
+}
+
+.pe-header {
+  display: flex;
+  align-items: center;
+  padding: 16px 20px;
+  background: transparent; /* Header trong suốt hòa vào nền */
+  position: relative;
+  z-index: 100;
+}
+
+.pe-back-btn {
+  background: none;
+  border: none;
+  color: #006d37;
+  padding: 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+}
+
+.pe-title {
+  flex: 1;
+  text-align: left;
+  font-size: 18px;
+  font-weight: 800;
+  color: #006d37;
+  margin-left: 8px;
+}
+
+.pe-avatar-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 24px 0;
+}
+
+.pe-avatar-wrapper {
+  position: relative;
+  width: 130px;
+  height: 130px;
+}
+
+.pe-avatar {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 5px solid white;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+}
+
+.pe-avatar-edit-btn {
+  position: absolute;
+  bottom: 5px;
+  right: 5px;
+  background: #006d37;
+  color: white;
+  border: 3px solid white;
+  border-radius: 50%;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+}
+
+.pe-section {
+  padding: 0 24px;
+  margin-bottom: 28px;
+}
+
+.pe-section-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 16px;
+  font-weight: 800;
+  color: #006d37;
+  margin-bottom: 16px;
+}
+
+/* Kiểu ô nhập liệu mới giống ảnh mẫu */
+.pe-input-card {
+  background: #fdfefd;
+  border-radius: 24px;
+  padding: 12px 20px;
+  margin-bottom: 14px;
+  border: 1px solid transparent;
+  transition: all 0.2s;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+}
+
+.pe-input-card:focus-within {
+  border-color: #27ae60;
+  background: white;
+  box-shadow: 0 4px 12px rgba(39, 174, 96, 0.08);
+}
+
+.pe-input-card.pe-invalid {
+  border-color: #e74c3c;
+  background: #fffafa;
+}
+
+.pe-label {
+  display: block;
+  font-size: 10px;
+  font-weight: 800;
+  color: #27ae60;
+  margin-bottom: 2px;
+  text-transform: none;
+}
+
+.pe-input {
+  width: 100%;
+  padding: 0;
+  background: transparent;
+  border: none;
+  font-size: 16px;
+  font-weight: 700;
+  color: #171d17;
+}
+
+.pe-input:focus {
+  outline: none;
+}
+
+.pe-error-msg {
+  color: #e74c3c;
+  font-size: 11px;
+  font-weight: 600;
+  margin-top: -10px;
+  margin-bottom: 10px;
+  padding-left: 20px;
+}
+
+.pe-docs-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.pe-doc-card {
+  background: white;
+  border: 1.5px dashed #c0c9bb;
+  border-radius: 24px;
+  padding: 24px 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 10px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.pe-doc-card:hover {
+  border-color: #27ae60;
+  background: #f9fff9;
+}
+
+.pe-doc-icon {
+  color: #27ae60;
+  margin-bottom: 4px;
+}
+
+.pe-doc-name {
+  font-size: 11px;
+  font-weight: 800;
+  color: #171d17;
+}
+
+.pe-doc-btn {
+  font-size: 10px;
+  font-weight: 800;
+  color: #006d37;
+  background: #e5f1e5;
+  padding: 8px 20px;
+  border-radius: 14px;
+  min-width: 100px;
+}
+
+.pe-car-image-container {
+  width: 100%;
+  border-radius: 28px;
+  overflow: hidden;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+}
+
+.pe-car-image {
+  width: 100%;
+  display: block;
+  object-fit: cover;
+}
+
+.pe-actions {
+  padding: 12px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.pe-save-btn {
+  width: 100%;
+  padding: 18px;
+  background: #21a45d; /* Màu xanh đậm theo ảnh */
+  color: white;
+  border: none;
+  border-radius: 22px;
+  font-size: 16px;
+  font-weight: 800;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(33, 164, 93, 0.2);
+}
+
+.pe-cancel-btn {
+  width: 100%;
+  padding: 18px;
+  background: #e2e8df; /* Màu xám nhạt theo ảnh */
+  color: #3d4a3f;
+  border: none;
+  border-radius: 22px;
+  font-size: 16px;
+  font-weight: 800;
+  cursor: pointer;
+}
