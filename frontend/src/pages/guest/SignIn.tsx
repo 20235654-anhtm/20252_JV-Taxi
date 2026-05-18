@@ -240,8 +240,8 @@ export default function SignIn() {
         throw new Error(data.message || t.errorAuth);
       }
 
-      localStorage.setItem('authToken', data.token);
-      localStorage.setItem('user', JSON.stringify(data.user));
+      sessionStorage.setItem('authToken', data.token);
+      sessionStorage.setItem('user', JSON.stringify(data.user));
       
       // Điều hướng dựa trên vai trò (Role)
       if (data.user.role === 'DRIVER') {

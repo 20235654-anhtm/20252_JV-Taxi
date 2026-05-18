@@ -1,4 +1,6 @@
 import bcrypt from 'bcryptjs';
+
+const SALT_ROUNDS = 10;
 import prisma from '../src/config/db';
 
 async function main() {
@@ -13,7 +15,7 @@ async function main() {
       {
         id: '11111111-1111-1111-1111-111111111111',
         name: "Nguyễn Văn Nam (Taxi Vios)",
-        phone: "0911111111",
+        phone: "0911111111", email: "nam.driver@jvtaxi.vn", password: "12345678",
         lat: 21.0065, lng: 105.8458,
         car: "TOYOTA VIOS • WHITE • 29A-123.45",
         type: "CAR_4_SEATS",
@@ -23,7 +25,7 @@ async function main() {
       {
         id: '11111111-1111-1111-1111-222222222222',
         name: "Trần Thị Mai (Mazda 3)",
-        phone: "0922222222",
+        phone: "0922222222", email: "mai.driver@jvtaxi.vn", password: "12345678",
         lat: 21.0045, lng: 105.8430,
         car: "MAZDA 3 • RED • 30F-555.66",
         type: "CAR_4_SEATS",
@@ -33,7 +35,7 @@ async function main() {
       {
         id: '11111111-1111-1111-1111-333333333333',
         name: "Lê Hoàng Long (Honda SH)",
-        phone: "0933333333",
+        phone: "0933333333", email: "long.driver@jvtaxi.vn", password: "12345678",
         lat: 21.0055, lng: 105.8420,
         car: "HONDA SH • BLACK • 29G1-999.99",
         type: "MOTORBIKE",
@@ -43,7 +45,7 @@ async function main() {
       {
         id: '11111111-1111-1111-1111-444444444444',
         name: "Phạm Minh Đức (Ga Minh Khai)",
-        phone: "0944444444",
+        phone: "0944444444", email: "duc.driver@jvtaxi.vn", password: "12345678",
         lat: 21.0588, lng: 105.7485,
         car: "VINFAST VF8 • BLUE • 30H-888.88",
         type: "CAR_4_SEATS",
@@ -60,10 +62,11 @@ async function main() {
 
     // Upsert Profiles Khách hàng
     for (const c of customers) {
+      const hashedPassword = await bcrypt.hash(c.password, SALT_ROUNDS);
       await prisma.$executeRawUnsafe(`
-        INSERT INTO "profiles" ("id", "full_name", "phone", "role", "status") 
-        VALUES ('${c.id}'::uuid, '${c.name}', '${c.phone}', 'CUSTOMER', 'ACTIVE')
-        ON CONFLICT (id) DO UPDATE SET "full_name" = EXCLUDED."full_name", "phone" = EXCLUDED."phone";
+        INSERT INTO "profiles" ("id", "full_name", "phone", "email", "password_hash", "role", "status") 
+        VALUES ('${c.id}'::uuid, '${c.name}', '${c.phone}', '${c.email}', '${hashedPassword}', 'CUSTOMER', 'ACTIVE')
+        ON CONFLICT (id) DO UPDATE SET "full_name" = EXCLUDED."full_name", "phone" = EXCLUDED."phone", "email" = EXCLUDED."email", "password_hash" = EXCLUDED."password_hash";
       `);
       
       // Chèn phương thức thanh toán nếu chưa có
@@ -72,14 +75,16 @@ async function main() {
         VALUES (uuid_generate_v4(), '${c.id}'::uuid, 'Thẻ ATM **** 9999', true)
         ON CONFLICT DO NOTHING;
       `);
+      console.log(`Đã cập nhật/tạo khách hàng: ${c.name}`);
     }
 
     // Upsert Profiles & DriverProfiles Tài xế
     for (const d of drivers) {
+      const hashedPassword = await bcrypt.hash(d.password, SALT_ROUNDS);
       await prisma.$executeRawUnsafe(`
-        INSERT INTO "profiles" ("id", "full_name", "phone", "role", "status") 
-        VALUES ('${d.id}'::uuid, '${d.name}', '${d.phone}', 'DRIVER', 'ACTIVE')
-        ON CONFLICT (id) DO UPDATE SET "full_name" = EXCLUDED."full_name", "phone" = EXCLUDED."phone";
+        INSERT INTO "profiles" ("id", "full_name", "phone", "email", "password_hash", "role", "status") 
+        VALUES ('${d.id}'::uuid, '${d.name}', '${d.phone}', '${d.email}', '${hashedPassword}', 'DRIVER', 'ACTIVE')
+        ON CONFLICT (id) DO UPDATE SET "full_name" = EXCLUDED."full_name", "phone" = EXCLUDED."phone", "email" = EXCLUDED."email", "password_hash" = EXCLUDED."password_hash";
       `);
 
       await prisma.$executeRawUnsafe(`

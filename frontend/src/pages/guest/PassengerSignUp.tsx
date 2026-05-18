@@ -121,8 +121,8 @@ export default function PassengerSignUp() {
       }
 
       // Lưu token và user giống như login
-      localStorage.setItem('authToken', data.token);
-      localStorage.setItem('user', JSON.stringify(data.user));
+      sessionStorage.setItem('authToken', data.token);
+      sessionStorage.setItem('user', JSON.stringify(data.user));
       
       console.log("Registered successfully as Passenger");
       navigate("/passenger");

@@ -30,7 +30,7 @@ export const QuickBookingCard: React.FC<QuickBookingCardProps> = ({
   const { suggestions: apiSuggestions, isLoading } = useLocationSuggestions(destinationValue);
 
   // Lấy thông tin user để gọi API lịch sử
-  const userStr = localStorage.getItem('user');
+  const userStr = sessionStorage.getItem('user');
   const user = userStr ? JSON.parse(userStr) : null;
   const { recentDestinations } = useRecentDestinations(user?.id);
 
