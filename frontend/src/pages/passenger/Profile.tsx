@@ -4,6 +4,7 @@ import { User, Phone, Mail, CreditCard, LogOut, Edit2 } from "lucide-react";
 import { Header } from "../../components/layout/Header";
 import { BottomNavBar, type NavTab } from "../../components/layout/BottomNavBar";
 import "./Profile.css";
+import { socketService } from "../../services/socketService";
 
 export default function PassengerProfile() {
   const navigate = useNavigate();
@@ -11,15 +12,17 @@ export default function PassengerProfile() {
   const [activeTab, setActiveTab] = useState<NavTab>('profile');
 
   useEffect(() => {
-    const userStr = localStorage.getItem('user');
+    const userStr = sessionStorage.getItem('user');
     if (userStr) {
       setUser(JSON.parse(userStr));
     }
   }, []);
 
   const handleLogout = () => {
-    localStorage.removeItem('authToken');
-    localStorage.removeItem('user');
+    // Ngắt socket trước khi xóa thông tin user
+    socketService.disconnect();
+    sessionStorage.removeItem('authToken');
+    sessionStorage.removeItem('user');
     navigate('/login');
   };
 

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useLanguage } from "../../context/LanguageContext";
 import { Eye, EyeOff } from 'lucide-react';
@@ -21,19 +21,29 @@ const TRANSLATIONS = {
     pass: "パスワード",
     passPlaceholder: "最小8文字以上",
     vehicle: "車両詳細",
-    carType: "車種",
+    carType: "車種モデル",
     carSedan: "セダン",
     carSUV: "SUV",
     carEV: "EV",
-    licensePlate: "免許証番号",
-    platePlaceholder: "最大20文字",
-    jlpt: "JLPT",
-    jlptPlaceholder: "N3",
-    docs: "書類提出",
-    licenseLabel: "運転免許証をアップロード",
-    registrationLabel: "車両登録証をアップロード",
-    insuranceLabel: "自動車保険をアップロード",
+    vehicleType: "車種タイプ",
+    vehicleTypePlaceholder: "Toyota Vios",
+    licensePlate: "ナンバープレート",
+    platePlaceholder: "ABC-12345",
+    year: "年",
+    yearPlaceholder: "2022",
+    docsHeader: "証明書類",
+    drivingLicense: "運転免許証",
+    licensePlaceholder: "B2",
+    jlpt: "日本語能力",
+    jlptPlaceholder: "JLPT N3",
+    imageHeader: "画像",
+    uploadImage: "画像をアップロード",
+    docsSubmitHeader: "書類提出",
+    uploadLicense: "運転免許証をアップロード",
+    uploadDocs: "書類をアップロード (免許証、登録証、保険...)",
     submit: "ドライバーとして登録",
+    cccd: "本人確認書類",
+    cccdPlaceholder: "079xxxxxx889",
   },
   VN: {
     headerTitle: "JV - Taxi",
@@ -54,15 +64,26 @@ const TRANSLATIONS = {
     carSedan: "Sedan",
     carSUV: "SUV",
     carEV: "EV",
-    licensePlate: "Số bằng lái",
-    platePlaceholder: "Tối đa 20 ký tự",
-    jlpt: "JLPT",
-    jlptPlaceholder: "N3",
+    vehicleType: "Dòng xe",
+    vehicleTypePlaceholder: "Toyota Vios",
+    licensePlate: "Biển số xe",
+    platePlaceholder: "ABC-12345",
+    year: "Năm sản xuất",
+    yearPlaceholder: "2022",
+    docsHeader: "Tài liệu chứng minh",
+    drivingLicense: "Bằng lái xe",
+    licensePlaceholder: "B2",
+    jlpt: "Năng lực tiếng Nhật",
+    jlptPlaceholder: "JLPT N3",
+    imageHeader: "Hình ảnh",
+    uploadImage: "Tải ảnh lên",
+    docsSubmitHeader: "Nộp hồ sơ",
+    uploadLicense: "Tải lên bằng lái xe",
     docs: "Nộp hồ sơ",
-    licenseLabel: "Tải lên bằng lái xe",
-    registrationLabel: "Tải lên giấy đăng ký xe",
-    insuranceLabel: "Tải lên bảo hiểm xe",
+    uploadDocs: "Tải lên tài liệu (Bằng lái, Đăng ký xe, Bảo hiểm...)",
     submit: "Đăng ký làm tài xế",
+    cccd: "Số CCCD/CMND",
+    cccdPlaceholder: "079xxxxxx889",
   },
 };
 
@@ -203,7 +224,7 @@ function PasswordField({ t, value, onChange, error, showPass, onTogglePass }: { 
 
 function CarTypeButton({ label, selected, onClick, iconPath }: { label: string; selected: boolean; onClick: () => void; iconPath: string }) {
   return (
-    <button onClick={onClick} className={`${selected ? 'bg-white' : 'bg-[#dde5db] opacity-60'} flex-[1_0_0] min-w-px relative rounded-[8px] transition-all`} data-name="Button">
+    <button type="button" onClick={onClick} className={`${selected ? 'bg-white' : 'bg-[#dde5db] opacity-60'} flex-[1_0_0] min-w-px relative rounded-[8px] transition-all`} data-name="Button">
       <div aria-hidden="true" className={`absolute border-2 ${selected ? 'border-[#006d37]' : 'border-transparent'} border-solid inset-0 pointer-events-none rounded-[8px]`} />
       <div className="flex flex-col items-center justify-center size-full">
         <div className="content-stretch flex flex-col items-center justify-center px-[10px] py-[14px] relative size-full">
@@ -229,31 +250,110 @@ function CarTypeButton({ label, selected, onClick, iconPath }: { label: string; 
   );
 }
 
-function FileUploadCard({ label }: { label: string }) {
+function FileUploadCard({ label, files, setFiles, iconPath, multiple = true, width = "w-full", accept }: { label: string; files: File[]; setFiles: (files: File[]) => void; iconPath?: string; multiple?: boolean; width?: string; accept?: string }) {
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const selected = Array.from(e.target.files || []);
+    if (multiple) {
+      // Append new files to existing list
+      setFiles((prev) => [...prev, ...selected]);
+    } else {
+      // Replace existing file
+      setFiles(selected.slice(0, 1));
+    }
+    // Reset input value so the same file can be selected again if needed
+    e.target.value = "";
+  };
+
+  const removeFile = (index: number) => {
+    setFiles((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const previewFile = (file: File) => {
+    const url = URL.createObjectURL(file);
+    window.open(url, '_blank');
+    // We don't revoke here because it might close the tab if we do it too fast, 
+    // but in a production app you'd want to manage this carefully.
+  };
+
   return (
-    <button className="content-stretch flex flex-col items-start relative shrink-0 w-full hover:brightness-95 transition-all" data-name="Container">
-      <div className="bg-[#eff6ec] content-stretch flex flex-col h-[160px] items-center justify-center p-[2px] relative rounded-[24px] shrink-0 w-full" data-name="Background+Border">
-        <div aria-hidden="true" className="absolute border-2 border-[#bccabc] border-dashed inset-0 pointer-events-none rounded-[24px]" />
-        <div className="h-[60px] relative shrink-0 w-[48px]" data-name="Margin">
-          <div className="bg-clip-padding border-0 border-[transparent] border-solid content-stretch flex flex-col items-start pb-[12px] relative size-full">
-            <div className="bg-[rgba(0,109,55,0.1)] content-stretch flex items-center justify-center relative rounded-[9999px] shrink-0 size-[48px]" data-name="Overlay">
-              <div className="h-[20px] relative shrink-0 w-[16px]" data-name="Container">
-                <svg className="absolute block inset-0 size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 16 20">
-                  <path d={svgPaths.p11fdd840} fill="var(--fill-0, #006D37)" />
-                </svg>
+    <div className="w-full">
+      <button
+        type="button"
+        className={`content-stretch flex flex-col items-start relative shrink-0 ${width} hover:brightness-95 transition-all`}
+        data-name="Container"
+        onClick={handleClick}
+      >
+        <div className="bg-[#eff6ec] content-stretch flex flex-col h-[160px] items-center justify-center p-[2px] relative rounded-[24px] w-full" data-name="Background+Border">
+          <div aria-hidden="true" className="absolute border-2 border-[#bccabc] border-dashed inset-0 pointer-events-none rounded-[24px]" />
+          <div className="h-[60px] relative shrink-0 w-[48px]" data-name="Margin">
+            <div className="bg-clip-padding border-0 border-[transparent] border-solid content-stretch flex flex-col items-start pb-[12px] relative size-full">
+              <div className="bg-[rgba(0,109,55,0.1)] content-stretch flex items-center justify-center relative rounded-[9999px] shrink-0 size-[48px]" data-name="Overlay">
+                <div className="h-[20px] relative shrink-0 w-[16px]" data-name="Container">
+                  <svg className="absolute block inset-0 size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 16 20">
+                    <path d={iconPath || svgPaths.p11fdd840} fill="var(--fill-0, #006D37)" />
+                  </svg>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div className="relative shrink-0" data-name="Container">
+            <div className="bg-clip-padding border-0 border-[transparent] border-solid content-stretch flex flex-col items-start relative size-full">
+              <div className="flex flex-col font-['Plus_Jakarta_Sans:Bold','Noto_Sans_JP:Bold',sans-serif] font-bold h-[15px] justify-center leading-[0] relative shrink-0 text-[#3d4a3f] text-[14px] tracking-[-0.5px] uppercase w-fit px-2" data-name="Label">
+                <p className="leading-[15px]">{label}</p>
               </div>
             </div>
           </div>
         </div>
-        <div className="relative shrink-0" data-name="Container">
-          <div className="bg-clip-padding border-0 border-[transparent] border-solid content-stretch flex flex-col items-start relative size-full">
-            <div className="flex flex-col font-['Plus_Jakarta_Sans:Bold','Noto_Sans_JP:Bold',sans-serif] font-bold h-[15px] justify-center leading-[0] relative shrink-0 text-[#3d4a3f] text-[14px] tracking-[-0.5px] uppercase w-fit px-2">
-              <p className="leading-[15px]">{label}</p>
-            </div>
-          </div>
-        </div>
-      </div>
-    </button>
+      </button>
+      {/* Hidden file input for multiple selection */}
+      <input
+        type="file"
+        multiple={multiple}
+        accept={accept}
+        ref={fileInputRef}
+        style={{ display: "none" }}
+        onChange={handleChange}
+      />
+      {/* Display selected file names if any */}
+      {files && files.length > 0 && (
+        <ul className="mt-3 flex flex-col gap-2">
+          {files.map((file, idx) => (
+            <li key={idx} className="flex items-center justify-between bg-white/50 p-3 rounded-xl border border-[#006d37]/10 group transition-all hover:bg-white/80">
+              <div 
+                className="flex items-center gap-3 cursor-pointer flex-1"
+                onClick={() => previewFile(file)}
+                title="Click to preview"
+              >
+                <div className="size-8 rounded-lg bg-[#006d37]/10 flex items-center justify-center">
+                  <svg className="size-4 text-[#006d37]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                  </svg>
+                </div>
+                <div className="flex flex-col">
+                  <span className="text-sm font-medium text-[#171d17] truncate max-w-[200px]">{file.name}</span>
+                  <span className="text-[10px] text-[#3d4a3f] opacity-60">Click to preview</span>
+                </div>
+              </div>
+              <button 
+                type="button"
+                onClick={() => removeFile(idx)}
+                className="size-8 rounded-lg flex items-center justify-center text-[#3d4a3f] hover:text-red-500 hover:bg-red-50 transition-all opacity-100 lg:opacity-0 lg:group-hover:opacity-100"
+              >
+                <svg className="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
   );
 }
 
@@ -283,10 +383,25 @@ export default function DriverSignUp() {
   const { lang } = useLanguage();
   const t = TRANSLATIONS[lang];
 
-  const [form, setForm] = useState({ name: "", phone: "", email: "", pass: "", carType: "Sedan", plate: "", jlpt: "" });
+  const [form, setForm] = useState({ 
+    name: "", 
+    phone: "", 
+    email: "", 
+    pass: "", 
+    carType: "Sedan", 
+    vehicleType: "", 
+    plate: "", 
+    year: "", 
+    drivingLicense: "", 
+    jlpt: "",
+    cccd: ""
+  });
   const [errors, setErrors] = useState<Record<string, boolean>>({});
   const [showPass, setShowPass] = useState(false);
   const [loading, setLoading] = useState(false);
+  // State for uploaded files
+  const [imageFiles, setImageFiles] = useState<File[]>([]);
+  const [licenseFiles, setLicenseFiles] = useState<File[]>([]);
 
   const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
   const phoneRegex = /^\+?[0-9]{10,15}$/;
@@ -297,6 +412,7 @@ export default function DriverSignUp() {
     if (!phoneRegex.test(form.phone)) newErrors.phone = true;
     if (!emailRegex.test(form.email)) newErrors.email = true;
     if (form.pass.length < 8) newErrors.pass = true;
+    if (!form.cccd) newErrors.cccd = true;
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -316,16 +432,32 @@ export default function DriverSignUp() {
 
     setLoading(true);
     try {
+      // Build multipart form data
+      const formData = new FormData();
+      formData.append('email', form.email);
+      formData.append('phone', form.phone);
+      formData.append('password', form.pass);
+      formData.append('fullName', form.name);
+      formData.append('role', 'DRIVER');
+      formData.append('carType', form.carType);
+      formData.append('vehicleType', form.vehicleType);
+      formData.append('plate', form.plate);
+      formData.append('year', form.year);
+      formData.append('drivingLicense', form.drivingLicense);
+      formData.append('jlpt', form.jlpt);
+      formData.append('cccd', form.cccd);
+      // Append files
+      imageFiles.forEach((file) => {
+        formData.append('images', file);
+      });
+      licenseFiles.forEach((file) => {
+        formData.append('documents', file);
+      });
+
       const response = await fetch('http://localhost:5000/api/auth/register', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          email: form.email, 
-          phone: form.phone, 
-          password: form.pass, 
-          fullName: form.name,
-          role: 'DRIVER'
-        })
+        // Let browser set the correct multipart boundary
+        body: formData,
       });
 
       const data = await response.json();
@@ -333,12 +465,11 @@ export default function DriverSignUp() {
         throw new Error(data.message || 'Đăng ký thất bại');
       }
 
-      // Lưu token và user giống như login
-      localStorage.setItem('authToken', data.token);
-      localStorage.setItem('user', JSON.stringify(data.user));
-      
-      console.log("Registered successfully as Driver");
-      navigate("/driver");
+      // Save token and user info
+      sessionStorage.setItem('authToken', data.token);
+      sessionStorage.setItem('user', JSON.stringify(data.user));
+
+      navigate('/login');
     } catch (err: any) {
       console.error("Driver signup error:", err.message);
       alert(err.message);
@@ -366,6 +497,11 @@ export default function DriverSignUp() {
                 if (phoneRegex.test(val)) setErrors((prev) => ({ ...prev, phone: false }));
               }} error={isInvalid('phone')} />
             </div>
+            <InputField label={t.cccd} placeholder={t.cccdPlaceholder} value={form.cccd} onChange={(v) => {
+              const val = v.replace(/[^0-9]/g, '');
+              setForm({ ...form, cccd: val });
+              if (val) setErrors((prev) => ({ ...prev, cccd: false }));
+            }} error={errors.cccd} />
             <InputField label={t.email} placeholder={t.emailPlaceholder} value={form.email} onChange={(v) => {
               setForm({ ...form, email: v });
               if (emailRegex.test(v)) setErrors((prev) => ({ ...prev, email: false }));
@@ -376,8 +512,8 @@ export default function DriverSignUp() {
           {/* Vehicle Section */}
           <div className="content-stretch flex flex-col gap-[16px] items-start relative shrink-0 w-full" data-name="Vehicle Details Group">
             <Heading1 label={t.vehicle} />
-            <div className="gap-x-[16px] gap-y-[16px] grid grid-cols-[repeat(1,minmax(0,1fr))] grid-rows-[___158px_103px_fit-content(100%)] relative shrink-0 w-full" data-name="Container">
-              <div className="bg-[#eff6ec] col-1 justify-self-stretch relative rounded-[24px] row-1 self-start shrink-0" data-name="Vehicle Type">
+            <div className="flex flex-col gap-[16px] relative shrink-0 w-full" data-name="Container">
+              <div className="bg-[#eff6ec] col-1 justify-self-stretch relative rounded-[24px] self-start shrink-0 w-full" data-name="Vehicle Type Selector">
                 <div className="content-stretch flex flex-col gap-[12px] items-start p-[20px] relative size-full">
                   <div className="flex flex-col font-['Plus_Jakarta_Sans:Bold','Noto_Sans_JP:Bold',sans-serif] font-bold justify-center leading-[0] relative shrink-0 text-[#3d4a3f] text-[12px] tracking-[-0.5px] uppercase w-full">
                     <p className="leading-[15px]">{t.carType}</p>
@@ -389,16 +525,35 @@ export default function DriverSignUp() {
                   </div>
                 </div>
               </div>
+              <InputField label={t.vehicleType} placeholder={t.vehicleTypePlaceholder} value={form.vehicleType} onChange={(v) => setForm({ ...form, vehicleType: v })} />
               <InputField label={t.licensePlate} placeholder={t.platePlaceholder} value={form.plate} onChange={(v) => setForm({ ...form, plate: v })} />
+              <InputField label={t.year} placeholder={t.yearPlaceholder} value={form.year} onChange={(v) => setForm({ ...form, year: v })} />
+              
+              <div className="mt-4">
+                <Heading1 label={t.docsHeader} />
+              </div>
+              
+              <InputField label={t.drivingLicense} placeholder={t.licensePlaceholder} value={form.drivingLicense} onChange={(v) => setForm({ ...form, drivingLicense: v })} />
               <InputField label={t.jlpt} placeholder={t.jlptPlaceholder} value={form.jlpt} onChange={(v) => setForm({ ...form, jlpt: v })} />
             </div>
           </div>
 
-          {/* Upload Section */}
-          <div className="content-stretch flex flex-col gap-[16px] items-start relative shrink-0 w-full" data-name="Upload Section">
-            <Heading1 label={t.docs} />
-            <div className="flex flex-col gap-[16px] w-full">
-              <FileUploadCard label={t.licenseLabel} />
+          {/* Upload Sections */}
+          <div className="content-stretch flex flex-col gap-[32px] items-start relative shrink-0 w-full" data-name="Upload Sections Container">
+            {/* Image Upload Section */}
+            <div className="content-stretch flex flex-col gap-[16px] items-start relative shrink-0 w-full" data-name="Image Upload Section">
+              <Heading1 label={t.imageHeader} />
+              <div className="flex flex-col gap-[16px] w-fit">
+                <FileUploadCard label={t.uploadImage} files={imageFiles} setFiles={setImageFiles} iconPath={svgPaths.plusIcon} multiple={false} width="w-[160px]" accept="image/*" />
+              </div>
+            </div>
+
+            {/* Document Upload Section */}
+            <div className="content-stretch flex flex-col gap-[16px] items-start relative shrink-0 w-full" data-name="Document Upload Section">
+              <Heading1 label={t.docsSubmitHeader} />
+              <div className="flex flex-col gap-[16px] w-full">
+                <FileUploadCard label={t.uploadLicense} files={licenseFiles} setFiles={setLicenseFiles} iconPath={svgPaths.p11fdd840} />
+              </div>
             </div>
           </div>
 
