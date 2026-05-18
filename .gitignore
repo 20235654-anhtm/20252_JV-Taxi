@@ -12,3 +12,5 @@ build/
 # IDE & OS files
 .vscode/
 .DS_Store
+
+.agent/
