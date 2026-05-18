@@ -1,11 +1,11 @@
 import express, { Express, Request, Response } from 'express';
-import { createServer } from 'http';           // ← THÊM: tạo HTTP server
-import { Server as SocketIOServer } from 'socket.io'; // ← THÊM: Socket.io
+import { createServer } from 'http';
+import { Server as SocketIOServer } from 'socket.io';
 import driverRoutes from './routes/driver.routes';
 import destinationRoutes from './routes/destination.routes';
 import authRoutes from './routes/auth.routes';
 import paymentRoutes from './routes/payment.routes';
-import callRoutes from './routes/call.routes';  // ← THÊM: routes cho call (sẽ tạo sau)
+import callRoutes from './routes/call.routes';
 import dotenv from 'dotenv';
 import cors from 'cors';
 
@@ -48,7 +48,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/drivers', driverRoutes);
 app.use('/api/destinations', destinationRoutes);
 app.use('/api/payments', paymentRoutes);
-app.use('/api/call', callRoutes);  // ← THÊM
+app.use('/api/call', callRoutes);
 app.get('/', (req: Request, res: Response) => {
     res.send('Backend Express Server is running');
 });
