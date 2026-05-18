@@ -9,6 +9,10 @@ export default defineConfig({
     path: "prisma/migrations",
   },
   datasource: {
-    url: process.env["DATABASE_URL"] + "?pgbouncer=true",
+    url: process.env["DATABASE_URL"]
+      ? (process.env["DATABASE_URL"].includes('?')
+          ? `${process.env["DATABASE_URL"]}&pgbouncer=true`
+          : `${process.env["DATABASE_URL"]}?pgbouncer=true`)
+      : undefined,
   },
 });

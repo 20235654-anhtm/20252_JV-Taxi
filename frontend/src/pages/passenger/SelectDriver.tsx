@@ -28,7 +28,9 @@ const SEARCH_TIMEOUT_MS = 5 * 1000;
 /** Polling interval (15 seconds) */
 const POLLING_INTERVAL_MS = 15 * 1000;
 
-const API_BASE = 'http://localhost:5000/api/drivers';
+import { API_BASE_URL } from '../../config/api';
+
+const API_BASE = `${API_BASE_URL}/api/drivers`;
 
 const SelectDriver = () => {
   const navigate = useNavigate();

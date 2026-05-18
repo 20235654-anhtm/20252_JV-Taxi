@@ -5,7 +5,10 @@ import dotenv from 'dotenv';
 
 dotenv.config();
 
-const connectionString = process.env.DATABASE_URL + '?pgbouncer=true';
+const databaseUrl = process.env.DATABASE_URL;
+const connectionString = databaseUrl
+  ? (databaseUrl.includes('?') ? `${databaseUrl}&pgbouncer=true` : `${databaseUrl}?pgbouncer=true`)
+  : undefined;
 
 const pool = new Pool({ connectionString });
 const adapter = new PrismaPg(pool);

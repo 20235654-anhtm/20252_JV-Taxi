@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useLanguage } from "../../context/LanguageContext";
 import { Eye, EyeOff } from 'lucide-react';
 import svgPaths from "./svg-d322lkxk63";
+import { API_BASE_URL } from "../../config/api";
 
 const TRANSLATIONS = {
   JP: {
@@ -229,7 +230,7 @@ export default function SignIn() {
 
     setLoading(true);
     try {
-      const response = await fetch('http://localhost:5000/api/auth/login', {
+      const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ identifier, password })

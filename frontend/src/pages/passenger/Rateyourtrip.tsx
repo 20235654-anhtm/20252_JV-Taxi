@@ -9,7 +9,9 @@ import { Heading } from '../../components/ui/Heading';
 import { Text } from '../../components/ui/Text';
 import './Rateyourtrip.css';
 
-const API_BASE_URL = 'http://localhost:5000/api';
+import { API_BASE_URL as API_HOST } from '../../config/api';
+
+const API_BASE_URL = `${API_HOST}/api`;
 
 const Rateyourtrip: React.FC = () => {
   const navigate = useNavigate();

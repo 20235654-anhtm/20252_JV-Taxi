@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import svgPaths from "./svg-paths";
+import { API_BASE_URL } from "../../config/api";
 
 const imgDriverProfile = "https://i.pravatar.cc/150?img=12";
 const imgVehicleHero = "/bmw_car.png";
@@ -121,7 +122,7 @@ export default function DriverProfile() {
         formData.append('carImage', editCarImage);
       }
 
-      const response = await fetch('http://localhost:5000/api/auth/profile/update', {
+      const response = await fetch(`${API_BASE_URL}/api/auth/profile/update`, {
         method: 'PUT',
         headers: { 'Authorization': `Bearer ${token}` },
         body: formData
@@ -152,7 +153,7 @@ export default function DriverProfile() {
           navigate('/login');
           return;
         }
-        const response = await fetch('http://localhost:5000/api/auth/me', {
+        const response = await fetch(`${API_BASE_URL}/api/auth/me`, {
           headers: { 'Authorization': `Bearer ${token}` }
         });
         if (!response.ok) throw new Error('Failed to fetch profile');

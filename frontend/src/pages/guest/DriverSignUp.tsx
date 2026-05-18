@@ -4,6 +4,7 @@ import { useLanguage } from "../../context/LanguageContext";
 import { Eye, EyeOff } from 'lucide-react';
 import svgPaths from "./svg-6k5pihgtjb";
 import imgDriverRegistration from "./98b93cf9247a1a1d9ae9842376a80cf8c192fa1a.png";
+import { API_BASE_URL } from "../../config/api";
 
 const TRANSLATIONS = {
   JP: {
@@ -454,7 +455,7 @@ export default function DriverSignUp() {
         formData.append('documents', file);
       });
 
-      const response = await fetch('http://localhost:5000/api/auth/register', {
+      const response = await fetch(`${API_BASE_URL}/api/auth/register`, {
         method: 'POST',
         // Let browser set the correct multipart boundary
         body: formData,

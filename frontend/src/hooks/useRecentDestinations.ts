@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react';
 import type { HistoryItem } from '../components/SearchLocation/RecentHistory';
 
-const API_BASE_URL = 'http://localhost:5000/api';
+import { API_BASE_URL as API_HOST } from '../config/api';
+
+const API_BASE_URL = `${API_HOST}/api`;
 
 export const useRecentDestinations = (userId: string | undefined) => {
   const [recentDestinations, setRecentDestinations] = useState<HistoryItem[]>([]);

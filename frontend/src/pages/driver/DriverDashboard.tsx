@@ -4,6 +4,7 @@ import { Header } from '../../components/layout/Header';
 import { MapView } from '../../components/features/MapView';
 import { BottomNavBar, type NavTab } from '../../components/layout/BottomNavBar';
 import { FAB } from '../../components/ui/FAB';
+import { API_BASE_URL } from '../../config/api';
 import { useGeolocation } from '../../hooks/useGeolocation';
 import IncomingRequestPopup from '../../components/features/IncomingRequestPopup';
 import './DriverDashboard.css';
@@ -22,7 +23,7 @@ const DriverDashboard = () => {
       try {
         const token = localStorage.getItem('authToken');
         if (!token) return;
-        const response = await fetch('http://localhost:5000/api/auth/me', {
+        const response = await fetch(`${API_BASE_URL}/api/auth/me`, {
           headers: { 'Authorization': `Bearer ${token}` }
         });
         if (response.ok) {
