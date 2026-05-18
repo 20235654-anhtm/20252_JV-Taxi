@@ -29,6 +29,8 @@ import InTrip from '../pages/passenger/InTrip';
 
 // Driver Pages
 import DriverDashboard from '../pages/driver/DriverDashboard';
+import CallPassenger from '../pages/driver/CallPassenger';
+import ChatwithPassenger from '../pages/driver/ChatwithPassenger';
 
 const AppRoutes = () => {
   return (
@@ -53,6 +55,10 @@ const AppRoutes = () => {
 
       {/* ======================= DRIVER FLOW (AUTHENTICATED) ======================= */}
       <Route path="/driver" element={<PrivateRoute><DriverHome /></PrivateRoute>} />
+      <Route path="/driver/dashboard" element={<PrivateRoute><DriverDashboard /></PrivateRoute>} />
+      <Route path="/driver/chat" element={<PrivateRoute><ChatwithPassenger /></PrivateRoute>} />
+      <Route path="/driver/call-passenger" element={<PrivateRoute><CallPassenger /></PrivateRoute>} />
+      <Route path="/driver/in-trip" element={<PrivateRoute><InTrip /></PrivateRoute>} />
       <Route path="/" element={<GuestHome />} />
       <Route path="/guest/search-location" element={<GuestSearchLocation />} />
       <Route path="/login" element={<SignIn />} />
@@ -73,6 +79,9 @@ const AppRoutes = () => {
 
       {/* DRIVER FLOW */}
       <Route path="/driver" element={<DriverDashboard />} />
+      <Route path="/driver/chat" element={<ChatwithPassenger />} />
+      <Route path="/driver/call-passenger" element={<CallPassenger />} />
+      <Route path="/driver/in-trip" element={<InTrip />} />
     </Routes>
   );
 };
