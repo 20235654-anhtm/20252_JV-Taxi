@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { ChevronLeft, Phone, Languages, Send, CheckCheck } from 'lucide-react';
 import { Avatar } from '../../components/ui/Avatar';
 import { Heading } from '../../components/ui/Heading';
-import './ChatwithDriver.css';
+import './ChatwithPassenger.css';
 import { translateText } from '../../services/translationService';
 
 interface Message {
@@ -15,7 +15,7 @@ interface Message {
   status?: 'sent' | 'delivered' | 'read';
 }
 
-const ChatwithDriver: React.FC = () => {
+const ChatwithPassenger: React.FC = () => {
   const navigate = useNavigate();
   const [inputText, setInputText] = useState('');
   const [isTranslated, setIsTranslated] = useState(false);
@@ -25,7 +25,8 @@ const ChatwithDriver: React.FC = () => {
       sender: 'driver',
       text: 'こんにちは！お迎えに向かっています。オペラハウス付近で少し渋滞しています。',
       translatedText: 'Xin chào! Tôi đang trên đường đến đón bạn. Gần Nhà hát Lớn đang hơi kẹt xe một chút.',
-      time: '14:02'
+      time: '14:02',
+      status: 'read'
     },
     {
       id: '2',
@@ -55,7 +56,7 @@ const ChatwithDriver: React.FC = () => {
     const messageId = Date.now().toString();
     const newMessage: Message = {
       id: messageId,
-      sender: 'passenger',
+      sender: 'driver', // Driver is sending the message
       text: textToTranslate,
       translatedText: loadingText,
       time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
@@ -79,7 +80,7 @@ const ChatwithDriver: React.FC = () => {
   };
 
   const handleBack = () => {
-    navigate('/passenger/in-trip');
+    navigate('/driver'); // Or driver dashboard
   };
 
   return (
@@ -95,7 +96,7 @@ const ChatwithDriver: React.FC = () => {
             <div className="flex items-center gap-3">
               <div className="relative">
                 <Avatar 
-                  src="https://api.dicebear.com/7.x/avataaars/svg?seed=driver" 
+                  src="https://api.dicebear.com/7.x/avataaars/svg?seed=passenger" 
                   borderColor="transparent"
                 />
                 <div className="absolute bottom-0 right-0 w-[12px] h-[12px] bg-[#27AE60] border-2 border-[#F4FBF1] rounded-full"></div>
@@ -105,7 +106,7 @@ const ChatwithDriver: React.FC = () => {
           </div>
 
           <div className="header-actions">
-            <button className="action-icon-btn" onClick={() => navigate('/passenger/call-driver')}>
+            <button className="action-icon-btn" onClick={() => navigate('/driver/call-passenger')}>
               <Phone size={18} fill="currentColor" />
             </button>
             <button 
@@ -125,21 +126,24 @@ const ChatwithDriver: React.FC = () => {
           <span className="date-tag">今日</span>
         </div>
 
-        {messages.map((msg) => (
-          <div key={msg.id} className={`message-group ${msg.sender}`}>
-            <div className="chat-bubble">
-              {isTranslated && msg.translatedText ? msg.translatedText : msg.text}
+        {messages.map((msg) => {
+          const isSelf = msg.sender === 'driver';
+          return (
+            <div key={msg.id} className={`message-group ${isSelf ? 'self' : 'other'}`}>
+              <div className="chat-bubble">
+                {isTranslated && msg.translatedText ? msg.translatedText : msg.text}
+              </div>
+              <div className="message-meta">
+                <span className="time-text">{msg.time}</span>
+                {isSelf && msg.status === 'read' && (
+                  <div className="status-icon">
+                    <CheckCheck size={14} color="#006D37" />
+                  </div>
+                )}
+              </div>
             </div>
-            <div className="message-meta">
-              <span className="time-text">{msg.time}</span>
-              {msg.sender === 'passenger' && msg.status === 'read' && (
-                <div className="status-icon">
-                  <CheckCheck size={14} color="#006D37" />
-                </div>
-              )}
-            </div>
-          </div>
-        ))}
+          );
+        })}
       </main>
 
       {/* Bottom Input Area */}
@@ -162,4 +166,4 @@ const ChatwithDriver: React.FC = () => {
   );
 };
 
-export default ChatwithDriver;
+export default ChatwithPassenger;

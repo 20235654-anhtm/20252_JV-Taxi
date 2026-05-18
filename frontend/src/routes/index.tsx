@@ -30,6 +30,8 @@ import DriverDashboard from '../pages/driver/DriverDashboard';
 import DriverProfile from '../pages/driver/Profile';
 import DriverProfileEdit from '../pages/driver/ProfileEdit';
 import DriverCallTest from '../pages/driver/DriverCallTest';
+import ChatwithPassenger from '../pages/driver/ChatwithPassenger';
+import CallPassenger from '../pages/driver/CallPassenger';
 
 // ── Auth Guards ──
 
@@ -113,6 +115,8 @@ const AppRoutes = () => {
       <Route path="/driver/profile" element={<ProtectedRoute allowedRole="DRIVER"><DriverProfile /></ProtectedRoute>} />
       <Route path="/driver/profile/edit" element={<ProtectedRoute allowedRole="DRIVER"><DriverProfileEdit /></ProtectedRoute>} />
       <Route path="/driver/call-test" element={<ProtectedRoute allowedRole="DRIVER"><DriverCallTest /></ProtectedRoute>} />
+      <Route path="/driver/chat" element={<ProtectedRoute allowedRole="DRIVER"><ChatwithPassenger /></ProtectedRoute>} />
+      <Route path="/driver/call-passenger" element={<ProtectedRoute allowedRole="DRIVER"><CallPassenger /></ProtectedRoute>} />
     </Routes>
   );
 };
