@@ -13,6 +13,6 @@ export default defineConfig({
       ? (process.env["DATABASE_URL"].includes('?')
           ? `${process.env["DATABASE_URL"]}&pgbouncer=true`
           : `${process.env["DATABASE_URL"]}?pgbouncer=true`)
-      : undefined,
+      : "",
   },
 });

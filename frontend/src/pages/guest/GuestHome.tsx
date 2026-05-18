@@ -40,6 +40,7 @@ const GuestHome = () => {
           zoom={15}
           recenterKey={recenterKey}
           showPickupLabel
+          viewPadding={{ top: 80, bottom: 220 }}
         />
       </div>
 

@@ -18,7 +18,7 @@ export const BottomNavBar: React.FC<BottomNavBarProps> = ({
   const handleTabClick = (tab: NavTab) => {
     if (onTabChange) onTabChange(tab);
 
-    const userStr = localStorage.getItem('user');
+    const userStr = sessionStorage.getItem('user') || localStorage.getItem('user');
     const user = userStr ? JSON.parse(userStr) : null;
     // Map DRIVER -> driver, PASSENGER/other -> passenger
     const role = user?.role === 'DRIVER' ? 'driver' : 'passenger';

@@ -116,6 +116,8 @@ const BookingConfirmation = () => {
         showBackButton={true}
         title="予約内容の確認"
         onBackClick={() => navigate(-1)}
+        hideBrandName={true}
+        hideLanguageToggle={true}
       />
 
       <div className="bc-map-area">

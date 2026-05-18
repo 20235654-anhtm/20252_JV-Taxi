@@ -73,6 +73,7 @@ const DriverDashboard = () => {
       <Header
         variant="auth"
         userAvatar={driverData?.driverProfile?.avatarPicture || "https://i.pravatar.cc/150?img=12"}
+        onAvatarClick={() => navigate('/driver/profile')}
       />
 
       {/* MAP BACKGROUND */}
@@ -121,7 +122,13 @@ const DriverDashboard = () => {
               1,450,000<span className="dd-income-currency">₫</span>
             </div>
           </div>
-          <div className="dd-wallet-icon">👝</div>
+          <div className="dd-wallet-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M17 5H4C2.89543 5 2 5.89543 2 7V17C2 18.1046 2.89543 19 4 19H17" stroke="#27AE60" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+              <path d="M22 9C22 7.89543 21.1046 7 20 7H14C12.8954 7 12 7.89543 12 9V15C12 16.1046 12.8954 17 14 17H20C21.1046 17 22 16.1046 22 15V9Z" fill="#27AE60" stroke="#27AE60" strokeWidth="0.5"/>
+              <circle cx="17" cy="12" r="1.5" fill="white"/>
+            </svg>
+          </div>
         </div>
 
         <div className="dd-chart-container">

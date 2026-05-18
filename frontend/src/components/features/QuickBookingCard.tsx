@@ -113,7 +113,7 @@ export const QuickBookingCard: React.FC<QuickBookingCardProps> = ({
                   onClick={onBookNow}
                   className="text-[18px] font-bold h-[60px]"
                 >
-                  今すぐ予約
+                  今すぐ呼ぶ
                 </Button>
               </div>
             </div>

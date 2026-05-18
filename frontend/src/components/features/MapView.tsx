@@ -41,49 +41,48 @@ function MapController({
   const map = useMap();
 
   useEffect(() => {
-    // Sửa lỗi lệch tâm khi container thay đổi kích thước
+    // Chờ 200ms để đảm bảo layout DOM của container cha đã ổn định hoàn toàn
     const timer = setTimeout(() => {
       map.invalidateSize();
-    }, 100);
-    return () => clearTimeout(timer);
-  }, [map]);
 
-  useEffect(() => {
-    // Ưu tiên FitBounds nếu có lộ trình 2 điểm
-    if (pickupPosition && destinationPosition) {
-      const bounds = L.latLngBounds([
-        [pickupPosition.lat, pickupPosition.lng],
-        [destinationPosition.lat, destinationPosition.lng]
-      ]);
+      // Ưu tiên FitBounds nếu có lộ trình 2 điểm
+      if (pickupPosition && destinationPosition) {
+        const bounds = L.latLngBounds([
+          [pickupPosition.lat, pickupPosition.lng],
+          [destinationPosition.lat, destinationPosition.lng]
+        ]);
 
-      map.fitBounds(bounds, {
-        paddingTopLeft: routePadding[0],
-        paddingBottomRight: routePadding[1],
-        animate: true
-      });
-    }
-    // Nếu có viewPadding -> Sử dụng fitBounds để căn chỉnh tâm theo vùng đệm
-    else if (viewPadding && (pickupPosition || position)) {
-      const target = pickupPosition || position;
-      if (target) {
-        const bounds = L.latLngBounds([[target.lat, target.lng], [target.lat, target.lng]]);
         map.fitBounds(bounds, {
-          paddingTopLeft: [viewPadding.left || 0, viewPadding.top || 0],
-          paddingBottomRight: [viewPadding.right || 0, viewPadding.bottom || 0],
-          maxZoom: 18, 
-          animate: true,
-          duration: 1
+          paddingTopLeft: routePadding[0],
+          paddingBottomRight: routePadding[1],
+          animate: true
         });
       }
-    }
-    // Nếu có điểm đón nhưng chưa có điểm đến -> Căn giữa vào điểm đón
-    else if (pickupPosition) {
-      map.setView([pickupPosition.lat, pickupPosition.lng], map.getZoom(), { animate: true });
-    }
-    // Nếu chỉ có vị trí GPS thực tế
-    else if (position) {
-      map.setView([position.lat, position.lng], map.getZoom(), { animate: true });
-    }
+      // Nếu có viewPadding -> Sử dụng fitBounds để căn chỉnh tâm theo vùng đệm
+      else if (viewPadding && (pickupPosition || position)) {
+        const target = pickupPosition || position;
+        if (target) {
+          const bounds = L.latLngBounds([[target.lat, target.lng], [target.lat, target.lng]]);
+          map.fitBounds(bounds, {
+            paddingTopLeft: [viewPadding.left || 0, viewPadding.top || 0],
+            paddingBottomRight: [viewPadding.right || 0, viewPadding.bottom || 0],
+            maxZoom: 18, 
+            animate: true,
+            duration: 1
+          });
+        }
+      }
+      // Nếu có điểm đón nhưng chưa có điểm đến -> Căn giữa vào điểm đón
+      else if (pickupPosition) {
+        map.setView([pickupPosition.lat, pickupPosition.lng], map.getZoom(), { animate: true });
+      }
+      // Nếu chỉ có vị trí GPS thực tế
+      else if (position) {
+        map.setView([position.lat, position.lng], map.getZoom(), { animate: true });
+      }
+    }, 200);
+
+    return () => clearTimeout(timer);
   }, [position, pickupPosition, destinationPosition, recenterKey, map, routePadding, viewPadding]);
 
   return null;

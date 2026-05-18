@@ -202,6 +202,8 @@ const SelectDriver = () => {
         showBackButton={true}
         title="ドライバー選択"
         onBackClick={() => navigate(-1)}
+        hideBrandName={true}
+        hideLanguageToggle={true}
       />
 
       <div className="select-driver-content">

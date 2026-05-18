@@ -15,13 +15,15 @@ export default function DriverProfile() {
   const [activeTab, setActiveTab] = useState<NavTab>('profile');
 
   useEffect(() => {
-    const userStr = localStorage.getItem('user');
+    const userStr = sessionStorage.getItem('user') || localStorage.getItem('user');
     if (userStr) {
       setUser(JSON.parse(userStr));
     }
   }, []);
 
   const handleLogout = () => {
+    sessionStorage.removeItem('authToken');
+    sessionStorage.removeItem('user');
     localStorage.removeItem('authToken');
     localStorage.removeItem('user');
     navigate('/login');

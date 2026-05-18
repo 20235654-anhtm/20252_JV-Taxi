@@ -37,7 +37,7 @@ export default function ProfileEdit() {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
-    const userStr = localStorage.getItem('user');
+    const userStr = sessionStorage.getItem('user') || localStorage.getItem('user');
     if (userStr) {
       const userData = JSON.parse(userStr);
       setUser(userData);
@@ -100,14 +100,17 @@ export default function ProfileEdit() {
     setIsSubmitting(true);
     
     setTimeout(() => {
-      if (user?.role === 'driver') {
+      if (user?.role === 'driver' || user?.role === 'DRIVER') {
         alert("編集リクエストを送信しました");
         const originalPlate = "51A-888.88";
         if (formData.licensePlate !== originalPlate) {
           localStorage.setItem('driverReviewStatus', 'pending');
+          sessionStorage.setItem('driverReviewStatus', 'pending');
         }
       } else {
-        localStorage.setItem('user', JSON.stringify({ ...user, ...formData }));
+        const updated = JSON.stringify({ ...user, ...formData });
+        sessionStorage.setItem('user', updated);
+        localStorage.setItem('user', updated);
       }
       setIsSubmitting(false);
       navigate(-1);

@@ -69,6 +69,8 @@ const Rateyourtrip: React.FC = () => {
         showBackButton={true} 
         title="評価" 
         onBackClick={handleBack} 
+        hideBrandName={true}
+        hideLanguageToggle={true}
       />
 
       {/* Main Content */}

@@ -52,6 +52,8 @@ const BookingOptions = () => {
         showBackButton={true}
         title="予約オプションの選択"
         onBackClick={() => navigate(-1)}
+        hideBrandName={true}
+        hideLanguageToggle={true}
       />
 
       <div className="bo-map-area">
