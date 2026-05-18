@@ -16,6 +16,7 @@ import SelectDriver from '../pages/passenger/SelectDriver';
 import DriverDetail from '../pages/passenger/DriverDetail';
 import Profile from '../pages/passenger/Profile';
 import WaitingDriver from '../pages/passenger/WaitingDriver';
+import BookingConfirmation from '../pages/passenger/BookingConfirmationWrapper';
 import Rateyourtrip from '../pages/passenger/Rateyourtrip';
 import ChatwithDriver from '../pages/passenger/ChatwithDriver';
 import CallDriver from '../pages/passenger/CallDriver';
@@ -43,6 +44,7 @@ const AppRoutes = () => {
       <Route path="/passenger/booking-options" element={<BookingOptions />} />
       <Route path="/passenger/select-driver" element={<SelectDriver />} />
       <Route path="/passenger/driver-detail" element={<DriverDetail />} />
+      <Route path="/passenger/booking-confirmation" element={<BookingConfirmation />} />
       <Route path="/passenger/profile" element={<Profile />} />
       <Route path="/passenger/waiting-driver" element={<WaitingDriver />} />
       <Route path="/passenger/chat" element={<ChatwithDriver />} />

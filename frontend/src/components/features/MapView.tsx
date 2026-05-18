@@ -177,8 +177,8 @@ export function MapView({
         attributionControl={interactive}
       >
         <TileLayer
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-          attribution={interactive ? '&copy; OpenStreetMap contributors' : ''}
+          url="https://mt1.google.com/vt/lyrs=m&hl=ja&x={x}&y={y}&z={z}"
+          attribution="&copy; Google Maps"
         />
 
         <MapController

@@ -41,7 +41,7 @@ const BookingOptions = () => {
       navigate('/passenger/select-driver');
     } else {
       // Chế độ tự động
-      navigate('/passenger/waiting-driver', { state: { mode: 'auto' } });
+      navigate('/passenger/booking-confirmation', { state: { mode: 'auto' } });
     }
   };
 

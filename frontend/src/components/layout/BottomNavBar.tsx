@@ -18,7 +18,7 @@ export const BottomNavBar: React.FC<BottomNavBarProps> = ({
         {/* Home Tab */}
         <button
           onClick={() => onTabChange('home')}
-          className={`flex flex-col items-center justify-center w-[100px] py-[8px] rounded-[24px] ${
+          className={`flex-1 flex flex-col items-center justify-center py-[8px] rounded-[24px] ${
             activeTab === 'home' ? 'bg-[#d1fae5]' : ''
           }`}
           aria-label="ホーム"
@@ -39,7 +39,7 @@ export const BottomNavBar: React.FC<BottomNavBarProps> = ({
         {/* History Tab */}
         <button
           onClick={() => onTabChange('history')}
-          className={`flex flex-col items-center justify-center w-[100px] py-[8px] rounded-[24px] ${
+          className={`flex-1 flex flex-col items-center justify-center py-[8px] rounded-[24px] ${
             activeTab === 'history' ? 'bg-[#d1fae5]' : ''
           }`}
           aria-label="履歴"
@@ -60,7 +60,7 @@ export const BottomNavBar: React.FC<BottomNavBarProps> = ({
         {/* Profile Tab */}
         <button
           onClick={() => onTabChange('profile')}
-          className={`flex flex-col items-center justify-center w-[100px] py-[8px] rounded-[24px] ${
+          className={`flex-1 flex flex-col items-center justify-center py-[8px] rounded-[24px] ${
             activeTab === 'profile' ? 'bg-[#d1fae5]' : ''
           }`}
           aria-label="プロフィール"

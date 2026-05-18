@@ -17,8 +17,8 @@ const DriverDetail = () => {
   }
 
   const handleSelectDriver = () => {
-    // Chuyển sang màn hình thanh toán hoặc màn hình chờ tài xế
-    navigate('/passenger/waiting-driver', { state: { driver, mode: 'designated' } });
+    // Chuyển sang màn hình thanh toán
+    navigate('/passenger/booking-confirmation', { state: { driver, mode: 'designated' } });
   };
 
   // Mock reviews based on image

@@ -1,0 +1,500 @@
+.bc-container {
+  width: 100%;
+  max-width: 390px;
+  height: 100vh;
+  margin: 0 auto;
+  background: #F4FBF1;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+/* MAP AREA */
+.bc-map-area {
+  position: relative;
+  width: 100%;
+  flex: 1;
+  min-height: 180px;
+  margin-top: 80px;
+  margin-bottom: 16px;
+  z-index: 1;
+  border-radius: 24px;
+  overflow: hidden;
+}
+
+/* Hide Leaflet attribution */
+.bc-map-area .leaflet-control-attribution {
+  display: none !important;
+}
+
+.bc-map-area .leaflet-control-zoom {
+  display: none !important;
+}
+
+.bc-eta-badge {
+  position: absolute;
+  bottom: 20px;
+  right: 20px;
+  background: white;
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-weight: 700;
+  color: #006D37;
+  font-size: 14px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.bc-eta-badge::before {
+  content: '';
+  display: block;
+  width: 12px;
+  height: 12px;
+  border: 2px solid #006D37;
+  border-radius: 50%;
+}
+
+/* SCROLLABLE CONTENT */
+.bc-content-scroll {
+  position: relative;
+  width: 100%;
+  flex-shrink: 0;
+  padding: 0 20px;
+  z-index: 5;
+}
+
+.bc-route-card {
+  background: white;
+  border-radius: 24px;
+  padding: 24px;
+  margin-bottom: 16px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.04);
+  position: relative;
+}
+
+.bc-route-item {
+  display: flex;
+  align-items: stretch;
+  gap: 16px;
+  position: relative;
+  z-index: 2;
+  min-width: 0;
+}
+
+.bc-route-item:first-child { 
+  /* Remove margin-bottom, handled by graphic */
+}
+
+.bc-route-graphic {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-top: 4px; /* Align dot with text top */
+}
+
+.bc-route-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.bc-pickup-dot { background: #006D37; }
+.bc-dest-dot { background: white; border: 3px solid #006D37; }
+
+.bc-route-line {
+  width: 2px;
+  background: #E5F0E1;
+  flex-grow: 1;
+  margin-top: 4px;
+  margin-bottom: -4px; /* Connects to the next dot */
+}
+
+.bc-route-text {
+  display: flex;
+  flex-direction: column;
+  padding-bottom: 24px;
+  min-width: 0;
+  flex: 1;
+}
+
+.bc-route-item:last-child .bc-route-text {
+  padding-bottom: 0;
+}
+
+.bc-route-label {
+  font-size: 12px;
+  color: #8C998E;
+  margin-bottom: 4px;
+}
+
+.bc-route-name {
+  font-size: 16px;
+  font-weight: 800;
+  color: #171D17;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+
+
+/* INFO ROW */
+.bc-info-row {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.bc-driver-card {
+  flex: 0.8;
+  background: #E5F0E1;
+  border-radius: 24px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+}
+
+.bc-driver-avatar-wrapper {
+  position: relative;
+  margin-bottom: 12px;
+}
+
+.bc-driver-avatar {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid white;
+}
+
+.bc-driver-rating {
+  position: absolute;
+  top: 0;
+  right: -8px;
+  background: #FEA520;
+  color: white;
+  font-size: 10px;
+  font-weight: 800;
+  padding: 2px 6px;
+  border-radius: 12px;
+  white-space: nowrap;
+}
+
+.bc-driver-name {
+  font-weight: 800;
+  font-size: 14px;
+  color: #171D17;
+}
+
+.bc-driver-car {
+  font-size: 11px;
+  color: #3D4A3F;
+}
+
+.bc-driver-placeholder {
+  color: #006D37;
+  font-size: 14px;
+}
+
+.bc-fare-card {
+  flex: 1.2;
+  background: #E5F0E1;
+  border-radius: 24px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.bc-fare-label {
+  font-size: 12px;
+  color: #8C998E;
+  margin-bottom: 8px;
+}
+
+.bc-fare-amount {
+  font-size: 20px;
+  font-weight: 900;
+  color: #006D37;
+  display: flex;
+  flex-direction: row;
+  align-items: baseline;
+  gap: 4px;
+}
+
+.bc-fare-currency {
+  font-size: 12px;
+}
+
+/* BOTTOM SHEET */
+.bc-bottom-sheet {
+  position: relative;
+  width: 100%;
+  flex-shrink: 0;
+  background: white;
+  border-radius: 32px 32px 0 0;
+  padding: 16px 24px 32px;
+  z-index: 50;
+  box-shadow: 0 -12px 40px rgba(0,0,0,0.08);
+}
+
+.bc-drag-handle {
+  width: 48px;
+  height: 6px;
+  background: #DDE5DB;
+  border-radius: 3px;
+  margin: 0 auto 24px;
+}
+
+.bc-sheet-title {
+  font-size: 14px;
+  color: #8C998E;
+  margin-bottom: 16px;
+}
+
+.bc-payment-options {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.bc-payment-btn {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 16px;
+  border-radius: 20px;
+  background: #F4FBF1;
+  border: 2px solid transparent;
+  color: #171D17;
+  font-weight: 700;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.bc-payment-btn.bc-active {
+  background: white;
+  border-color: #006D37;
+}
+
+.bc-confirm-btn {
+  width: 100%;
+  height: 60px;
+  border: none;
+  border-radius: 20px;
+  background: #27AE60;
+  color: white;
+  font-size: 18px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+/* SUCCESS POPUP OVERLAY */
+.bc-success-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,0.4);
+  backdrop-filter: blur(4px);
+  z-index: 100;
+  display: flex;
+  align-items: flex-end;
+}
+
+.bc-success-popup {
+  width: 100%;
+  background: white;
+  border-radius: 32px 32px 0 0;
+  padding: 16px 24px 32px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  animation: slideUp 0.3s ease-out;
+}
+
+@keyframes slideUp {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+
+.bc-popup-drag-handle {
+  width: 48px;
+  height: 6px;
+  background: #DDE5DB;
+  border-radius: 3px;
+  margin-bottom: 32px;
+}
+
+.bc-success-icon {
+  width: 80px;
+  height: 80px;
+  background: #006D37;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 24px;
+  box-shadow: 0 0 0 20px rgba(0,109,55,0.1);
+}
+
+.bc-success-title {
+  font-size: 24px;
+  font-weight: 800;
+  color: #006D37;
+  margin-bottom: 32px;
+}
+
+.bc-receipt-card {
+  width: 100%;
+  background: #F4FBF1;
+  border-radius: 24px;
+  padding: 24px;
+  text-align: center;
+  margin-bottom: 24px;
+  position: relative;
+  overflow: hidden;
+}
+
+.bc-receipt-card::after {
+  content: '';
+  position: absolute;
+  right: -20px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 120px;
+  color: rgba(0,109,55,0.03);
+  /* Optional: icon as background */
+}
+
+.bc-receipt-label {
+  font-size: 14px;
+  color: #3D4A3F;
+  margin-bottom: 8px;
+}
+
+.bc-receipt-amount {
+  font-size: 32px;
+  font-weight: 900;
+  color: #171D17;
+  margin-bottom: 16px;
+}
+
+.bc-receipt-details {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  color: #8C998E;
+}
+
+.bc-receipt-route {
+  width: 100%;
+  margin-bottom: 32px;
+}
+
+.bc-receipt-route-item {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.bc-receipt-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: #E5F0E1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.bg-red-100 {
+  background: #FFEBEE;
+}
+
+.bc-receipt-text {
+  display: flex;
+  flex-direction: column;
+}
+
+.bc-receipt-route-label {
+  font-size: 12px;
+  color: #8C998E;
+}
+
+.bc-receipt-route-name {
+  font-size: 14px;
+  font-weight: 700;
+  color: #171D17;
+}
+
+.bc-track-btn {
+  width: 100%;
+  height: 60px;
+  border: none;
+  border-radius: 20px;
+  background: #F39C12;
+  color: white;
+  font-size: 18px;
+  font-weight: 800;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+}
+
+/* STRIPE STYLES */
+.bc-stripe-container {
+  background: #F4FBF1;
+  border-radius: 16px;
+  padding: 16px;
+  margin-bottom: 16px;
+  border: 1px solid rgba(0, 109, 55, 0.2);
+  transition: all 0.2s;
+}
+
+.bc-stripe-container:focus-within {
+  border-color: #006D37;
+  box-shadow: 0 0 0 2px rgba(0, 109, 55, 0.1);
+}
+
+.bc-stripe-label {
+  font-size: 12px;
+  font-weight: 700;
+  color: #3D4A3F;
+  margin-bottom: 8px;
+  display: block;
+}
+
+.bc-cancel-btn {
+  width: 100%;
+  margin-top: 16px;
+  padding: 16px;
+  background: #F8F9F8;
+  border: 1px solid #EDEFEF;
+  border-radius: 20px;
+  color: #8C998E;
+  font-weight: 700;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.bc-cancel-btn:hover {
+  background: #F0F2F0;
+  color: #3D4A3F;
+}
