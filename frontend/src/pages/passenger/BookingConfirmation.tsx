@@ -6,6 +6,7 @@ import { Banknote, CreditCard, Check, MapPin, Flag, Send, XCircle } from 'lucide
 import { useBooking } from '../../contexts/BookingContext';
 import { useStripe, useElements, CardElement } from '@stripe/react-stripe-js';
 import { paymentService } from '../../services/paymentService';
+import { API_BASE_URL } from '../../config/api';
 import './BookingConfirmation.css';
 
 const BookingConfirmation = () => {
@@ -31,6 +32,7 @@ const BookingConfirmation = () => {
   const [isProcessing, setIsProcessing] = useState(false);
   const [showCardModal, setShowCardModal] = useState(false);
   const [paymentDetails, setPaymentDetails] = useState<{ id?: string, card?: string }>({});
+  const [createdRideId, setCreatedRideId] = useState<string | null>(null);
 
   if (!pickupData?.coords || !destData?.coords) {
     return <Navigate to="/passenger/search-location" replace />;
@@ -49,8 +51,35 @@ const BookingConfirmation = () => {
     try {
       const result = await paymentService.processPayment(145000, 'cash');
       if (result.success) {
-        setPaymentDetails({ id: result.transactionId });
-        setShowSuccessPopup(true);
+        // Create Ride in database
+        const token = sessionStorage.getItem('authToken') || localStorage.getItem('authToken');
+        const rideResponse = await fetch(`${API_BASE_URL}/api/rides/create`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify({
+            driverId: driver.id,
+            startAddress: pickupData.address || 'ハノイ工科大学',
+            endAddress: destData.address || 'ロイヤルシティ',
+            startLng: pickup.lng,
+            startLat: pickup.lat,
+            endLng: destination.lng,
+            endLat: destination.lat,
+            matchFee: 145000,
+            matchType: location.state?.mode || 'designated',
+            vehicleTypeRequested: driver.vehicleType || 'Sedan'
+          })
+        });
+        const rideData = await rideResponse.json();
+        if (rideData.success) {
+          setCreatedRideId(rideData.data.id);
+          setPaymentDetails({ id: result.transactionId || 'CASH-TEMP' });
+          setShowSuccessPopup(true);
+        } else {
+          throw new Error(rideData.message || '配車リクエストの作成に失敗しました');
+        }
       } else {
         setErrorMessage(result.error || '決済に失敗しました');
         setShowErrorPopup(true);
@@ -90,12 +119,39 @@ const BookingConfirmation = () => {
         setErrorMessage(error.message || '決済に失敗しました');
         setShowErrorPopup(true);
       } else if (paymentIntent && paymentIntent.status === 'succeeded') {
-        setPaymentDetails({ 
-          id: paymentIntent.id, 
-          card: 'Visa **** 4242' 
+        // Create Ride in database
+        const token = sessionStorage.getItem('authToken') || localStorage.getItem('authToken');
+        const rideResponse = await fetch(`${API_BASE_URL}/api/rides/create`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify({
+            driverId: driver.id,
+            startAddress: pickupData.address || 'ハノイ工科大学',
+            endAddress: destData.address || 'ロイヤルシティ',
+            startLng: pickup.lng,
+            startLat: pickup.lat,
+            endLng: destination.lng,
+            endLat: destination.lat,
+            matchFee: 145000,
+            matchType: location.state?.mode || 'designated',
+            vehicleTypeRequested: driver.vehicleType || 'Sedan'
+          })
         });
-        setShowCardModal(false);
-        setShowSuccessPopup(true);
+        const rideData = await rideResponse.json();
+        if (rideData.success) {
+          setCreatedRideId(rideData.data.id);
+          setPaymentDetails({ 
+            id: paymentIntent.id, 
+            card: 'Visa **** 4242' 
+          });
+          setShowCardModal(false);
+          setShowSuccessPopup(true);
+        } else {
+          throw new Error(rideData.message || '配車リクエストの作成に失敗しました');
+        }
       }
     } catch (error: any) {
       setErrorMessage(error.message || '支払い処理中にエラーが発生しました。');
@@ -106,7 +162,13 @@ const BookingConfirmation = () => {
   };
 
   const handleTrack = () => {
-    navigate('/passenger/waiting-driver', { state: { driver, mode: location.state?.mode || 'designated' } });
+    navigate('/passenger/waiting-driver', { 
+      state: { 
+        driver, 
+        rideId: createdRideId,
+        mode: location.state?.mode || 'designated' 
+      } 
+    });
   };
 
   return (
@@ -181,7 +243,7 @@ const BookingConfirmation = () => {
             className={`bc-payment-btn ${paymentMethod === 'cash' ? 'bc-active' : ''}`}
             onClick={() => setPaymentMethod('cash')}
           >
-            <Banknote size={24} color={paymentMethod === 'cash' ? '#006D37' : '#3D4A3F'} />
+            <Banknote size={20} color={paymentMethod === 'cash' ? '#006D37' : '#3D4A3F'} />
             <span>現金</span>
           </button>
           
@@ -189,7 +251,7 @@ const BookingConfirmation = () => {
             className={`bc-payment-btn ${paymentMethod === 'card' ? 'bc-active' : ''}`}
             onClick={() => setPaymentMethod('card')}
           >
-            <CreditCard size={24} color={paymentMethod === 'card' ? '#006D37' : '#3D4A3F'} />
+            <CreditCard size={20} color={paymentMethod === 'card' ? '#006D37' : '#3D4A3F'} />
             <span>カード</span>
           </button>
         </div>

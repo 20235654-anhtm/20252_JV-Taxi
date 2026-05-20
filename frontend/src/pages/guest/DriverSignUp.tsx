@@ -251,7 +251,7 @@ function CarTypeButton({ label, selected, onClick, iconPath }: { label: string; 
   );
 }
 
-function FileUploadCard({ label, files, setFiles, iconPath, multiple = true, width = "w-full", accept }: { label: string; files: File[]; setFiles: (files: File[]) => void; iconPath?: string; multiple?: boolean; width?: string; accept?: string }) {
+function FileUploadCard({ label, files, setFiles, iconPath, multiple = true, width = "w-full", accept }: { label: string; files: File[]; setFiles: React.Dispatch<React.SetStateAction<File[]>>; iconPath?: string; multiple?: boolean; width?: string; accept?: string }) {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleClick = () => {

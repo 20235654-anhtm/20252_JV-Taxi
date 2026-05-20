@@ -4,6 +4,7 @@ export interface AvatarProps extends React.HTMLAttributes<HTMLDivElement> {
   src?: string;
   alt?: string;
   borderColor?: string;
+  size?: string;
 }
 
 export const Avatar = React.forwardRef<HTMLDivElement, AvatarProps>(

@@ -12,3 +12,4 @@ build/
 # IDE & OS files
 .vscode/
 .DS_Store
+.vercel

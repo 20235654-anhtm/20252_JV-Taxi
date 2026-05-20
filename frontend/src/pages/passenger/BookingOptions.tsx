@@ -6,7 +6,7 @@ import { MapView } from '../../components/features/MapView';
 import { useBooking } from '../../contexts/BookingContext';
 import './BookingOptions.css';
 
-const CarIcon = ({ size = 32, color = 'currentColor' }) => (
+const CarIcon = ({ size = 24, color = 'currentColor' }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill={color} xmlns="http://www.w3.org/2000/svg">
     <path d="M18.92 6.01C18.72 5.42 18.16 5 17.5 5H6.5C5.84 5 5.28 5.42 5.08 6.01L3 12V20C3 20.55 3.45 21 4 21H5C5.55 21 6 20.55 6 20V19H18V20C18 20.55 18.45 21 19 21H20C20.55 21 21 20.55 21 20V12L18.92 6.01ZM6.85 7H17.15L18.22 10.12H5.78L6.85 7ZM19 17H5V12H19V17Z" />
     <circle cx="7.5" cy="14.5" r="1.5" />
@@ -14,7 +14,7 @@ const CarIcon = ({ size = 32, color = 'currentColor' }) => (
   </svg>
 );
 
-const SearchIcon = ({ size = 32, color = '#7A5B1E' }) => (
+const SearchIcon = ({ size = 24, color = '#7A5B1E' }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
     <circle cx="9" cy="6" r="3.5" stroke={color} strokeWidth="2.0" />
     <path d="M3 18C3 15.5 5.5 13.5 8.5 13.5" stroke={color} strokeWidth="2.0" strokeLinecap="round" />

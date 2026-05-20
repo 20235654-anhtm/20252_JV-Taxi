@@ -5,6 +5,9 @@ import { Header } from '../../components/layout/Header';
 import { Card } from '../../components/ui/Card';
 import { Button } from '../../components/ui/Button';
 import { Heading } from '../../components/ui/Heading';
+import { MapView } from '../../components/features/MapView';
+import { useBooking } from '../../contexts/BookingContext';
+import { socketService } from '../../services/socketService';
 import './WaitingDriver.css';
 
 type WaitingStatus = 'waiting' | 'rejected' | 'accepted' | 'expired';
@@ -12,13 +15,16 @@ type WaitingStatus = 'waiting' | 'rejected' | 'accepted' | 'expired';
 const WaitingDriver = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const { pickup: pickupData } = useBooking();
   const [status, setStatus] = useState<WaitingStatus>('waiting');
   const [timeLeft, setTimeLeft] = useState(180); // 3 minutes
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const driver = location.state?.driver;
+  const pickup = pickupData?.coords || { lat: 21.0285, lng: 105.8542 };
 
   useEffect(() => {
+    // Timer countdown
     timerRef.current = setInterval(() => {
       setTimeLeft((prev) => {
         if (prev <= 1) {
@@ -30,10 +36,44 @@ const WaitingDriver = () => {
       });
     }, 1000);
 
+    // Socket.io connection and listeners
+    const userStr = localStorage.getItem('user');
+    if (userStr) {
+      const user = JSON.parse(userStr);
+      socketService.connect(user.id);
+    }
+
+    socketService.onBookingAccepted((data) => {
+      console.log('✅ Booking accepted by driver!', data);
+      setStatus('accepted');
+    });
+
+    socketService.onBookingRejected((data) => {
+      console.log('❌ Booking rejected by driver!', data);
+      setStatus('rejected');
+    });
+
     return () => {
       if (timerRef.current) clearInterval(timerRef.current);
+      socketService.offBookingAccepted();
+      socketService.offBookingRejected();
     };
   }, []);
+
+  // Redirect to chat when accepted
+  useEffect(() => {
+    if (status === 'accepted') {
+      const timer = setTimeout(() => {
+        navigate('/passenger/chat', { 
+          state: { 
+            driver, 
+            rideId: location.state?.rideId 
+          } 
+        });
+      }, 2500);
+      return () => clearTimeout(timer);
+    }
+  }, [status, navigate, driver, location.state?.rideId]);
 
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
@@ -56,31 +96,70 @@ const WaitingDriver = () => {
         showBackButton={status === 'waiting'}
         title="ドライバー選択"
         onBackClick={() => navigate(-1)}
+        hideBrandName={true}
+        hideLanguageToggle={true}
+        rightContent={
+          <button 
+            onClick={() => setStatus('rejected')}
+            className="wd-demo-header-btn"
+          >
+            🛠️ Demo Reject
+          </button>
+        }
       />
 
       <div className="wd-content">
+        {status === 'accepted' && (
+          <div className="wd-accepted-state" style={{ 
+            display: 'flex', 
+            flexDirection: 'column', 
+            alignItems: 'center', 
+            justifyContent: 'center', 
+            padding: '40px 20px', 
+            textAlign: 'center',
+            margin: 'auto 0',
+            width: '100%'
+          }}>
+            <div className="wd-success-icon-box" style={{ width: '80px', height: '80px', borderRadius: '50%', backgroundColor: '#006D37', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '24px', boxShadow: '0 8px 24px rgba(0, 109, 55, 0.2)' }}>
+              <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="20 6 9 17 4 12" />
+              </svg>
+            </div>
+            <h2 className="wd-title" style={{ fontSize: '1.5rem', fontWeight: 800, color: '#0b1f0f', margin: '0 0 8px 0' }}>予約が確定しました！</h2>
+            <p className="wd-status-text" style={{ color: '#006D37', fontWeight: 700, margin: '0 0 16px 0' }}>ドライバーがリクエストを承諾しました</p>
+            <p className="wd-message" style={{ color: '#5c6c5f', fontSize: '0.95rem' }}>チャット画面に移行しています...</p>
+          </div>
+        )}
+
         {status === 'waiting' && (
           <>
             <div className="wd-map-circle">
-              <img 
-                src="https://api.mapbox.com/styles/v1/mapbox/streets-v11/static/105.84,21.01,14/240x240?access_token=MAP_TOKEN" 
-                alt="Map" 
-                className="wd-map-image"
-                onError={(e) => { e.currentTarget.src = 'https://placehold.co/240x240?text=Map'; }}
-              />
-              <div className="wd-car-icon">🚗</div>
+              <div className="wd-map-container">
+                <MapView 
+                  position={pickup} 
+                  interactive={false} 
+                  showZoomControl={false} 
+                  zoom={15} 
+                />
+              </div>
+              <div className="wd-car-icon-wrapper">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="white" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M18.92 6.01C18.72 5.42 18.16 5 17.5 5H6.5C5.84 5 5.28 5.42 5.08 6.01L3 12V20C3 20.55 3.45 21 4 21H5C5.55 21 6 20.55 6 20V19H18V20C18 20.55 18.45 21 19 21H20C20.55 21 21 20.55 21 20V12L18.92 6.01ZM6.85 7H17.15L18.22 10.12H5.78L6.85 7ZM19 17H5V12H19V17Z" />
+                  <circle cx="7.5" cy="14.5" r="1.5" />
+                  <circle cx="16.5" cy="14.5" r="1.5" />
+                </svg>
+              </div>
             </div>
 
             <h2 className="wd-title">ドライバーを探しています</h2>
             
-            <div className="wd-status-badge">
+            <div className="wd-status-text">
               <span className="wd-status-dot"></span>
               <span>リクエスト送信済み</span>
             </div>
 
             <p className="wd-message">
-              ドライバーの承諾 te 待っています...<br />
-              残り時間: <strong>{formatTime(timeLeft)}</strong>
+              ドライバーの承諾を待っています...
             </p>
 
             {driver && (
@@ -96,15 +175,8 @@ const WaitingDriver = () => {
 
                 <div className="wd-button-group">
                   <button className="wd-cancel-btn" onClick={handleGoHome}>
-                    <span>✕ Cancel Request</span>
+                    <span className="wd-cancel-main">✕ Cancel Request</span>
                     <span className="wd-cancel-sub">リクエストをキャンセル</span>
-                  </button>
-                  
-                  <button 
-                    onClick={() => setStatus('rejected')}
-                    style={{ marginTop: '12px', background: 'rgba(255,0,0,0.05)', color: '#D32F2F', padding: '8px', borderRadius: '8px', fontSize: '11px', fontWeight: 'bold', border: '1px dashed #D32F2F', width: '100%' }}
-                  >
-                    🛠️ Simulate Driver Reject (Demo)
                   </button>
                 </div>
               </div>

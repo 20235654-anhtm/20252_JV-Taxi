@@ -1,7 +1,7 @@
 .waiting-driver-page {
   width: 100%;
   max-width: 390px;
-  height: 100vh;
+  height: 100svh;
   margin: 0 auto;
   background: #F4FBF1;
   position: relative;
@@ -15,10 +15,25 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: flex-start;
-  padding: 80px 24px 24px;
+  justify-content: flex-end;
+  padding: 80px 24px 16px;
   text-align: center;
   position: relative;
+}
+
+.wd-demo-header-btn {
+  background: rgba(211, 47, 47, 0.08);
+  color: #D32F2F;
+  border: 1.5px dashed #D32F2F;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.wd-demo-header-btn:hover {
+  background: rgba(211, 47, 47, 0.15);
 }
 
 .wd-map-circle {
@@ -30,29 +45,29 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  margin-bottom: 40px;
-  box-shadow: 0 20px 40px rgba(0,0,0,0.05);
+  margin-top: 8px;
+  margin-bottom: 56px; /* Increased map-to-text spacing to 56px */
+  box-shadow: 0 20px 40px rgba(0,0,0,0.04);
 }
 
-.wd-map-image {
+.wd-map-container {
   width: 100%;
   height: 100%;
   border-radius: 50%;
-  object-fit: cover;
-  opacity: 0.6;
+  overflow: hidden;
+  position: relative;
+  opacity: 0.85;
 }
 
-.wd-car-icon {
+.wd-car-icon-wrapper {
   position: absolute;
-  width: 80px;
-  height: 80px;
+  width: 64px;
+  height: 64px;
   background: #27AE60;
   border-radius: 50%;
   display: flex;
   justify-content: center;
   align-items: center;
-  font-size: 40px;
-  color: white;
   box-shadow: 0 8px 16px rgba(39, 174, 96, 0.3);
   z-index: 2;
   animation: pulse 2s infinite;
@@ -65,21 +80,19 @@
 }
 
 .wd-title {
-  font-size: 28px;
+  font-size: 24px;
   font-weight: 800;
   color: #171D17;
-  margin-bottom: 16px;
+  margin-bottom: 12px;
 }
 
-.wd-status-badge {
+.wd-status-text {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 8px;
-  background: #E5F0E1;
-  padding: 8px 16px;
-  border-radius: 20px;
   color: #006D37;
-  font-weight: 700;
+  font-weight: 800;
   font-size: 14px;
   margin-bottom: 12px;
 }
@@ -87,7 +100,7 @@
 .wd-status-dot {
   width: 8px;
   height: 8px;
-  background: #006D37;
+  background: #27AE60;
   border-radius: 50%;
   animation: blink 1s infinite;
 }
@@ -98,9 +111,9 @@
 }
 
 .wd-message {
-  font-size: 16px;
-  color: #3D4A3F;
-  margin-bottom: 40px;
+  font-size: 14px;
+  color: #6B7A6C;
+  margin-bottom: 56px; /* Increased text-to-card spacing to 56px */
   line-height: 1.5;
 }
 
@@ -190,27 +203,27 @@
 /* DRIVER INFO CARD */
 .wd-driver-info-card {
   background: white;
-  border-radius: 32px;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+  border-radius: 28px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.06);
   width: 100%;
   display: flex;
   flex-direction: column;
-  margin-top: auto;
   margin-bottom: 8px;
   overflow: hidden;
+  border: 1px solid rgba(229, 240, 225, 0.5);
 }
 
 .wd-driver-main-info {
   display: flex;
   align-items: center;
   gap: 16px;
-  padding: 24px 20px 16px;
+  padding: 24px 24px 16px;
   text-align: left;
 }
 
 .wd-driver-avatar {
-  width: 64px;
-  height: 64px;
+  width: 56px;
+  height: 56px;
   border-radius: 12px;
   object-fit: cover;
 }
@@ -234,11 +247,11 @@
 }
 
 .wd-driver-rating {
-  background: #F4FBF1;
-  color: #006D37;
-  padding: 6px 10px;
-  border-radius: 10px;
-  font-size: 13px;
+  background: #E6F4EA;
+  color: #137333;
+  padding: 4px 10px;
+  border-radius: 8px;
+  font-size: 12px;
   font-weight: 800;
   display: flex;
   align-items: center;
@@ -246,23 +259,51 @@
 }
 
 .wd-cancel-btn {
-  width: calc(100% - 32px);
-  height: 64px;
-  background: #EFF6EC;
+  width: calc(100% - 48px);
+  height: 58px;
+  background: #E8EDE7;
   color: #3D4A3F;
   border: none;
-  border-radius: 20px;
-  font-size: 15px;
-  font-weight: 700;
+  border-radius: 16px;
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
   cursor: pointer;
-  margin: 0 auto 16px;
+  margin: 0 auto 20px;
   transition: all 0.2s;
 }
 
-.wd-button-group {
-  padding: 0 16px 16px;
+.wd-cancel-main {
+  font-size: 15px;
+  font-weight: 800;
+  color: #171D17;
+  margin-bottom: 2px;
 }
+
+.wd-cancel-sub {
+  font-size: 10px;
+  color: #6B7A6C;
+  font-weight: 500;
+}
+
+.wd-button-group {
+  padding: 0;
+}
+
+/* PREMIUM MICRO-ANIMATION FOR ACCEPTED STATE */
+.wd-accepted-state {
+  animation: acceptedFadeInUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes acceptedFadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
