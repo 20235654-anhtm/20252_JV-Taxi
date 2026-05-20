@@ -328,41 +328,7 @@ const SelectDriver = () => {
           </>
         )}
       </div>
-
-      {/* Floating Debug Badge for Developers/Testers */}
-      <div style={{
-        position: 'fixed',
-        bottom: '80px',
-        left: '10px',
-        right: '10px',
-        background: 'rgba(0, 0, 0, 0.9)',
-        color: '#00ff00',
-        padding: '12px',
-        borderRadius: '8px',
-        fontSize: '11px',
-        fontFamily: 'monospace',
-        zIndex: 9999,
-        maxHeight: '180px',
-        overflowY: 'auto',
-        border: '1px solid #00ff00',
-        boxShadow: '0 4px 12px rgba(0,0,0,0.5)',
-        textAlign: 'left'
-      }}>
-        <div style={{ fontWeight: 'bold', borderBottom: '1px solid #00ff00', paddingBottom: '4px', marginBottom: '6px' }}>
-          🛠️ [JV-DEBUG PANEL] Luồng Tìm Tài Xế
-        </div>
-        <div>• Địa điểm đón: {pickup ? `${pickup.address.substring(0, 20)}...` : 'Chưa có'}</div>
-        <div>• Tọa độ đón: {pickup?.coords ? `lat: ${pickup.coords.lat.toFixed(5)}, lng: ${pickup.coords.lng.toFixed(5)}` : 'NULL'}</div>
-        <div>• Tọa độ quét hiện tại: {coords ? `lat: ${coords.lat.toFixed(5)}, lng: ${coords.lng.toFixed(5)}` : 'Đang định vị...'}</div>
-        <div>• Bán kính quét: 3 KM</div>
-        <div>• Trạng thái tìm kiếm: {searchStatus}</div>
-        <div>• Tìm thấy tài xế: {drivers.length} xe</div>
-        {drivers.length > 0 && (
-          <div style={{ color: '#ffea00', marginTop: '4px' }}>
-            → DS: {drivers.map(d => `${d.name} (${d.distance})`).join(', ')}
-          </div>
-        )}
-      </div>
+      
     </div>
   );
 };
