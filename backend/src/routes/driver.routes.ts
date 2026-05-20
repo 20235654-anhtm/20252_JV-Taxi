@@ -126,6 +126,154 @@ router.get('/', async (req: Request, res: Response) => {
 });
 
 /**
+ * API: GET /api/drivers/revenue
+ * Get the driver's revenue statistics (daily, weekly, total all-time)
+ */
+router.get('/revenue', authMiddleware as any, async (req: AuthRequest, res: Response) => {
+  try {
+    const driverId = req.user?.userId;
+    if (!driverId) {
+      res.status(401).json({ success: false, message: 'Unauthorized' });
+      return;
+    }
+
+    // Fetch all completed rides for this driver with payments
+    const rides = await prisma.ride.findMany({
+      where: {
+        driverId,
+        status: 'COMPLETED'
+      },
+      include: {
+        payment: true
+      }
+    });
+
+    const now = new Date();
+    // Start of today in local date
+    const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+
+    // Start of the current week (Monday)
+    const currentDay = now.getDay(); // 0 is Sunday, 1 is Monday, etc.
+    const distanceToMonday = currentDay === 0 ? -6 : 1 - currentDay;
+    const mondayStart = new Date(todayStart.getTime() + distanceToMonday * 24 * 60 * 60 * 1000);
+
+    let dailyEarnings = 0;
+    let totalEarnings = 0;
+    let totalTrips = rides.length;
+    let weeklyTotal = 0;
+
+    // We start week grouping from Monday
+    const weeklyData = [
+      { day: 'Mon', label: '月', value: 0 },
+      { day: 'Tue', label: '火', value: 0 },
+      { day: 'Wed', label: '水', value: 0 },
+      { day: 'Thu', label: '木', value: 0 },
+      { day: 'Fri', label: '金', value: 0 },
+      { day: 'Sat', label: '土', value: 0 },
+      { day: 'Sun', label: '日', value: 0 }
+    ];
+
+    for (const ride of rides) {
+      // Use payment totalAmount, fallback to matchFee, fallback to 0
+      let rideAmount = 0;
+      if (ride.payment && ride.payment.status === 'SUCCESS') {
+        rideAmount = Number(ride.payment.totalAmount);
+      } else if (ride.matchFee) {
+        rideAmount = Number(ride.matchFee);
+      }
+
+      totalEarnings += rideAmount;
+
+      const rideDate = new Date(ride.createdAt);
+
+      // Check if ride was today
+      if (rideDate >= todayStart) {
+        dailyEarnings += rideAmount;
+      }
+
+      // Check if ride was this week (starting from Monday)
+      if (rideDate >= mondayStart) {
+        weeklyTotal += rideAmount;
+        // Determine day of the week index (Monday is 0, Sunday is 6)
+        const dayOfWeek = rideDate.getDay(); // 0 is Sunday, 1 is Monday, etc.
+        const index = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
+        weeklyData[index]!.value += rideAmount;
+      }
+    }
+
+    res.status(200).json({
+      success: true,
+      data: {
+        dailyEarnings,
+        weeklyTotal,
+        totalEarnings,
+        totalTrips,
+        weeklyData
+      }
+    });
+
+  } catch (error) {
+    console.error('Error fetching driver revenue statistics:', error);
+    res.status(500).json({ success: false, message: 'Server error while calculating revenue' });
+  }
+});
+
+/**
+ * API: GET /api/drivers/:id
+ * Get details of a specific driver by their userId/profileId
+ */
+router.get('/:id', async (req: Request, res: Response) => {
+  try {
+    const id = req.params.id as string;
+
+    const profile = await prisma.profile.findUnique({
+      where: { id },
+      include: {
+        driverProfile: true
+      }
+    }) as any;
+
+    if (!profile || profile.role !== 'DRIVER') {
+      res.status(404).json({
+        success: false,
+        message: 'Driver not found'
+      });
+      return;
+    }
+
+    // Parse vehicleInfor if it is a JSON string
+    let parsedVehicleInfor = {};
+    if (profile.driverProfile?.vehicleInfor) {
+      try {
+        parsedVehicleInfor = JSON.parse(profile.driverProfile.vehicleInfor);
+      } catch (e) {
+        parsedVehicleInfor = { raw: profile.driverProfile.vehicleInfor };
+      }
+    }
+
+    res.status(200).json({
+      success: true,
+      data: {
+        id: profile.id,
+        fullName: profile.fullName,
+        email: profile.email,
+        phone: profile.phone,
+        driverProfile: {
+          ...profile.driverProfile,
+          parsedVehicleInfor
+        }
+      }
+    });
+  } catch (error) {
+    console.error('Error fetching driver details:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error while fetching driver details.'
+    });
+  }
+});
+
+/**
  * Calculate estimated price based on distance
  * Formula: Base fare (30,000 VND) + 12,000 VND/km
  */

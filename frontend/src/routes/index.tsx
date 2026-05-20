@@ -27,7 +27,7 @@ import InTrip from '../pages/passenger/InTrip';
 
 // Driver Pages
 import DriverDashboard from '../pages/driver/DriverDashboard';
-import DriverProfile from '../pages/driver/Profile';
+import DriverProfile from '../pages/driver/DriverProfile';
 import DriverProfileEdit from '../pages/driver/ProfileEdit';
 import DriverCallTest from '../pages/driver/DriverCallTest';
 import ChatwithPassenger from '../pages/driver/ChatwithPassenger';

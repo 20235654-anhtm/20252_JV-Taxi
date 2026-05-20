@@ -233,7 +233,7 @@ export default function DriverProfile() {
           </div>
 
           <div className="text-center">
-            <h1 className="text-[24px] font-extrabold text-[#171d17] leading-tight mb-[4px]">{profile.fullName || "山本 健二"}</h1>
+            <h1 className="text-[24px] font-extrabold text-[#171d17] leading-tight mb-[4px]">{(profile.fullName || "山本 健二").split('(')[0].trim()}</h1>
             <p className="text-[14px] text-[#3d4a3f]">2021年からJV Taxiのパートナー</p>
           </div>
 

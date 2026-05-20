@@ -7,6 +7,7 @@ import { FAB } from '../../components/ui/FAB';
 import { API_BASE_URL } from '../../config/api';
 import { useGeolocation } from '../../hooks/useGeolocation';
 import IncomingRequestPopup from '../../components/features/IncomingRequestPopup';
+import svgPaths from './svg-paths';
 import { socketService } from '../../services/socketService';
 import './DriverDashboard.css';
 
@@ -18,9 +19,26 @@ const DriverDashboard = () => {
   const [recenterKey, setRecenterKey] = useState(0);
   const [showPopup, setShowPopup] = useState(false);
   const [driverData, setDriverData] = useState<any>(null);
-  const [currentRequest, setCurrentRequest] = useState<any>(null);
+  const [revenueData, setRevenueData] = useState<any>({
+    dailyEarnings: 0,
+    weeklyTotal: 0,
+    totalEarnings: 0,
+    totalTrips: 0,
+    weeklyData: [
+      { day: 'Mon', label: '月', value: 0 },
+      { day: 'Tue', label: '火', value: 0 },
+      { day: 'Wed', label: '水', value: 0 },
+      { day: 'Thu', label: '木', value: 0 },
+      { day: 'Fri', label: '金', value: 0 },
+      { day: 'Sat', label: '土', value: 0 },
+      { day: 'Sun', label: '日', value: 0 }
+    ]
+  });
 
   useEffect(() => {
+    const token = sessionStorage.getItem('authToken') || localStorage.getItem('authToken');
+    if (!token) return;
+
     const fetchProfile = async () => {
       try {
         const token = sessionStorage.getItem('authToken') || localStorage.getItem('authToken');
@@ -36,7 +54,25 @@ const DriverDashboard = () => {
         console.error('Error fetching dashboard profile:', error);
       }
     };
+
+    const fetchRevenue = async () => {
+      try {
+        const response = await fetch(`${API_BASE_URL}/api/drivers/revenue`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (response.ok) {
+          const data = await response.json();
+          if (data.success) {
+            setRevenueData(data.data);
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching driver revenue:', error);
+      }
+    };
+
     fetchProfile();
+    fetchRevenue();
   }, []);
 
   // Print geolocation changes for debugging
@@ -160,16 +196,11 @@ const DriverDashboard = () => {
   };
 
 
-  // Mock data for weekly income
-  const weeklyData = [
-    { day: '月', value: 20 },
-    { day: '火', value: 40 },
-    { day: '水', value: 15 },
-    { day: '木', value: 50 },
-    { day: '金', value: 80, highlight: true },
-    { day: '土', value: 10 },
-    { day: '日', value: 25 },
-  ];
+  const weeklyDataWithHighlight = revenueData.weeklyData.map((d: any, index: number) => ({
+    day: d.label,
+    value: d.value,
+    highlight: index === todayIndex
+  }));
 
   const mockRequest = {
     passengerName: '山田 亜希子',
@@ -235,30 +266,36 @@ const DriverDashboard = () => {
           <div>
             <div className="dd-income-title">日次収益</div>
             <div className="dd-income-amount">
-              1,450,000<span className="dd-income-currency">₫</span>
+              {formatCurrency(revenueData.dailyEarnings)}<span className="dd-income-currency">₫</span>
             </div>
           </div>
-          <div className="dd-wallet-icon">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M17 5H4C2.89543 5 2 5.89543 2 7V17C2 18.1046 2.89543 19 4 19H17" stroke="#27AE60" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
-              <path d="M22 9C22 7.89543 21.1046 7 20 7H14C12.8954 7 12 7.89543 12 9V15C12 16.1046 12.8954 17 14 17H20C21.1046 17 22 16.1046 22 15V9Z" fill="#27AE60" stroke="#27AE60" strokeWidth="0.5"/>
-              <circle cx="17" cy="12" r="1.5" fill="white"/>
-            </svg>
+          <div className="dd-wallet-icon" role="button" aria-label="Wallet">
+            <div className="h-[18px] relative shrink-0 w-[19px]" data-name="Container">
+              <svg className="absolute block inset-0 size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 19 18">
+                <g id="Container">
+                  <path d={svgPaths.p3f8e080} fill="var(--fill-0, #27AE60)" id="Icon" />
+                </g>
+              </svg>
+            </div>
           </div>
         </div>
 
         <div className="dd-chart-container">
-          {weeklyData.map((d, i) => (
-            <div key={i} className="dd-chart-column">
-              <div 
-                className={`dd-chart-bar ${d.highlight ? 'highlight' : ''}`} 
-                style={{ height: `${d.value}%` }} 
-              />
-              <div className={`dd-chart-day ${d.highlight ? 'highlight' : ''}`}>
-                {d.day}
+          {weeklyDataWithHighlight.map((d, i) => {
+            const maxWeeklyVal = Math.max(...revenueData.weeklyData.map((w: any) => w.value), 1);
+            const barHeightPercent = d.value > 0 ? (d.value / maxWeeklyVal) * 70 + 15 : 0;
+            return (
+              <div key={i} className="dd-chart-column">
+                <div 
+                  className={`dd-chart-bar ${d.highlight ? 'highlight' : ''}`} 
+                  style={{ height: `${barHeightPercent}%` }} 
+                />
+                <div className={`dd-chart-day ${d.highlight ? 'highlight' : ''}`}>
+                  {d.day}
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
         
       </div>
