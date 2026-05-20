@@ -50,7 +50,7 @@ export default function DriverProfile() {
               className="dp-avatar"
             />
           </div>
-          <h1 className="dp-name">{user.fullName || "山本 健二"}</h1>
+          <h1 className="dp-name">{(user.fullName || "山本 健二").split('(')[0].trim()}</h1>
           <p className="dp-experience">2021年からJV-Taxiのパートナー</p>
           
           <div className="dp-badges">

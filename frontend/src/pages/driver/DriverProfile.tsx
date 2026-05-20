@@ -101,7 +101,7 @@ export default function DriverProfile() {
         return;
       }
 
-      const token = localStorage.getItem('authToken');
+      const token = sessionStorage.getItem('authToken') || localStorage.getItem('authToken');
       const formData = new FormData();
 
       formData.append('fullName', editForm.fullName);
@@ -148,7 +148,7 @@ export default function DriverProfile() {
   useEffect(() => {
     const fetchProfile = async () => {
       try {
-        const token = localStorage.getItem('authToken');
+        const token = sessionStorage.getItem('authToken') || localStorage.getItem('authToken');
         if (!token) {
           navigate('/login');
           return;
@@ -175,6 +175,8 @@ export default function DriverProfile() {
   };
 
   const handleLogout = () => {
+    sessionStorage.removeItem('authToken');
+    sessionStorage.removeItem('user');
     localStorage.removeItem('authToken');
     localStorage.removeItem('user');
     navigate('/');
@@ -231,7 +233,7 @@ export default function DriverProfile() {
           </div>
 
           <div className="text-center">
-            <h1 className="text-[24px] font-extrabold text-[#171d17] leading-tight mb-[4px]">{profile.fullName || "山本 健二"}</h1>
+            <h1 className="text-[24px] font-extrabold text-[#171d17] leading-tight mb-[4px]">{(profile.fullName || "山本 健二").split('(')[0].trim()}</h1>
             <p className="text-[14px] text-[#3d4a3f]">2021年からJV Taxiのパートナー</p>
           </div>
 

@@ -2,8 +2,47 @@ import { Request, Response } from 'express';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import prisma from '../config/db';
+import { supabase, supabaseAdmin } from '../config/supabase';
+import fs from 'fs';
+import path from 'path';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'change_this_secret';
+
+const uploadToSupabase = async (file: Express.Multer.File, folder: string): Promise<string | null> => {
+  try {
+    const fileBuffer = fs.readFileSync(file.path);
+    const fileExt = path.extname(file.originalname) || '.jpg';
+    const fileName = `${folder}/${Date.now()}-${Math.round(Math.random() * 1E9)}${fileExt}`;
+
+    const { data, error } = await supabase.storage
+      .from('images')
+      .upload(fileName, fileBuffer, {
+        contentType: file.mimetype,
+        upsert: true
+      });
+
+    if (error) {
+      console.error(`Supabase Storage upload error for ${file.originalname}:`, error.message);
+      return null;
+    }
+
+    const { data: urlData } = supabase.storage
+      .from('images')
+      .getPublicUrl(fileName);
+
+    try {
+      if (fs.existsSync(file.path)) {
+        fs.unlinkSync(file.path);
+      }
+    } catch (e) {}
+
+    return urlData.publicUrl;
+  } catch (err) {
+    console.error(`Error uploading file ${file.originalname} to Supabase:`, err);
+    return null;
+  }
+};
+
 
 export const login = async (req: Request, res: Response) => {
   try {
@@ -22,12 +61,33 @@ export const login = async (req: Request, res: Response) => {
       }
     });
 
-    if (!profile || !profile.passwordHash) {
+    if (!profile) {
       return res.status(401).json({ message: 'Sai email/số điện thoại hoặc mật khẩu.' });
     }
 
-    const passwordMatches = await bcrypt.compare(password, profile.passwordHash);
-    if (!passwordMatches) {
+    let isAuthenticated = false;
+
+    // 1. Try to sign in via Supabase Auth
+    if (profile.email) {
+      const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
+        email: profile.email,
+        password
+      });
+
+      if (!signInError && signInData.user) {
+        isAuthenticated = true;
+      }
+    }
+
+    // 2. Fallback to legacy bcrypt password hash verification
+    if (!isAuthenticated && profile.passwordHash) {
+      const passwordMatches = await bcrypt.compare(password, profile.passwordHash);
+      if (passwordMatches) {
+        isAuthenticated = true;
+      }
+    }
+
+    if (!isAuthenticated) {
       return res.status(401).json({ message: 'Sai email/số điện thoại hoặc mật khẩu.' });
     }
 
@@ -106,16 +166,66 @@ export const register = async (req: Request, res: Response) => {
       return res.status(400).json({ message: 'Email hoặc số điện thoại đã được sử dụng.' });
     }
 
+    // 1. Sign up user via Supabase Auth (using service_role key to bypass signup restrictions if available)
+    let signUpData;
+    let signUpError;
+
+    if (process.env.SUPABASE_SERVICE_ROLE_KEY) {
+      const { data, error } = await supabaseAdmin.auth.admin.createUser({
+        email: email || undefined,
+        phone: !email && phone ? phone : undefined,
+        password,
+        email_confirm: true,
+        phone_confirm: true,
+        user_metadata: {
+          fullName,
+          phone,
+          role: role || 'CUSTOMER'
+        }
+      });
+      signUpData = data;
+      signUpError = error;
+    } else {
+      const { data, error } = await supabase.auth.signUp({
+        email: email || undefined,
+        phone: !email && phone ? phone : undefined,
+        password,
+        options: {
+          data: {
+            fullName,
+            phone,
+            role: role || 'CUSTOMER'
+          }
+        }
+      });
+      signUpData = data;
+      signUpError = error;
+    }
+
+    if (signUpError || !signUpData.user) {
+      return res.status(400).json({ message: signUpError?.message || 'Đăng ký thất bại qua Supabase.' });
+    }
+
+    const userId = signUpData.user.id;
     const passwordHash = await bcrypt.hash(password, 10);
 
-    // Tạo profile
-    const profile = await prisma.profile.create({
-      data: {
+    // 2. Upsert profile into public.profiles (either updating the trigger-created one or creating a new one)
+    const profile = await prisma.profile.upsert({
+      where: { id: userId },
+      update: {
+        passwordHash,
+        fullName: fullName || undefined,
+        phone: phone || undefined,
+        email: email || undefined,
+        role: (role as any) || undefined
+      },
+      create: {
+        id: userId,
         email,
         phone,
         passwordHash,
         fullName,
-        role: role || 'CUSTOMER',
+        role: (role as any) || 'CUSTOMER',
         status: 'ACTIVE'
       }
     });
@@ -125,16 +235,28 @@ export const register = async (req: Request, res: Response) => {
       const { vehicleType, plate, year, drivingLicense, jlpt, carType, cccd } = req.body;
       const files = req.files as Express.Multer.File[];
       
-      // Lấy path của ảnh xe nếu có
-      const carImage = files?.find(f => f.fieldname === 'images')?.filename;
-      const carImageUrl = carImage ? `http://localhost:5000/uploads/${carImage}` : null;
+      const carImageFile = files?.find(f => f.fieldname === 'images');
+      let carImageUrl = null;
+      if (carImageFile) {
+        carImageUrl = await uploadToSupabase(carImageFile, 'cars');
+      }
+
+      const docFiles = files?.filter(f => f.fieldname === 'documents');
+      const docUrls: string[] = [];
+      if (docFiles && docFiles.length > 0) {
+        for (const docFile of docFiles) {
+          const docUrl = await uploadToSupabase(docFile, 'documents');
+          if (docUrl) docUrls.push(docUrl);
+        }
+      }
 
       // Lưu chính xác 100% dưới dạng JSON
       const vehicleInforJson = JSON.stringify({
         model: vehicleType || 'BMW',
         plate: plate || 'N/A',
         year: year || '2022',
-        image: carImageUrl
+        image: carImageUrl,
+        documents: docUrls
       });
 
       await prisma.driverProfile.create({
@@ -149,6 +271,17 @@ export const register = async (req: Request, res: Response) => {
           isApproved: false
         }
       });
+
+      // Clean up any remaining files in case
+      if (files) {
+        for (const file of files) {
+          try {
+            if (fs.existsSync(file.path)) {
+              fs.unlinkSync(file.path);
+            }
+          } catch (e) {}
+        }
+      }
     }
 
     const token = jwt.sign(
@@ -190,11 +323,29 @@ export const updateProfile = async (req: any, res: Response) => {
 
     // Handle files if any
     const files = req.files as Express.Multer.File[];
-    const avatarFile = files?.find(f => f.fieldname === 'avatar')?.filename;
-    const avatarImageUrl = avatarFile ? `http://localhost:5000/uploads/${avatarFile}` : null;
+    
+    const avatarFile = files?.find(f => f.fieldname === 'avatar');
+    let avatarImageUrl = null;
+    if (avatarFile) {
+      avatarImageUrl = await uploadToSupabase(avatarFile, 'avatars');
+    }
 
-    const carImageFile = files?.find(f => f.fieldname === 'carImage')?.filename;
-    const carImageUrl = carImageFile ? `http://localhost:5000/uploads/${carImageFile}` : null;
+    const carImageFile = files?.find(f => f.fieldname === 'carImage');
+    let carImageUrl = null;
+    if (carImageFile) {
+      carImageUrl = await uploadToSupabase(carImageFile, 'cars');
+    }
+
+    // Clean up any remaining files in case
+    if (files) {
+      for (const file of files) {
+        try {
+          if (fs.existsSync(file.path)) {
+            fs.unlinkSync(file.path);
+          }
+        } catch (e) {}
+      }
+    }
 
     // Update Profile
     await prisma.profile.update({

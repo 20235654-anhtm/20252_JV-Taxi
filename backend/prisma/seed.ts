@@ -14,7 +14,7 @@ async function main() {
     const drivers = [
       {
         id: '11111111-1111-1111-1111-111111111111',
-        name: "Nguyễn Văn Nam (Taxi Vios)",
+        name: "Nguyễn Văn Nam",
         phone: "0911111111", email: "nam.driver@jvtaxi.vn", password: "12345678",
         lat: 21.0065, lng: 105.8458,
         car: "TOYOTA VIOS • WHITE • 29A-123.45",
@@ -24,7 +24,7 @@ async function main() {
       },
       {
         id: '11111111-1111-1111-1111-222222222222',
-        name: "Trần Thị Mai (Mazda 3)",
+        name: "Trần Thị Mai",
         phone: "0922222222", email: "mai.driver@jvtaxi.vn", password: "12345678",
         lat: 21.0045, lng: 105.8430,
         car: "MAZDA 3 • RED • 30F-555.66",
@@ -34,7 +34,7 @@ async function main() {
       },
       {
         id: '11111111-1111-1111-1111-333333333333',
-        name: "Lê Hoàng Long (Honda SH)",
+        name: "Lê Hoàng Long",
         phone: "0933333333", email: "long.driver@jvtaxi.vn", password: "12345678",
         lat: 21.0055, lng: 105.8420,
         car: "HONDA SH • BLACK • 29G1-999.99",
@@ -44,7 +44,7 @@ async function main() {
       },
       {
         id: '11111111-1111-1111-1111-444444444444',
-        name: "Phạm Minh Đức (Ga Minh Khai)",
+        name: "Phạm Minh Đức",
         phone: "0944444444", email: "duc.driver@jvtaxi.vn", password: "12345678",
         lat: 21.0588, lng: 105.7485,
         car: "VINFAST VF8 • BLUE • 30H-888.88",
@@ -98,6 +98,79 @@ async function main() {
       `);
       console.log(`Đã cập nhật/tạo tài xế: ${d.name}`);
     }
+
+    // 5. Seed completed rides & payments for driver Nam to show in chart
+    console.log('--- Bắt đầu seed lịch sử chuyến đi cho tài xế Nam ---');
+    
+    // Clear old data first
+    await prisma.$executeRawUnsafe(`
+      DELETE FROM "payments" WHERE "ride_id" IN (SELECT "id" FROM "rides" WHERE "driver_id" = '11111111-1111-1111-1111-111111111111'::uuid);
+    `);
+    await prisma.$executeRawUnsafe(`
+      DELETE FROM "rides" WHERE "driver_id" = '11111111-1111-1111-1111-111111111111'::uuid;
+    `);
+
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const currentDayNum = now.getDay();
+    const distanceToMonday = currentDayNum === 0 ? -6 : 1 - currentDayNum;
+    const monday = new Date(today.getTime() + distanceToMonday * 24 * 60 * 60 * 1000);
+
+    const tripsToSeed = [
+      { dayOffset: 0, amount: 150000, startAddr: "Hanoi Opera House", endAddr: "Bach Khoa University" },
+      { dayOffset: 1, amount: 250000, startAddr: "Hoan Kiem Lake", endAddr: "Noi Bai Airport" },
+      { dayOffset: 1, amount: 150000, startAddr: "Vinhomes Ocean Park", endAddr: "Times City" },
+      { dayOffset: 2, amount: 100000, startAddr: "Lotte Center", endAddr: "West Lake" },
+      { dayOffset: 3, amount: 350000, startAddr: "Aeon Mall Long Bien", endAddr: "Royal City" },
+      { dayOffset: 3, amount: 150000, startAddr: "Keangnam Landmark", endAddr: "National Convention Center" },
+      { dayOffset: 4, amount: 450000, startAddr: "Ba Dinh Square", endAddr: "Noi Bai Airport" },
+      { dayOffset: 4, amount: 1000000, startAddr: "Hanoi Station", endAddr: "Haiphong Highway" },
+      { dayOffset: 5, amount: 200000, startAddr: "My Dinh Stadium", endAddr: "Hoang Mai" },
+      { dayOffset: 6, amount: 250000, startAddr: "West Lake", endAddr: "Dong Da" }
+    ];
+
+    for (const trip of tripsToSeed) {
+      const tripDate = new Date(monday.getTime() + trip.dayOffset * 24 * 60 * 60 * 1000 + 12 * 60 * 60 * 1000);
+      const isoDate = tripDate.toISOString();
+
+      await prisma.$executeRawUnsafe(`
+        DO $$
+        DECLARE
+          v_ride_id uuid := gen_random_uuid();
+        BEGIN
+          INSERT INTO "rides" (
+            "id", "passenger_id", "driver_id", "start_address", "end_address",
+            "start_location", "end_location", "match_fee", "match_type", "vehicle_type_requested", "status", "created_at"
+          ) VALUES (
+            v_ride_id,
+            '22222222-2222-2222-2222-111111111111'::uuid,
+            '11111111-1111-1111-1111-111111111111'::uuid,
+            '${trip.startAddr}',
+            '${trip.endAddr}',
+            ST_SetSRID(ST_MakePoint(105.8458, 21.0065), 4326)::geography,
+            ST_SetSRID(ST_MakePoint(105.8430, 21.0045), 4326)::geography,
+            ${trip.amount},
+            'CAR',
+            'Sedan',
+            'COMPLETED',
+            '${isoDate}'::timestamp
+          );
+
+          INSERT INTO "payments" (
+            "id", "ride_id", "total_amount", "payment_type", "status", "created_at"
+          ) VALUES (
+            gen_random_uuid(),
+            v_ride_id,
+            ${trip.amount},
+            'CARD',
+            'SUCCESS',
+            '${isoDate}'::timestamp
+          );
+        END $$;
+      `);
+    }
+
+    console.log(`Đã seed thành công ${tripsToSeed.length} chuyến đi mẫu cho tài xế Nam!`);
 
     // 4. Bật lại kiểm tra khóa ngoại
     await prisma.$executeRawUnsafe('SET session_replication_role = \'origin\';');
