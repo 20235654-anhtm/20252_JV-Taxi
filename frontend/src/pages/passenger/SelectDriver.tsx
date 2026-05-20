@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Header } from '../../components/layout/Header';
+import { useBooking } from '../../contexts/BookingContext';
 import './SelectDriver.css';
 
 /** Interface for driver data from API */
@@ -34,6 +35,7 @@ const API_BASE = `${API_BASE_URL}/api/drivers`;
 
 const SelectDriver = () => {
   const navigate = useNavigate();
+  const { pickup } = useBooking();
   const [drivers, setDrivers] = useState<Driver[]>([]);
   const [searchStatus, setSearchStatus] = useState<SearchStatus>('searching');
   const [timeRemaining, setTimeRemaining] = useState(SEARCH_TIMEOUT_MS);
@@ -79,15 +81,21 @@ const SelectDriver = () => {
     try {
       let url = `${API_BASE}/nearby`;
       
-      if (lng !== undefined && lat !== undefined) {
+      console.log("[SelectDriver] fetchDrivers called with coords:", { lng, lat });
+      
+      if (lng !== undefined && lat !== undefined && !isNaN(lng) && !isNaN(lat)) {
         url += `?lng=${lng}&lat=${lat}&radius=3000`;
+        console.log("[SelectDriver] Fetching nearby drivers from URL:", url);
       } else {
         // Fallback to all drivers if no coordinates provided
         url = API_BASE;
+        console.log("[SelectDriver] Coords missing or invalid. Falling back to all drivers URL:", url);
       }
 
       const response = await fetch(url);
       const data = await response.json();
+      
+      console.log("[SelectDriver] API Response data:", data);
 
       if (data.success) {
         setDrivers(data.data);
@@ -98,13 +106,15 @@ const SelectDriver = () => {
       }
       return false;
     } catch (error) {
-      console.error('Backend connection error:', error);
+      console.error('[SelectDriver] Backend connection error:', error);
       return false;
     }
   }, []);
 
   /** Start the search process */
   const startSearch = useCallback(async () => {
+    console.log("[SelectDriver] startSearch triggered. Pickup data in context:", pickup);
+    
     // Reset state
     setDrivers([]);
     setSearchStatus('searching');
@@ -149,14 +159,23 @@ const SelectDriver = () => {
     let currentLng: number | undefined;
     let currentLat: number | undefined;
 
-    try {
-      // Attempt to get GPS
-      const pos = await getGPSLocation();
-      setCoords(pos);
-      currentLng = pos.lng;
-      currentLat = pos.lat;
-    } catch (err) {
-      console.warn("GPS failed, using default data:", err);
+    if (pickup?.coords) {
+      currentLng = pickup.coords.lng;
+      currentLat = pickup.coords.lat;
+      setCoords({ lng: currentLng, lat: currentLat });
+      console.log("[SelectDriver] Using selected pickup coordinates for driver search:", currentLng, currentLat);
+    } else {
+      console.log("[SelectDriver] pickup.coords not found in BookingContext, trying GPS...");
+      try {
+        // Attempt to get GPS
+        const pos = await getGPSLocation();
+        setCoords(pos);
+        currentLng = pos.lng;
+        currentLat = pos.lat;
+        console.log("[SelectDriver] Successfully retrieved browser GPS:", pos);
+      } catch (err) {
+        console.warn("[SelectDriver] GPS failed, using default data:", err);
+      }
     }
 
     // Initial API call
@@ -167,7 +186,7 @@ const SelectDriver = () => {
       await fetchDrivers(currentLng, currentLat);
     }, POLLING_INTERVAL_MS);
 
-  }, [fetchDrivers, getGPSLocation]);
+  }, [fetchDrivers, getGPSLocation, pickup]);
 
   /** Start search on mount */
   useEffect(() => {
@@ -307,6 +326,41 @@ const SelectDriver = () => {
               </div>
             )}
           </>
+        )}
+      </div>
+
+      {/* Floating Debug Badge for Developers/Testers */}
+      <div style={{
+        position: 'fixed',
+        bottom: '80px',
+        left: '10px',
+        right: '10px',
+        background: 'rgba(0, 0, 0, 0.9)',
+        color: '#00ff00',
+        padding: '12px',
+        borderRadius: '8px',
+        fontSize: '11px',
+        fontFamily: 'monospace',
+        zIndex: 9999,
+        maxHeight: '180px',
+        overflowY: 'auto',
+        border: '1px solid #00ff00',
+        boxShadow: '0 4px 12px rgba(0,0,0,0.5)',
+        textAlign: 'left'
+      }}>
+        <div style={{ fontWeight: 'bold', borderBottom: '1px solid #00ff00', paddingBottom: '4px', marginBottom: '6px' }}>
+          🛠️ [JV-DEBUG PANEL] Luồng Tìm Tài Xế
+        </div>
+        <div>• Địa điểm đón: {pickup ? `${pickup.address.substring(0, 20)}...` : 'Chưa có'}</div>
+        <div>• Tọa độ đón: {pickup?.coords ? `lat: ${pickup.coords.lat.toFixed(5)}, lng: ${pickup.coords.lng.toFixed(5)}` : 'NULL'}</div>
+        <div>• Tọa độ quét hiện tại: {coords ? `lat: ${coords.lat.toFixed(5)}, lng: ${coords.lng.toFixed(5)}` : 'Đang định vị...'}</div>
+        <div>• Bán kính quét: 3 KM</div>
+        <div>• Trạng thái tìm kiếm: {searchStatus}</div>
+        <div>• Tìm thấy tài xế: {drivers.length} xe</div>
+        {drivers.length > 0 && (
+          <div style={{ color: '#ffea00', marginTop: '4px' }}>
+            → DS: {drivers.map(d => `${d.name} (${d.distance})`).join(', ')}
+          </div>
         )}
       </div>
     </div>

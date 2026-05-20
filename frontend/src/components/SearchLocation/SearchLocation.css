@@ -1,7 +1,7 @@
 .sl-container {
   display: flex;
   flex-direction: column;
-  height: 100vh;
+  height: 100svh;
   background-color: #f6f8f6;
   font-family: var(--sans);
   position: relative;
@@ -52,22 +52,32 @@
 }
 
 .sl-auth-btn {
-  padding: 6px 12px;
-  border-radius: 20px;
-  font-size: 14px;
-  font-weight: 600;
+  padding: 8px 20px;
+  border-radius: 9999px;
+  font-size: 10px;
+  line-height: 14.2857px;
   cursor: pointer;
   border: none;
+  background: #1a4d2e;
+  color: white;
+  transition: all 0.25s ease-in-out;
+  box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06);
+}
+
+.sl-auth-btn:hover {
+  background: #0e2b1a;
 }
 
 .sl-btn-login {
-  background: #0f4c3a;
+  background: #1a4d2e;
   color: white;
+  font-weight: 700;
 }
 
 .sl-btn-signup {
-  background: #0f4c3a;
+  background: #1a4d2e;
   color: white;
+  font-weight: 900;
 }
 
 .sl-content {
@@ -318,7 +328,8 @@
 
 /* Next Button */
 .sl-next-btn-container {
-  padding: 20px;
+  padding: 16px 20px;
+  padding-bottom: calc(16px + env(safe-area-inset-bottom, 0px));
   background: transparent;
 }
 

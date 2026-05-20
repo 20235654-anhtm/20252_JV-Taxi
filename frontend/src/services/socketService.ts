@@ -53,6 +53,33 @@ export const socketService = {
         socket?.off('incoming-call');
     },
 
+    // Lắng nghe chấp nhận đặt xe
+    onBookingAccepted: (callback: (data: any) => void) => {
+        socket?.on('booking-accepted', callback);
+    },
+
+    offBookingAccepted: () => {
+        socket?.off('booking-accepted');
+    },
+
+    // Lắng nghe từ chối đặt xe
+    onBookingRejected: (callback: (data: any) => void) => {
+        socket?.on('booking-rejected', callback);
+    },
+
+    offBookingRejected: () => {
+        socket?.off('booking-rejected');
+    },
+
+    // Lắng nghe yêu cầu đặt xe mới (phía tài xế)
+    onIncomingBooking: (callback: (data: any) => void) => {
+        socket?.on('incoming-booking', callback);
+    },
+
+    offIncomingBooking: () => {
+        socket?.off('incoming-booking');
+    },
+
     // Ngắt kết nối (khi user đăng xuất)
     disconnect: () => {
         socket?.disconnect();

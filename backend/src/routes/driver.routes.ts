@@ -1,5 +1,8 @@
 import { Router, Request, Response } from 'express';
 import { getNearbyDrivers, getAllDrivers, getNearbyDriversMock } from '../services/driver.service';
+import prisma from '../config/db';
+import { authMiddleware, AuthRequest } from '../middleware/auth.middleware';
+import { driverProfileService } from '../services/driverProfile.service';
 
 const router = Router();
 
@@ -135,5 +138,106 @@ function calculateEstimatedPrice(distanceInMeters: number): string {
   // Format as "xxxk" 
   return `${Math.round(totalFare / 1000)}k`;
 }
+
+/**
+ * API: GET /api/drivers/admin/pending
+ * Returns all unapproved drivers from DB
+ */
+router.get('/admin/pending', async (req: Request, res: Response) => {
+  try {
+    const pendingDrivers = await prisma.driverProfile.findMany({
+      where: { isApproved: false },
+      include: {
+        profile: {
+          select: {
+            fullName: true,
+            email: true,
+            phone: true,
+          }
+        }
+      }
+    });
+
+    res.status(200).json({
+      success: true,
+      data: pendingDrivers,
+    });
+  } catch (error) {
+    console.error('Error fetching pending drivers:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error while fetching pending drivers.',
+    });
+  }
+});
+
+/**
+ * API: PUT /api/drivers/admin/approve/:userId
+ * Sets isApproved to true for a driver
+ */
+router.put('/admin/approve/:userId', async (req: Request, res: Response) => {
+  try {
+    const { userId } = req.params;
+    
+    const updated = await prisma.driverProfile.update({
+      where: { userId: userId as string },
+      data: { isApproved: true },
+    });
+
+    res.status(200).json({
+      success: true,
+      message: 'Driver approved successfully.',
+      data: updated,
+    });
+  } catch (error) {
+    console.error('Error approving driver:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error while approving driver.',
+    });
+  }
+});
+
+/**
+ * API: PUT /api/drivers/status
+ * Updates driver's online/offline status and current GPS location.
+ * Requires driver authentication.
+ */
+router.put('/status', authMiddleware as any, async (req: AuthRequest, res: Response) => {
+  try {
+    const userId = req.user?.userId;
+    if (!userId) {
+      res.status(401).json({ success: false, message: 'Unauthorized' });
+      return;
+    }
+
+    const { isOnline, lat, lng } = req.body;
+
+    const updateData: any = {};
+    if (isOnline !== undefined) {
+      updateData.isOnline = Boolean(isOnline);
+      // Reset isBusy to false to make the driver searchable again
+      if (updateData.isOnline) {
+        updateData.isBusy = false;
+      }
+    }
+    if (lat !== undefined) updateData.lat = Number(lat);
+    if (lng !== undefined) updateData.lng = Number(lng);
+
+    const updated = await driverProfileService.updateDriverProfile(userId, updateData);
+
+    res.status(200).json({
+      success: true,
+      message: 'Driver status updated successfully.',
+      data: updated,
+    });
+  } catch (error) {
+    console.error('Error updating driver status:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error while updating driver status.',
+    });
+  }
+});
 
 export default router;

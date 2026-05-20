@@ -7,7 +7,7 @@ const GuestActionButtons: React.FC = () => {
   return (
     <div className="sl-header-actions">
       <button className="sl-auth-btn sl-btn-login" onClick={() => navigate('/login')}>ログイン</button>
-      <button className="sl-auth-btn sl-btn-signup" onClick={() => navigate('/register')}>サインアップ</button>
+      <button className="sl-auth-btn sl-btn-signup" onClick={() => navigate('/signup')}>サインアップ</button>
     </div>
   );
 };

@@ -67,13 +67,14 @@ export const QuickBookingCard: React.FC<QuickBookingCardProps> = ({
         padding="none"
         rounded={mode === 'half' ? 'xl' : 'none'}
         className={`
-          w-full max-w-[450px] mx-auto h-full flex flex-col shadow-[0_-10px_40px_rgba(0,0,0,0.12)] bg-white
+          w-full max-w-[450px] mx-auto flex flex-col shadow-[0_-10px_40px_rgba(0,0,0,0.12)] bg-white
+          ${mode === 'half' ? 'h-auto' : 'h-full'}
           ${mode === 'expanded' ? 'rounded-t-[32px]' : ''}
         `}
       >
         {/* Handle Area */}
         <div
-          className="h-10 flex items-start justify-center cursor-pointer pt-4 flex-shrink-0"
+          className="h-8 flex items-start justify-center cursor-pointer pt-3 flex-shrink-0"
           onTouchStart={handleTouchStart}
           onTouchEnd={handleTouchEnd}
           onClick={() => setMode(mode === 'half' ? 'expanded' : 'half')}
@@ -81,20 +82,20 @@ export const QuickBookingCard: React.FC<QuickBookingCardProps> = ({
           <div className="w-[48px] h-[5px] bg-[#e2e8f0] rounded-full" />
         </div>
 
-        <div className="flex-1 overflow-hidden flex flex-col px-6 pb-6">
+        <div className={`flex-1 overflow-hidden flex flex-col ${mode === 'half' ? 'px-5 pb-5' : 'px-6 pb-6'}`}>
           {/* HALF MODE CONTENT */}
           {mode === 'half' && (
-            <div className="flex flex-col gap-5 animate-in fade-in duration-300">
-              <div className="flex flex-col gap-0.5 mt-2">
-                <Text variant="body" color="medium" className="font-medium text-[15px]">
+            <div className="flex flex-col gap-4 animate-in fade-in duration-300">
+              <div className="flex flex-col gap-0 mt-1">
+                <Text variant="body" color="medium" className="font-semibold text-[14px]">
                   {isGuest ? 'こんにちは' : `${userName}さん、こんにちは`}
                 </Text>
-                <Heading level={1} className="text-[28px] font-black tracking-tight">
+                <Heading level={1} className="text-[23px] font-black tracking-tight leading-tight">
                   行き先は？
                 </Heading>
               </div>
 
-              <div className="flex flex-col gap-4">
+              <div className="flex flex-col gap-3">
                 <SearchInput
                   value={destinationValue}
                   onValueChange={setDestinationValue}
@@ -106,12 +107,12 @@ export const QuickBookingCard: React.FC<QuickBookingCardProps> = ({
                 />
                 <Button
                   variant="primary"
-                  size="lg"
+                  size="md"
                   fullWidth
                   icon={ArrowRight}
                   iconPosition="right"
                   onClick={onBookNow}
-                  className="text-[18px] font-bold h-[60px]"
+                  className="text-[16px] font-bold h-[50px]"
                 >
                   今すぐ呼ぶ
                 </Button>

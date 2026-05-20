@@ -7,6 +7,7 @@ import { FAB } from '../../components/ui/FAB';
 import { API_BASE_URL } from '../../config/api';
 import { useGeolocation } from '../../hooks/useGeolocation';
 import IncomingRequestPopup from '../../components/features/IncomingRequestPopup';
+import { socketService } from '../../services/socketService';
 import './DriverDashboard.css';
 
 const DriverDashboard = () => {
@@ -17,11 +18,12 @@ const DriverDashboard = () => {
   const [recenterKey, setRecenterKey] = useState(0);
   const [showPopup, setShowPopup] = useState(false);
   const [driverData, setDriverData] = useState<any>(null);
+  const [currentRequest, setCurrentRequest] = useState<any>(null);
 
   useEffect(() => {
     const fetchProfile = async () => {
       try {
-        const token = localStorage.getItem('authToken');
+        const token = sessionStorage.getItem('authToken') || localStorage.getItem('authToken');
         if (!token) return;
         const response = await fetch(`${API_BASE_URL}/api/auth/me`, {
           headers: { 'Authorization': `Bearer ${token}` }
@@ -37,10 +39,123 @@ const DriverDashboard = () => {
     fetchProfile();
   }, []);
 
+  // Print geolocation changes for debugging
+  useEffect(() => {
+    console.log("[DriverDashboard] useGeolocation hook position changed:", position, "error:", error);
+  }, [position, error]);
+
+  // Sync online status and GPS location to backend
+  useEffect(() => {
+    const updateStatus = async () => {
+      try {
+        const token = sessionStorage.getItem('authToken') || localStorage.getItem('authToken');
+        if (!token) {
+          console.warn("[DriverDashboard] No authToken found in sessionStorage or localStorage.");
+          return;
+        }
+
+        const body: any = {
+          isOnline: isOnline
+        };
+
+        if (isOnline && position) {
+          body.lat = position.lat;
+          body.lng = position.lng;
+        }
+
+        console.log("[DriverDashboard] Syncing status to backend at URL:", `${API_BASE_URL}/api/drivers/status`, "Body:", body);
+
+        const response = await fetch(`${API_BASE_URL}/api/drivers/status`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify(body)
+        });
+
+        const resData = await response.json();
+        console.log("[DriverDashboard] Backend status response:", resData);
+      } catch (err) {
+        console.error('[DriverDashboard] Error updating status/location:', err);
+      }
+    };
+
+    updateStatus();
+  }, [isOnline, position]);
+
   const handleTabChange = (tab: NavTab) => {
     setActiveTab(tab);
     if (tab === 'profile') {
       navigate('/driver/profile');
+    }
+  };
+
+  // Listen for incoming booking via socket
+  useEffect(() => {
+    const userStr = sessionStorage.getItem('user') || localStorage.getItem('user');
+    if (userStr) {
+      const user = JSON.parse(userStr);
+      socketService.connect(user.id);
+    }
+
+    socketService.onIncomingBooking((data) => {
+      console.log('📡 Received incoming booking request:', data);
+      setCurrentRequest(data);
+      setShowPopup(true);
+    });
+
+    return () => {
+      socketService.offIncomingBooking();
+    };
+  }, []);
+
+  const handleAcceptRide = async () => {
+    if (!currentRequest) return;
+    try {
+      const token = sessionStorage.getItem('authToken') || localStorage.getItem('authToken');
+      const response = await fetch(`${API_BASE_URL}/api/rides/accept`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ rideId: currentRequest.rideId })
+      });
+      const data = await response.json();
+      if (data.success) {
+        setShowPopup(false);
+        navigate('/driver/chat', { 
+          state: { 
+            passengerName: currentRequest.passengerName, 
+            rideId: currentRequest.rideId 
+          } 
+        });
+      } else {
+        alert('Có lỗi xảy ra khi nhận chuyến.');
+      }
+    } catch (err) {
+      console.error('Error accepting ride:', err);
+    }
+  };
+
+  const handleDeclineRide = async () => {
+    if (!currentRequest) return;
+    try {
+      const token = sessionStorage.getItem('authToken') || localStorage.getItem('authToken');
+      await fetch(`${API_BASE_URL}/api/rides/decline`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ rideId: currentRequest.rideId })
+      });
+      setShowPopup(false);
+      setCurrentRequest(null);
+    } catch (err) {
+      console.error('Error declining ride:', err);
+      setShowPopup(false);
     }
   };
 
@@ -74,6 +189,7 @@ const DriverDashboard = () => {
         variant="auth"
         userAvatar={driverData?.driverProfile?.avatarPicture || "https://i.pravatar.cc/150?img=12"}
         onAvatarClick={() => navigate('/driver/profile')}
+        isFixed={false}
       />
 
       {/* MAP BACKGROUND */}
@@ -157,12 +273,9 @@ const DriverDashboard = () => {
       {showPopup && (
         <div className="dd-popup-overlay">
           <IncomingRequestPopup
-            request={mockRequest}
-            onAccept={() => {
-              setShowPopup(false);
-              alert('リクエストを受け付けました。ナビゲーションを開始します。');
-            }}
-            onDecline={() => setShowPopup(false)}
+            request={currentRequest || mockRequest}
+            onAccept={handleAcceptRide}
+            onDecline={handleDeclineRide}
             timeoutSeconds={180}
           />
         </div>

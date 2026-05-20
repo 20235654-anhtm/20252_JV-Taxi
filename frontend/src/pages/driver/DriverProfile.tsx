@@ -101,7 +101,7 @@ export default function DriverProfile() {
         return;
       }
 
-      const token = localStorage.getItem('authToken');
+      const token = sessionStorage.getItem('authToken') || localStorage.getItem('authToken');
       const formData = new FormData();
 
       formData.append('fullName', editForm.fullName);
@@ -148,7 +148,7 @@ export default function DriverProfile() {
   useEffect(() => {
     const fetchProfile = async () => {
       try {
-        const token = localStorage.getItem('authToken');
+        const token = sessionStorage.getItem('authToken') || localStorage.getItem('authToken');
         if (!token) {
           navigate('/login');
           return;
@@ -175,6 +175,8 @@ export default function DriverProfile() {
   };
 
   const handleLogout = () => {
+    sessionStorage.removeItem('authToken');
+    sessionStorage.removeItem('user');
     localStorage.removeItem('authToken');
     localStorage.removeItem('user');
     navigate('/');
