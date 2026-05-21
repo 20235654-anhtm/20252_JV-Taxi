@@ -1,5 +1,5 @@
-.select-driver-page{width:100%;max-width:430px;min-height:100vh;margin:0 auto;background:var(--color-bg-primary);font-family:var(--font-primary);position:relative}
-.select-driver-content{padding:80px 16px 32px;display:flex;flex-direction:column}
+.select-driver-page{width:100%;max-width:430px;height:100vh;height:100dvh;margin:0 auto;background:var(--color-bg-primary);font-family:var(--font-primary);position:relative;display:flex;flex-direction:column;overflow:hidden}
+.select-driver-content{padding:80px 16px 32px;display:flex;flex-direction:column;flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch}
 .sd-status-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;padding:0 4px}
 .sd-controls{display:flex;align-items:center;gap:12px}
 .sd-mock-toggle{display:flex;align-items:center;gap:6px;cursor:pointer;background:rgba(0,0,0,0.03);padding:4px 8px;border-radius:8px;transition:all 0.2s}

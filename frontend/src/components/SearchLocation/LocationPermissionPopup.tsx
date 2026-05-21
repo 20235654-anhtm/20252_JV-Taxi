@@ -4,6 +4,8 @@ import { Heading } from '../ui/Heading';
 import { Text } from '../ui/Text';
 import { Button } from '../ui/Button';
 
+import { showToast } from '../ui/Toast';
+
 interface LocationPermissionPopupProps {
   isOpen: boolean;
 }
@@ -13,7 +15,7 @@ const LocationPermissionPopup: React.FC<LocationPermissionPopupProps> = ({ isOpe
 
   const handleOpenSettings = () => {
     // MOCK: In a real mobile app, this would use Linking.openSettings()
-    alert('Settings đã được mở (Giả lập)');
+    showToast('Settings đã được mở (Giả lập)', 'info');
   };
 
   return (

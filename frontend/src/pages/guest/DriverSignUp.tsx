@@ -5,6 +5,7 @@ import { Eye, EyeOff } from 'lucide-react';
 import svgPaths from "./svg-6k5pihgtjb";
 import imgDriverRegistration from "./98b93cf9247a1a1d9ae9842376a80cf8c192fa1a.png";
 import { API_BASE_URL } from "../../config/api";
+import { showToast } from "../../components/ui/Toast";
 
 const TRANSLATIONS = {
   JP: {
@@ -45,6 +46,10 @@ const TRANSLATIONS = {
     submit: "ドライバーとして登録",
     cccd: "本人確認書類",
     cccdPlaceholder: "079xxxxxx889",
+    errorEmail: "有効なメールアドレスを入力してください",
+    errorPhone: "有効な電話番号を入力してください",
+    errorPass: "パスワードは8文字以上で入力してください",
+    errorRequired: "必須項目を入力してください",
   },
   VN: {
     headerTitle: "JV - Taxi",
@@ -85,6 +90,10 @@ const TRANSLATIONS = {
     submit: "Đăng ký làm tài xế",
     cccd: "Số CCCD/CMND",
     cccdPlaceholder: "079xxxxxx889",
+    errorEmail: "Vui lòng nhập email hợp lệ",
+    errorPhone: "Vui lòng nhập số điện thoại hợp lệ",
+    errorPass: "Vui lòng nhập tối thiểu 8 ký tự",
+    errorRequired: "Vui lòng điền thông tin này",
   },
 };
 
@@ -167,7 +176,7 @@ function Heading1({ label }: { label: string }) {
   );
 }
 
-function InputField({ label, placeholder, value, onChange, onBlur, error }: { label: string; placeholder: string; value: string; onChange: (v: string) => void; onBlur?: () => void; error?: boolean }) {
+function InputField({ label, placeholder, value, onChange, onBlur, error, errorText }: { label: string; placeholder: string; value: string; onChange: (v: string) => void; onBlur?: () => void; error?: boolean; errorText?: string }) {
   return (
     <div className="bg-[#eff6ec] col-1 justify-self-stretch relative rounded-[24px] self-start shrink-0 w-full" data-name="Input Field">
       <div className="content-stretch flex flex-col gap-[4px] items-start p-[20px] relative size-full">
@@ -190,12 +199,13 @@ function InputField({ label, placeholder, value, onChange, onBlur, error }: { la
             />
           </div>
         </div>
+        {error && errorText && <span className="text-red-500 text-xs font-medium mt-1">{errorText}</span>}
       </div>
     </div>
   );
 }
 
-function PasswordField({ t, value, onChange, error, showPass, onTogglePass }: { t: any; value: string; onChange: (v: string) => void; error?: boolean; showPass: boolean; onTogglePass: () => void }) {
+function PasswordField({ t, value, onChange, error, errorText, showPass, onTogglePass }: { t: any; value: string; onChange: (v: string) => void; error?: boolean; errorText?: string; showPass: boolean; onTogglePass: () => void }) {
   return (
     <div className="bg-[#eff6ec] relative rounded-[24px] shrink-0 w-full" data-name="Password Field">
       <div className="gap-x-[4px] gap-y-[4px] grid grid-cols-[repeat(2,minmax(0,1fr))] grid-rows-[repeat(2,fit-content(100%))] p-[20px] relative size-full">
@@ -218,6 +228,7 @@ function PasswordField({ t, value, onChange, error, showPass, onTogglePass }: { 
         <button onClick={onTogglePass} className="absolute right-[20px] bottom-[22px] flex items-center justify-center text-[#6D7A6E] hover:text-[#006d37] transition-colors outline-none focus:outline-none" data-name="Icon">
           {showPass ? <Eye size={18} /> : <EyeOff size={18} />}
         </button>
+        {error && errorText && <div className="col-span-2 text-red-500 text-xs font-medium mt-1">{errorText}</div>}
       </div>
     </div>
   );
@@ -473,7 +484,7 @@ export default function DriverSignUp() {
       navigate('/login');
     } catch (err: any) {
       console.error("Driver signup error:", err.message);
-      alert(err.message);
+      showToast(err.message, 'error');
     } finally {
       setLoading(false);
     }
@@ -491,23 +502,29 @@ export default function DriverSignUp() {
           <div className="content-stretch flex flex-col gap-[16px] items-start relative shrink-0 w-full" data-name="Personal Information Bento Group">
             <Heading1 label={t.identity} />
             <div className="gap-x-[16px] gap-y-[16px] grid grid-cols-[repeat(1,minmax(0,1fr))] grid-rows-[__103px_103px] relative shrink-0 w-full" data-name="Container">
-              <InputField label={t.fullName} placeholder={t.namePlaceholder} value={form.name} onChange={(v) => setForm({ ...form, name: v })} error={errors.name} />
+              <InputField label={t.fullName} placeholder={t.namePlaceholder} value={form.name} onChange={(v) => {
+                setForm({ ...form, name: v });
+                if (v) setErrors((prev) => ({ ...prev, name: false }));
+              }} error={errors.name} errorText={!form.name ? t.errorRequired : undefined} />
               <InputField label={t.phone} placeholder={t.phonePlaceholder} value={form.phone} onChange={(v) => {
                 const val = v.replace(/[^0-9+]/g, '');
                 setForm({ ...form, phone: val });
                 if (phoneRegex.test(val)) setErrors((prev) => ({ ...prev, phone: false }));
-              }} error={isInvalid('phone')} />
+              }} error={isInvalid('phone')} errorText={!form.phone ? t.errorRequired : t.errorPhone} />
             </div>
             <InputField label={t.cccd} placeholder={t.cccdPlaceholder} value={form.cccd} onChange={(v) => {
               const val = v.replace(/[^0-9]/g, '');
               setForm({ ...form, cccd: val });
               if (val) setErrors((prev) => ({ ...prev, cccd: false }));
-            }} error={errors.cccd} />
+            }} error={errors.cccd} errorText={!form.cccd ? t.errorRequired : undefined} />
             <InputField label={t.email} placeholder={t.emailPlaceholder} value={form.email} onChange={(v) => {
               setForm({ ...form, email: v });
               if (emailRegex.test(v)) setErrors((prev) => ({ ...prev, email: false }));
-            }} error={isInvalid('email')} />
-            <PasswordField t={t} value={form.pass} onChange={(v) => setForm({ ...form, pass: v })} error={errors.pass} showPass={showPass} onTogglePass={() => setShowPass(!showPass)} />
+            }} error={isInvalid('email')} errorText={!form.email ? t.errorRequired : t.errorEmail} />
+            <PasswordField t={t} value={form.pass} onChange={(v) => {
+              setForm({ ...form, pass: v });
+              if (v.length >= 8) setErrors((prev) => ({ ...prev, pass: false }));
+            }} error={errors.pass} errorText={!form.pass ? t.errorRequired : t.errorPass} showPass={showPass} onTogglePass={() => setShowPass(!showPass)} />
           </div>
 
           {/* Vehicle Section */}

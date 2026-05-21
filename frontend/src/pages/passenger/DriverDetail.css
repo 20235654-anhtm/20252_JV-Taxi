@@ -1,17 +1,22 @@
 .driver-detail-page {
   width: 100%;
   max-width: 390px;
-  min-height: 100vh;
+  height: 100vh;
+  height: 100dvh;
   margin: 0 auto;
   background: #F4FBF1;
   font-family: 'Plus Jakarta Sans', sans-serif;
   display: flex;
   flex-direction: column;
-  padding-bottom: 120px; /* Space for fixed button */
+  overflow: hidden;
+  position: relative;
 }
 
 .dd-content {
-  padding: 80px 20px 16px;
+  flex: 1;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: 80px 20px 140px;
 }
 
 .dd-main-card {
@@ -199,10 +204,10 @@
 
 /* ACTION BUTTON */
 .dd-footer {
-  position: fixed;
+  position: absolute;
   bottom: 0;
-  width: 100%;
-  max-width: 390px;
+  left: 0;
+  right: 0;
   background: white;
   border-radius: 32px 32px 0 0;
   padding: 24px 20px 32px;

@@ -1,14 +1,17 @@
 .rate-trip-container {
-  min-height: 100vh;
+  height: 100vh;
+  height: 100dvh;
   background-color: var(--color-bg-primary);
   display: flex;
   flex-direction: column;
-  padding-top: 72px; /* Adjusted from 80px */
-  padding-bottom: var(--spacing-6);
+  overflow: hidden;
 }
 
 .rate-trip-content {
-  padding: 0 var(--spacing-5);
+  flex: 1;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: 80px var(--spacing-5) 40px;
   display: flex;
   flex-direction: column;
   gap: var(--spacing-4); /* Reduced gap from 24px to 16px */

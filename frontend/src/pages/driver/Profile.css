@@ -3,13 +3,18 @@
   max-width: 450px;
   margin: 0 auto;
   background: #f4fbf1;
-  min-height: 100vh;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
   font-family: 'Plus Jakarta Sans', 'Noto Sans JP', sans-serif;
-  padding-bottom: 100px;
 }
 
 .dp-content {
-  padding: 80px 24px 24px;
+  flex: 1;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: 80px 24px 120px;
 }
 
 .dp-main-card {

@@ -317,10 +317,6 @@ html, body {
   bottom: 78px !important;
 }
 
-.map-with-bottom-nav .leaflet-control-attribution {
-  font-size: 9px !important;
-  opacity: 0.6;
-  background: rgba(255, 255, 255, 0.7) !important;
-  padding: 1px 4px !important;
-  border-radius: 4px !important;
+.leaflet-control-attribution {
+  display: none !important;
 }

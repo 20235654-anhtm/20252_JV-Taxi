@@ -9,6 +9,8 @@ import { useGeolocation } from '../../hooks/useGeolocation';
 import IncomingRequestPopup from '../../components/features/IncomingRequestPopup';
 import svgPaths from './svg-paths';
 import { socketService } from '../../services/socketService';
+import { showToast } from '../../components/ui/Toast';
+import { getCache, setCache, CACHE_KEYS } from '../../services/cacheService';
 import './DriverDashboard.css';
 
 const DriverDashboard = () => {
@@ -18,7 +20,8 @@ const DriverDashboard = () => {
   const [isOnline, setIsOnline] = useState(true);
   const [recenterKey, setRecenterKey] = useState(0);
   const [showPopup, setShowPopup] = useState(false);
-  const [driverData, setDriverData] = useState<any>(null);
+  const [currentRequest, setCurrentRequest] = useState<any>(null);
+  const [driverData, setDriverData] = useState<any>(() => getCache(CACHE_KEYS.DRIVER_PROFILE) || null);
   const [revenueData, setRevenueData] = useState<any>({
     dailyEarnings: 0,
     weeklyTotal: 0,
@@ -49,6 +52,7 @@ const DriverDashboard = () => {
         if (response.ok) {
           const data = await response.json();
           setDriverData(data.user);
+          setCache(CACHE_KEYS.DRIVER_PROFILE, data.user);
         }
       } catch (error) {
         console.error('Error fetching dashboard profile:', error);
@@ -120,6 +124,13 @@ const DriverDashboard = () => {
     updateStatus();
   }, [isOnline, position]);
 
+  const formatCurrency = (val: number) => {
+    return new Intl.NumberFormat('en-US').format(val);
+  };
+
+  const currentDayOfWeek = new Date().getDay();
+  const todayIndex = currentDayOfWeek === 0 ? 6 : currentDayOfWeek - 1;
+
   const handleTabChange = (tab: NavTab) => {
     setActiveTab(tab);
     if (tab === 'profile') {
@@ -168,7 +179,7 @@ const DriverDashboard = () => {
           } 
         });
       } else {
-        alert('Có lỗi xảy ra khi nhận chuyến.');
+        showToast('Có lỗi xảy ra khi nhận chuyến.', 'error');
       }
     } catch (err) {
       console.error('Error accepting ride:', err);
@@ -215,12 +226,11 @@ const DriverDashboard = () => {
 
   return (
     <div className="driver-dashboard-page">
-      {/* HEADER */}
       <Header
         variant="auth"
-        userAvatar={driverData?.driverProfile?.avatarPicture || "https://i.pravatar.cc/150?img=12"}
+        userAvatar={driverData?.avatar || driverData?.driverProfile?.avatarPicture || null}
+        userName={driverData?.fullName || "D"}
         onAvatarClick={() => navigate('/driver/profile')}
-        isFixed={false}
       />
 
       {/* MAP BACKGROUND */}
@@ -281,7 +291,7 @@ const DriverDashboard = () => {
         </div>
 
         <div className="dd-chart-container">
-          {weeklyDataWithHighlight.map((d, i) => {
+          {weeklyDataWithHighlight.map((d: any, i: number) => {
             const maxWeeklyVal = Math.max(...revenueData.weeklyData.map((w: any) => w.value), 1);
             const barHeightPercent = d.value > 0 ? (d.value / maxWeeklyVal) * 70 + 15 : 0;
             return (

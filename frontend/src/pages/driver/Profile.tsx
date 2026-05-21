@@ -36,8 +36,9 @@ export default function DriverProfile() {
       {/* HEADER */}
       <Header
         variant="passenger"
-        onAvatarClick={() => {}}
-        isFixed={false}
+        showBackButton={true}
+        title="プロフィール"
+        onBackClick={() => navigate("/driver")}
       />
 
       <div className="dp-content">

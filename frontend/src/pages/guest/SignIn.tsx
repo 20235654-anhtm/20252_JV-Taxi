@@ -17,11 +17,13 @@ const TRANSLATIONS = {
     login: "ログイン",
     newUser: "初めてご利用の方はこちら?",
     createAccount: "アカウント作成",
-    errorEmpty: "IDを入力してください。",
+    errorEmptyBoth: "電話番号・メールとパスワードを入力してください。",
+    errorEmpty: "電話番号・メールを入力してください。",
+    errorEmptyPass: "パスワードを入力してください。",
     errorInvalidId: "有効なメールアドレス（@を含む）または電話番号を入力してください。",
     errorPassShort: "パスワードは8文字以上で入力してください。",
     errorPassAlphanumeric: "パスワードは英数字で入力してください。",
-    errorAuth: "パスワードが正しくありません。もう一度お試しください。",
+    errorAuth: "メールアドレス/電話番号、またはパスワードが正しくありません。",
   },
   VN: {
     welcome: "Mừng bạn quay lại",
@@ -34,7 +36,10 @@ const TRANSLATIONS = {
     login: "Đăng nhập",
     newUser: "Chưa có tài khoản?",
     createAccount: "Tạo tài khoản",
-    errorAuth: "Mật khẩu không chính xác. Vui lòng thử lại.",
+    errorEmptyBoth: "Vui lòng nhập tài khoản và mật khẩu.",
+    errorEmpty: "Vui lòng nhập Email hoặc Số điện thoại.",
+    errorEmptyPass: "Vui lòng nhập mật khẩu.",
+    errorAuth: "Thông tin đăng nhập không chính xác. Vui lòng thử lại.",
     errorInvalidId: "Vui lòng nhập Email hoặc Số điện thoại hợp lệ.",
   },
 };
@@ -214,11 +219,21 @@ export default function SignIn() {
     setError(null);
     setErrorField(null);
 
-    if (!identifier || !password) {
-      setError(t.errorAuth);
-      if (!identifier && !password) setErrorField("both");
-      else if (!identifier) setErrorField("id");
-      else setErrorField("pass");
+    if (!identifier && !password) {
+      setError(t.errorEmptyBoth || "IDとパスワードを入力してください。");
+      setErrorField("both");
+      return;
+    }
+    
+    if (!identifier) {
+      setError(t.errorEmpty);
+      setErrorField("id");
+      return;
+    }
+    
+    if (!password) {
+      setError(t.errorEmptyPass);
+      setErrorField("pass");
       return;
     }
 

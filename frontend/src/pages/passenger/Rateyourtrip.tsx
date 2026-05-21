@@ -7,6 +7,7 @@ import { Card } from '../../components/ui/Card';
 import { Avatar } from '../../components/ui/Avatar';
 import { Heading } from '../../components/ui/Heading';
 import { Text } from '../../components/ui/Text';
+import { showToast } from '../../components/ui/Toast';
 import './Rateyourtrip.css';
 
 import { API_BASE_URL as API_HOST } from '../../config/api';
@@ -56,7 +57,7 @@ const Rateyourtrip: React.FC = () => {
       navigate('/passenger');
     } catch (error) {
       console.error('Failed to submit rating:', error);
-      alert('評価の送信に失敗しました。もう một lần thử lại.');
+      showToast('評価の送信に失敗しました。もう一度お試しください。', 'error');
     } finally {
       setIsSubmitting(false);
     }

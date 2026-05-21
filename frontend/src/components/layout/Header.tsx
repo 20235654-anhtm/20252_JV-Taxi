@@ -5,7 +5,8 @@ interface HeaderProps {
   variant?: 'passenger' | 'driver' | 'guest' | 'auth';
   showBackButton?: boolean;
   title?: string;
-  userAvatar?: string;
+  userAvatar?: string | null;
+  userName?: string;
   currentLang?: 'jp' | 'vn';
   onBackClick?: () => void;
   onLoginClick?: () => void;
@@ -23,6 +24,7 @@ export const Header: React.FC<HeaderProps> = ({
   showBackButton = false,
   title,
   userAvatar,
+  userName = 'U',
   currentLang = 'jp',
   onBackClick,
   onLoginClick,
@@ -93,13 +95,19 @@ export const Header: React.FC<HeaderProps> = ({
           {variant === 'auth' && (
             <button 
               onClick={onAvatarClick}
-              className="w-9 h-9 rounded-full border-2 border-[#1a4d2e] p-0.5 hover:scale-105 transition-transform"
+              className="w-9 h-9 rounded-full border-2 border-[#1a4d2e] p-0.5 hover:scale-105 transition-transform overflow-hidden"
             >
-              <img 
-                src={userAvatar || "https://i.pravatar.cc/150?img=33"} 
-                alt="Avatar" 
-                className="w-full h-full rounded-full object-cover"
-              />
+              {(userAvatar && !userAvatar.includes('pravatar.cc')) ? (
+                <img 
+                  src={userAvatar} 
+                  alt="Avatar" 
+                  className="w-full h-full rounded-full object-cover"
+                />
+              ) : (
+                <div className="w-full h-full rounded-full bg-gradient-to-br from-[#006d37] to-[#21a45d] text-white flex items-center justify-center font-black text-sm">
+                  {userName.charAt(0).toUpperCase()}
+                </div>
+              )}
             </button>
           )}
 

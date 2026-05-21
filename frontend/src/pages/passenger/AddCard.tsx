@@ -1,18 +1,35 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import { ArrowLeft, Wifi } from "lucide-react";
+import { showToast } from "../../components/ui/Toast";
+import { API_BASE_URL } from "../../config/api";
+import { getCache, setCache, CACHE_KEYS } from "../../services/cacheService";
 import "./AddCard.css";
 
 export default function AddCard() {
   const navigate = useNavigate();
+  const location = useLocation();
   const [formData, setFormData] = useState({
     cardNumber: "",
     cardHolder: "",
     expiry: "",
     cvv: ""
   });
+  
+  useEffect(() => {
+    if (location.state?.cardDetails) {
+      const [cardNumber, cardHolder, expiry, cvv] = location.state.cardDetails.split('|');
+      setFormData({
+        cardNumber: cardNumber || "",
+        cardHolder: cardHolder || "",
+        expiry: expiry || "",
+        cvv: cvv || ""
+      });
+    }
+  }, [location.state]);
 
-  const [errors, setErrors] = useState<Record<string, boolean>>({});
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const formatCardNumber = (value: string) => {
     const v = value.replace(/\s+/g, '').replace(/[^0-9]/gi, '');
@@ -59,23 +76,64 @@ export default function AddCard() {
   };
 
   const validate = () => {
-    const newErrors: Record<string, boolean> = {};
-    if (formData.cardNumber.replace(/\s/g, '').length < 14) newErrors.cardNumber = true;
-    if (!formData.cardHolder.trim()) newErrors.cardHolder = true;
-    if (formData.expiry.length < 5) newErrors.expiry = true;
-    if (formData.cvv.length < 3) newErrors.cvv = true;
+    const newErrors: Record<string, string> = {};
+    if (formData.cardNumber.replace(/\s/g, '').length < 14) newErrors.cardNumber = "有効なカード番号を入力してください";
+    if (!formData.cardHolder.trim()) newErrors.cardHolder = "カード名義人を入力してください";
+    if (formData.expiry.length < 5) newErrors.expiry = "有効期限を正しく入力してください";
+    if (formData.cvv.length < 3) newErrors.cvv = "セキュリティコードを入力してください";
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!validate()) return;
-    // Simulate API call
-    setTimeout(() => {
-      alert("カードを登録しました");
+    setIsSubmitting(true);
+    try {
+      const token = sessionStorage.getItem('authToken') || localStorage.getItem('authToken');
+      if (!token) {
+        navigate('/login');
+        return;
+      }
+
+      const response = await fetch(`${API_BASE_URL}/api/auth/profile/payment-method`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          cardNumber: formData.cardNumber.replace(/\s/g, ''),
+          cardHolder: formData.cardHolder,
+          expiry: formData.expiry,
+          cvv: formData.cvv
+        })
+      });
+
+      if (!response.ok) {
+        const errJson = await response.json();
+        throw new Error(errJson.message || 'エラーが発生しました');
+      }
+
+      showToast("カードを登録しました", "success");
+      
+      // Fetch latest profile to update cache and sessionStorage so Profile page reflects instantly
+      const meRes = await fetch(`${API_BASE_URL}/api/auth/me`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (meRes.ok) {
+        const meData = await meRes.json();
+        sessionStorage.setItem('user', JSON.stringify(meData.user));
+        setCache(CACHE_KEYS.USER_PROFILE, meData.user);
+      }
+      
       navigate(-1);
-    }, 1000);
+    } catch (error: any) {
+      console.error('Save card error:', error);
+      showToast(error.message, "error");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -125,6 +183,7 @@ export default function AddCard() {
                 className="ac-input"
               />
             </div>
+            {errors.cardNumber && <span className="text-red-500 text-xs font-medium mt-1">{errors.cardNumber}</span>}
           </div>
 
           <div className="ac-input-group ac-full-width">
@@ -139,6 +198,7 @@ export default function AddCard() {
                 className="ac-input"
               />
             </div>
+            {errors.cardHolder && <span className="text-red-500 text-xs font-medium mt-1">{errors.cardHolder}</span>}
           </div>
 
           <div className="ac-input-group">
@@ -153,6 +213,7 @@ export default function AddCard() {
                 className="ac-input"
               />
             </div>
+            {errors.expiry && <span className="text-red-500 text-xs font-medium mt-1">{errors.expiry}</span>}
           </div>
 
           <div className="ac-input-group">
@@ -167,14 +228,15 @@ export default function AddCard() {
                 className="ac-input"
               />
             </div>
+            {errors.cvv && <span className="text-red-500 text-xs font-medium mt-1">{errors.cvv}</span>}
           </div>
         </div>
 
         <div className="ac-actions">
-          <button className="ac-save-btn" onClick={handleSave}>
-            保存
+          <button className="ac-save-btn" onClick={handleSave} disabled={isSubmitting}>
+            {isSubmitting ? "処理中..." : "保存"}
           </button>
-          <button className="ac-cancel-btn" onClick={() => navigate(-1)}>
+          <button className="ac-cancel-btn" onClick={() => navigate(-1)} disabled={isSubmitting}>
             キャンセル
           </button>
         </div>

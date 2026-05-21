@@ -3,9 +3,12 @@
   max-width: 450px;
   margin: 0 auto;
   background: #f4fbf1;
-  min-height: 100vh;
+  height: 100vh;
+  height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
   font-family: 'Plus Jakarta Sans', 'Noto Sans JP', sans-serif;
-  padding-bottom: 40px;
 }
 
 .ac-header {
@@ -13,9 +16,8 @@
   align-items: center;
   padding: 16px 20px;
   background: white;
-  position: sticky;
-  top: 0;
   z-index: 100;
+  flex-shrink: 0;
 }
 
 .ac-back-btn {
@@ -38,6 +40,9 @@
 }
 
 .ac-content {
+  flex: 1;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
   padding: 24px;
 }
 

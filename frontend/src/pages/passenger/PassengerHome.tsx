@@ -4,6 +4,7 @@ import { MapView } from '../../components/features/MapView';
 import { Header } from '../../components/layout/Header';
 import { BottomNavBar } from '../../components/layout/BottomNavBar';
 import type { NavTab } from '../../components/layout/BottomNavBar';
+import { getCache, CACHE_KEYS } from '../../services/cacheService';
 import { FAB } from '../../components/ui/FAB';
 import { useGeolocation } from '../../hooks/useGeolocation';
 import { QuickBookingCard } from '../../components/features/QuickBookingCard';
@@ -18,6 +19,8 @@ const PassengerHome = () => {
   const [currentLang, setCurrentLang] = useState<'jp' | 'vn'>('jp');
   const [recenterKey, setRecenterKey] = useState(0);
   
+  const user = getCache<any>(CACHE_KEYS.USER_PROFILE) || JSON.parse(sessionStorage.getItem('user') || 'null');
+  
   const [destinationInput, setDestinationInput] = useState(destination?.address || '');
 
   const handleBookNow = () => {
@@ -29,7 +32,7 @@ const PassengerHome = () => {
     }
   };
 
-  const userAvatar = 'https://i.pravatar.cc/150?img=3';
+  const userAvatar = user?.avatar || user?.driverProfile?.avatarPicture || null;
 
   const handleTabChange = (tab: NavTab) => {
     setActiveTab(tab);
@@ -68,7 +71,7 @@ const PassengerHome = () => {
           <div className="absolute bottom-0 left-0 right-0 h-[400px] gradient-sheet pointer-events-none z-[1010]" />
 
           <QuickBookingCard
-            userName="佐藤"
+            userName={user?.fullName || 'お客様'}
             destinationValue={destinationInput}
             setDestinationValue={setDestinationInput}
             onBookNow={handleBookNow}

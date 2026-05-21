@@ -4,6 +4,7 @@ import { useLanguage } from "../../context/LanguageContext";
 import { Eye, EyeOff } from 'lucide-react';
 import svgPaths from "./svg-6rrnxvk6hs";
 import { API_BASE_URL } from "../../config/api";
+import { showToast } from "../../components/ui/Toast";
 
 const TRANSLATIONS = {
   JP: {
@@ -22,9 +23,10 @@ const TRANSLATIONS = {
     haveAccount: "アカウントをお持ちの方はこちら ",
     login: "ログイン",
     errorEmail: "有効なメールアドレスを入力してください",
-    errorPhone: "数字のみ入力してください",
-    errorPass: "最小8文字以上入力してください",
+    errorPhone: "有効な電話番号を入力してください",
+    errorPass: "パスワードは8文字以上で入力してください",
     errorAgree: "利用規約に同意してください",
+    errorRequired: "必須項目を入力してください",
   },
   VN: {
     headerTitle: "JV - Taxi",
@@ -42,9 +44,10 @@ const TRANSLATIONS = {
     haveAccount: "Bạn đã có tài khoản? ",
     login: "Đăng nhập",
     errorEmail: "Vui lòng nhập email hợp lệ",
-    errorPhone: "Vui lòng chỉ nhập số",
+    errorPhone: "Vui lòng nhập số điện thoại hợp lệ",
     errorPass: "Vui lòng nhập tối thiểu 8 ký tự",
     errorAgree: "Vui lòng đồng ý với điều khoản",
+    errorRequired: "Vui lòng điền thông tin này",
   },
 };
 
@@ -129,7 +132,7 @@ export default function PassengerSignUp() {
       navigate("/passenger");
     } catch (err: any) {
       console.error("Signup error:", err.message);
-      alert(err.message);
+      showToast(err.message, 'error');
     } finally {
       setLoading(false);
     }
@@ -166,9 +169,13 @@ export default function PassengerSignUp() {
                 placeholder={t.namePlaceholder}
                 className="bg-transparent border-none outline-none w-full text-[16px] text-[#171d17] placeholder-[#bccabc]"
                 value={form.name}
-                onChange={(e) => setForm({ ...form, name: e.target.value })}
+                onChange={(e) => {
+                  setForm({ ...form, name: e.target.value });
+                  if (e.target.value) setErrors((prev) => ({ ...prev, name: false }));
+                }}
               />
             </div>
+            {errors.name && <span className="text-red-500 text-xs font-medium pl-4">{t.errorRequired}</span>}
           </div>
 
           {/* Email */}
@@ -194,6 +201,7 @@ export default function PassengerSignUp() {
                 }}
               />
             </div>
+            {errors.email && <span className="text-red-500 text-xs font-medium pl-4">{!form.email ? t.errorRequired : t.errorEmail}</span>}
           </div>
 
           {/* Phone Number */}
@@ -219,6 +227,7 @@ export default function PassengerSignUp() {
                 }}
               />
             </div>
+            {errors.phone && <span className="text-red-500 text-xs font-medium pl-4">{!form.phone ? t.errorRequired : t.errorPhone}</span>}
           </div>
 
           {/* Password */}
@@ -237,12 +246,16 @@ export default function PassengerSignUp() {
                 placeholder={t.passPlaceholder}
                 className="bg-transparent border-none outline-none w-full text-[16px] text-[#171d17] placeholder-[#bccabc]"
                 value={form.pass}
-                onChange={(e) => setForm({ ...form, pass: e.target.value })}
+                onChange={(e) => {
+                  setForm({ ...form, pass: e.target.value });
+                  if (e.target.value.length >= 8) setErrors((prev) => ({ ...prev, pass: false }));
+                }}
               />
               <button onClick={() => setShowPass(!showPass)} className="shrink-0 flex items-center justify-center text-[#6D7A6E] hover:text-[#006d37] transition-colors outline-none focus:outline-none">
                 {showPass ? <Eye size={20} /> : <EyeOff size={20} />}
               </button>
             </div>
+            {errors.pass && <span className="text-red-500 text-xs font-medium pl-4">{!form.pass ? t.errorRequired : t.errorPass}</span>}
           </div>
 
           {/* Agreement Checkbox */}
@@ -261,6 +274,7 @@ export default function PassengerSignUp() {
               {t.agreeLabel}
             </div>
           </div>
+          {errors.agree && <span className="text-red-500 text-xs font-medium pl-4">{t.errorAgree}</span>}
 
           {/* Submit Button */}
           <button 
