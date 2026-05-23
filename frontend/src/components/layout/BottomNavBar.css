@@ -5,15 +5,15 @@
   width: 100%;
   max-width: 480px;
   bottom: 0;
-  height: 64px;
+  height: 90px;
   background: #fff;
-  box-shadow: 0 -2px 8px rgba(0,0,0,0.05);
+  box-shadow: 0 -10px 20px rgba(0,0,0,0.05);
   display: flex;
   justify-content: space-around;
   align-items: center;
   z-index: 100;
-  border-top-left-radius: 16px;
-  border-top-right-radius: 16px;
+  border-top-left-radius: 32px;
+  border-top-right-radius: 32px;
   box-sizing: border-box;
 }
 
@@ -60,9 +60,9 @@
 .nav-item.active {
   background: #eff6ec;
   color: #006D37;
-  border-radius: 16px;
-  height: calc(100% - 12px);
-  margin: 6px;
+  border-radius: 20px;
+  height: calc(100% - 24px);
+  margin: 12px 6px;
 }
 
 .nav-item .label {
@@ -71,7 +71,7 @@
 
 @media (max-width: 600px) {
   .bottom-nav-bar {
-    height: 56px;
+    height: 90px;
     font-size: 11px;
   }
 }

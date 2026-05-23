@@ -144,4 +144,15 @@ model Payment {
   paymentMethod PaymentMethod? @relation(fields: [paymentMethodId], references: [id])
 
   @@map("payments")
+} @@map("payments")
+}
+
+model Message {
+  id        String   @id @default(uuid()) @db.Uuid
+  rideId    String?  @map("ride_id") @db.Uuid
+  senderId  String?  @map("sender_id") @db.Uuid
+  content   String?  @db.Text
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("messages")
 }

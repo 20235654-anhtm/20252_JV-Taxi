@@ -282,7 +282,7 @@ function calculateEstimatedPrice(distanceInMeters: number): string {
   const perKmRate = 12000; // 12,000 VND/km
   const distanceKm = distanceInMeters / 1000;
   const totalFare = baseFare + (perKmRate * distanceKm);
-  
+
   // Format as "xxxk" 
   return `${Math.round(totalFare / 1000)}k`;
 }
@@ -326,7 +326,7 @@ router.get('/admin/pending', async (req: Request, res: Response) => {
 router.put('/admin/approve/:userId', async (req: Request, res: Response) => {
   try {
     const { userId } = req.params;
-    
+
     const updated = await prisma.driverProfile.update({
       where: { userId: userId as string },
       data: { isApproved: true },

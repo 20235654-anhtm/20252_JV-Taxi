@@ -181,14 +181,14 @@ const DriverApproval = () => {
           <div className="admin-header-actions">
             {/* Language Toggle */}
             <div className="admin-lang-toggle">
-              <button 
-                className={`lang-btn ${lang === 'JP' ? 'active' : ''}`} 
+              <button
+                className={`lang-btn ${lang === 'JP' ? 'active' : ''}`}
                 onClick={() => setLang('JP')}
               >
                 JP
               </button>
-              <button 
-                className={`lang-btn ${lang === 'VN' ? 'active' : ''}`} 
+              <button
+                className={`lang-btn ${lang === 'VN' ? 'active' : ''}`}
                 onClick={() => setLang('VN')}
               >
                 VN
@@ -238,9 +238,9 @@ const DriverApproval = () => {
                   <div className="driver-card-top">
                     {/* Avatar Container with Badge */}
                     <div className="driver-avatar-container">
-                      <img 
-                        src={driver.avatarPicture || "https://placehold.co/100x100?text=Driver"} 
-                        alt={driver.profile.fullName} 
+                      <img
+                        src={driver.avatarPicture || "https://placehold.co/100x100?text=Driver"}
+                        alt={driver.profile.fullName}
                         className="driver-card-avatar"
                       />
                       {jlpt && (
@@ -254,10 +254,10 @@ const DriverApproval = () => {
                     <div className="driver-card-meta">
                       <div className="driver-card-name-row">
                         <h3 className="driver-card-name">{driver.profile.fullName}</h3>
-                        
+
                         {/* More menu */}
                         <div className="driver-menu-wrapper">
-                          <button 
+                          <button
                             className="driver-menu-trigger-btn"
                             onClick={() => setActiveMenuId(activeMenuId === driver.userId ? null : driver.userId)}
                           >
@@ -267,7 +267,7 @@ const DriverApproval = () => {
                             <>
                               <div className="driver-menu-backdrop" onClick={() => setActiveMenuId(null)} />
                               <div className="driver-menu-dropdown">
-                                <button 
+                                <button
                                   onClick={() => {
                                     setActiveMenuId(null);
                                     handleApprove(driver.userId, driver.profile.fullName);
@@ -275,7 +275,7 @@ const DriverApproval = () => {
                                 >
                                   {t.modalApprove}
                                 </button>
-                                <button 
+                                <button
                                   onClick={() => {
                                     setActiveMenuId(null);
                                     setSelectedDriver(driver);
@@ -290,7 +290,7 @@ const DriverApproval = () => {
                       </div>
 
                       <p className="driver-card-date">{formatApplyDate(undefined, lang)}</p>
-                      
+
                       <div className="driver-card-status">
                         <span className="status-badge-waiting">{t.statusWaiting}</span>
                       </div>
@@ -311,7 +311,7 @@ const DriverApproval = () => {
 
                   {/* Details view button */}
                   <div className="driver-card-footer">
-                    <button 
+                    <button
                       className="admin-details-btn"
                       onClick={() => setSelectedDriver(driver)}
                     >
@@ -335,14 +335,14 @@ const DriverApproval = () => {
                 <X size={20} />
               </button>
             </div>
-            
+
             <div className="admin-modal-body">
               {/* Profile Head */}
               <div className="modal-avatar-section">
                 <div className="driver-avatar-container modal-size">
-                  <img 
-                    src={selectedDriver.avatarPicture || "https://placehold.co/100x100?text=Driver"} 
-                    alt={selectedDriver.profile.fullName} 
+                  <img
+                    src={selectedDriver.avatarPicture || "https://placehold.co/100x100?text=Driver"}
+                    alt={selectedDriver.profile.fullName}
                     className="driver-card-avatar"
                   />
                   {getJlptLevel(selectedDriver.japaneseCerInfor) && (
@@ -412,9 +412,9 @@ const DriverApproval = () => {
                 <div className="modal-attachment-section">
                   <span className="modal-detail-label">添付書類 (Tài liệu đính kèm)</span>
                   <div className="modal-attachment-preview">
-                    <img 
-                      src={selectedDriver.avatarPicture} 
-                      alt="License Attachment" 
+                    <img
+                      src={selectedDriver.avatarPicture}
+                      alt="License Attachment"
                       className="modal-license-image"
                     />
                   </div>
@@ -423,7 +423,7 @@ const DriverApproval = () => {
             </div>
 
             <div className="admin-modal-footer">
-              <button 
+              <button
                 className="admin-modal-approve-btn"
                 onClick={() => {
                   handleApprove(selectedDriver.userId, selectedDriver.profile.fullName);
@@ -432,7 +432,7 @@ const DriverApproval = () => {
               >
                 {t.modalApprove}
               </button>
-              <button 
+              <button
                 className="admin-modal-cancel-btn"
                 onClick={() => setSelectedDriver(null)}
               >

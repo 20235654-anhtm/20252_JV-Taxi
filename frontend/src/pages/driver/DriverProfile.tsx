@@ -53,13 +53,13 @@ export default function DriverProfile() {
     if (!cccd || cccd === "N/A" || cccd.length !== 12) {
       return "1985年5月12日"; // Default fallback
     }
-    
+
     const centuryDigit = parseInt(cccd.charAt(3), 10);
     const yearDigits = cccd.substring(4, 6);
     if (isNaN(centuryDigit) || isNaN(parseInt(yearDigits, 10))) {
       return "1985年5月12日";
     }
-    
+
     let birthYear = 1900 + parseInt(yearDigits, 10);
     if (centuryDigit === 2 || centuryDigit === 3) {
       birthYear = 2000 + parseInt(yearDigits, 10);
@@ -70,7 +70,7 @@ export default function DriverProfile() {
     } else if (centuryDigit === 8 || centuryDigit === 9) {
       birthYear = 1800 + parseInt(yearDigits, 10);
     }
-    
+
     const lastFour = parseInt(cccd.substring(8, 12), 10);
     let month = 5;
     let day = 12;
@@ -78,7 +78,7 @@ export default function DriverProfile() {
       month = (lastFour % 12) + 1;
       day = (lastFour % 28) + 1;
     }
-    
+
     return `${birthYear}年${month}月${day}日`;
   };
 
@@ -264,14 +264,14 @@ export default function DriverProfile() {
   return (
     <div className="bg-[#f4fbf1] h-full w-full flex flex-col items-center overflow-hidden font-['Plus_Jakarta_Sans',sans-serif]">
       <HeaderTopAppBar avatarUrl={dp.avatarPicture} />
-      
+
       <main className="w-full max-w-[480px] px-[24px] pt-[80px] pb-[140px] flex-1 overflow-y-auto flex flex-col gap-[24px]" style={{ WebkitOverflowScrolling: 'touch' }}>
         {/* Hero Section */}
         <div className="bg-white relative rounded-[32px] p-[32px] flex flex-col items-center gap-[24px] shadow-sm w-full">
           <div className="absolute bg-[rgba(0,109,55,0.05)] blur-[32px] right-[-32px] rounded-[9999px] size-[128px] top-[-32px]" />
-          
+
           <div className="relative rounded-full size-[96px] border-4 border-[rgba(0,109,55,0.1)] p-[4px]">
-             <img alt="Avatar" className="rounded-full size-full object-cover" src={dp.avatarPicture || imgDriverProfile} />
+            <img alt="Avatar" className="rounded-full size-full object-cover" src={dp.avatarPicture || imgDriverProfile} />
           </div>
 
           <div className="text-center">
@@ -281,11 +281,11 @@ export default function DriverProfile() {
 
           <div className="flex gap-[8px]">
             <div className="bg-[#e9f0e6] rounded-full px-[12px] py-[6px] flex items-center gap-[6px]">
-              <svg className="size-[14px]" fill="none" viewBox="0 0 15 14.25"><path d={svgPaths.p389def00} fill="#006D37"/></svg>
+              <svg className="size-[14px]" fill="none" viewBox="0 0 15 14.25"><path d={svgPaths.p389def00} fill="#006D37" /></svg>
               <span className="text-[14px] font-bold text-[#171d17]">{dp.averageRating || "4.98"}</span>
             </div>
             <div className="bg-[#e9f0e6] rounded-full px-[12px] py-[6px] flex items-center gap-[6px]">
-              <svg className="size-[14px]" fill="none" viewBox="0 0 16.5 15"><path d={svgPaths.p2cad85c0} fill="#006D37"/></svg>
+              <svg className="size-[14px]" fill="none" viewBox="0 0 16.5 15"><path d={svgPaths.p2cad85c0} fill="#006D37" /></svg>
               <span className="text-[14px] font-bold text-[#171d17]">{dp.japaneseCerInfor || "JLPT N2"}</span>
             </div>
           </div>
@@ -444,15 +444,15 @@ export default function DriverProfile() {
                 <div className="relative rounded-full size-[96px] border-4 border-[rgba(0,109,55,0.1)] p-[4px]">
                   <img alt="Avatar" className="rounded-full size-full object-cover" src={editAvatarImage ? URL.createObjectURL(editAvatarImage) : (dp.avatarPicture || imgDriverProfile)} />
                   <label className="absolute bottom-0 right-0 bg-[#006d37] hover:bg-[#00542a] text-white p-[6px] rounded-full cursor-pointer shadow-md border-2 border-white transition-all flex items-center justify-center size-[28px]">
-                    <input 
-                      type="file" 
+                    <input
+                      type="file"
                       accept="image/*"
                       onChange={(e) => {
                         if (e.target.files && e.target.files.length > 0) {
                           setEditAvatarImage(e.target.files[0]);
                         }
                       }}
-                      className="hidden" 
+                      className="hidden"
                     />
                     <svg className="size-[14px]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
                       <path strokeLinecap="round" strokeLinejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
@@ -468,13 +468,13 @@ export default function DriverProfile() {
                   <svg className="size-[16px]" fill="none" viewBox="0 0 16 16"><path d={svgPaths.p85bff00} fill="#006D37" /></svg>
                   <span>個人情報</span>
                 </div>
-                
+
                 {/* Full Name */}
                 <div className="bg-[#eff6ec] rounded-[16px] px-[16px] py-[10px] flex flex-col gap-[2px] border border-[rgba(0,109,55,0.05)] shadow-sm">
                   <span className="text-[10px] font-bold text-[#006d37] uppercase tracking-wide">氏名</span>
-                  <input 
-                    type="text" 
-                    value={editForm.fullName} 
+                  <input
+                    type="text"
+                    value={editForm.fullName}
                     onChange={(e) => setEditForm({ ...editForm, fullName: e.target.value })}
                     required
                     className="bg-transparent text-[#171d17] font-semibold text-[15px] focus:outline-none w-full"
@@ -484,9 +484,9 @@ export default function DriverProfile() {
                 {/* Email */}
                 <div className="bg-[#eff6ec] rounded-[16px] px-[16px] py-[10px] flex flex-col gap-[2px] border border-[rgba(0,109,55,0.05)] shadow-sm">
                   <span className="text-[10px] font-bold text-[#006d37] uppercase tracking-wide">メールアドレス</span>
-                  <input 
-                    type="email" 
-                    value={editForm.email} 
+                  <input
+                    type="email"
+                    value={editForm.email}
                     onChange={(e) => setEditForm({ ...editForm, email: e.target.value })}
                     required
                     className="bg-transparent text-[#171d17] font-semibold text-[15px] focus:outline-none w-full"
@@ -496,9 +496,9 @@ export default function DriverProfile() {
                 {/* Phone */}
                 <div className="bg-[#eff6ec] rounded-[16px] px-[16px] py-[10px] flex flex-col gap-[2px] border border-[rgba(0,109,55,0.05)] shadow-sm">
                   <span className="text-[10px] font-bold text-[#006d37] uppercase tracking-wide">電話番号</span>
-                  <input 
-                    type="text" 
-                    value={editForm.phone} 
+                  <input
+                    type="text"
+                    value={editForm.phone}
                     onChange={(e) => setEditForm({ ...editForm, phone: e.target.value.replace(/[^0-9]/g, '') })}
                     required
                     className="bg-transparent text-[#171d17] font-semibold text-[15px] focus:outline-none w-full"
@@ -516,9 +516,9 @@ export default function DriverProfile() {
                 {/* Plate */}
                 <div className="bg-[#eff6ec] rounded-[16px] px-[16px] py-[10px] flex flex-col gap-[2px] border border-[rgba(0,109,55,0.05)] shadow-sm">
                   <span className="text-[10px] font-bold text-[#006d37] uppercase tracking-wide">ナンバープレート</span>
-                  <input 
-                    type="text" 
-                    value={editForm.plate} 
+                  <input
+                    type="text"
+                    value={editForm.plate}
                     onChange={(e) => setEditForm({ ...editForm, plate: e.target.value })}
                     required
                     className="bg-transparent text-[#171d17] font-semibold text-[15px] focus:outline-none w-full"
@@ -529,7 +529,7 @@ export default function DriverProfile() {
                 <div className="bg-[#eff6ec] rounded-[16px] px-[16px] py-[10px] flex flex-col gap-[6px] border border-[rgba(0,109,55,0.05)] shadow-sm relative">
                   <span className="text-[10px] font-bold text-[#006d37] uppercase tracking-wide">車種タイプ</span>
                   <div className="relative">
-                    <div 
+                    <div
                       onClick={(e) => { e.preventDefault(); setIsCarTypeDropdownOpen(!isCarTypeDropdownOpen); }}
                       className="flex items-center justify-between gap-[6px] bg-white border border-[#006d37] shadow-sm rounded-full px-[12px] py-[4px] cursor-pointer hover:bg-[#f0fdf4] transition-all w-[110px]"
                     >
@@ -538,13 +538,13 @@ export default function DriverProfile() {
                         <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
                       </svg>
                     </div>
-                    
+
                     {isCarTypeDropdownOpen && (
                       <>
                         <div className="fixed inset-0 z-30" onClick={(e) => { e.stopPropagation(); setIsCarTypeDropdownOpen(false); }} />
                         <div className="absolute top-[120%] left-0 w-[110px] bg-white/95 backdrop-blur-md border border-[rgba(0,109,55,0.15)] shadow-[0_8px_30px_rgb(0,0,0,0.12)] rounded-[16px] overflow-hidden flex flex-col z-40">
                           {["Sedan", "SUV", "Luxury"].map(type => (
-                            <div 
+                            <div
                               key={type}
                               onClick={(e) => {
                                 e.preventDefault();
@@ -567,9 +567,9 @@ export default function DriverProfile() {
                 {/* Model */}
                 <div className="bg-[#eff6ec] rounded-[16px] px-[16px] py-[10px] flex flex-col gap-[2px] border border-[rgba(0,109,55,0.05)] shadow-sm">
                   <span className="text-[10px] font-bold text-[#006d37] uppercase tracking-wide">車種モデル</span>
-                  <input 
-                    type="text" 
-                    value={editForm.model} 
+                  <input
+                    type="text"
+                    value={editForm.model}
                     onChange={(e) => setEditForm({ ...editForm, model: e.target.value })}
                     required
                     className="bg-transparent text-[#171d17] font-semibold text-[15px] focus:outline-none w-full"
@@ -589,15 +589,15 @@ export default function DriverProfile() {
                 <div className="grid grid-cols-2 gap-[16px]">
                   {/* License Upload Box */}
                   <div className="bg-white border-2 border-dashed border-[#bccabc] rounded-[24px] p-[16px] flex flex-col items-center justify-between text-center gap-[12px] shadow-sm relative cursor-pointer hover:bg-[#f0fdf4] transition-all">
-                    <input 
-                      type="file" 
+                    <input
+                      type="file"
                       accept="image/*,application/pdf"
                       onChange={(e) => {
                         if (e.target.files && e.target.files.length > 0) {
                           showToast('運転免許証をアップロードしました。', 'success');
                         }
                       }}
-                      className="absolute inset-0 opacity-0 cursor-pointer w-full h-full" 
+                      className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
                     />
                     <div className="size-[32px] bg-[#e9f0e6] rounded-full flex items-center justify-center text-[#006d37]">
                       <svg className="size-[16px]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
@@ -608,78 +608,78 @@ export default function DriverProfile() {
                     <span className="bg-[#e9f0e6] text-[#006d37] font-bold text-[10px] px-[12px] py-[4px] rounded-full">アップロード</span>
                   </div>
 
-                   {/* JLPT Change Box */}
-                   <div className="bg-white border-2 border-dashed border-[#bccabc] rounded-[24px] p-[16px] flex flex-col items-center justify-between text-center gap-[8px] shadow-sm relative cursor-pointer hover:bg-[#f0fdf4] transition-all">
-                     <input 
-                       type="file" 
-                       accept="image/*,application/pdf"
-                       onChange={(e) => {
-                         if (e.target.files && e.target.files.length > 0) {
-                           showToast('日本語能力試験の証明書をアップロードしました。', 'success');
-                         }
-                       }}
-                       className="absolute inset-0 opacity-0 cursor-pointer w-full h-full" 
-                     />
-                     <div className="size-[32px] bg-[#e9f0e6] rounded-full flex items-center justify-center text-[#006d37]">
-                       <svg className="size-[16px]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
-                         <path strokeLinecap="round" strokeLinejoin="round" d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5c-.004 5.344-2.4 10.354-6.4 13.775" />
-                       </svg>
-                     </div>
-                     <span className="text-[12px] font-bold text-[#171d17]">日本語能力試験</span>
-                     
-                     <div className="relative z-20" onClick={(e) => e.stopPropagation()}>
-                       <div 
-                         onClick={(e) => { e.preventDefault(); setIsJlptDropdownOpen(!isJlptDropdownOpen); }}
-                         className="flex items-center justify-between gap-[6px] bg-white border border-[#006d37] shadow-sm rounded-full px-[12px] py-[4px] cursor-pointer hover:bg-[#f0fdf4] transition-all"
-                       >
-                         <span className="font-bold text-[13px] text-[#006d37]">{editForm.japaneseCerInfor}</span>
-                         <svg className={`size-[14px] text-[#006d37] transition-transform duration-300 ${isJlptDropdownOpen ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3">
-                           <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
-                         </svg>
-                       </div>
-                       
-                       {isJlptDropdownOpen && (
-                         <>
-                           <div className="fixed inset-0 z-30" onClick={(e) => { e.stopPropagation(); setIsJlptDropdownOpen(false); }} />
-                           <div className="absolute top-[120%] left-1/2 -translate-x-1/2 w-[120px] bg-white/95 backdrop-blur-md border border-[rgba(0,109,55,0.15)] shadow-[0_8px_30px_rgb(0,0,0,0.12)] rounded-[16px] overflow-hidden flex flex-col z-40">
-                             {["JLPT N1", "JLPT N2", "JLPT N3", "JLPT N4", "JLPT N5"].map(level => (
-                               <div 
-                                 key={level}
-                                 onClick={(e) => {
-                                   e.preventDefault();
-                                   e.stopPropagation();
-                                   setEditForm({ ...editForm, japaneseCerInfor: level });
-                                   setIsJlptDropdownOpen(false);
-                                 }}
-                                 className={`px-[16px] py-[10px] text-[13px] font-bold cursor-pointer transition-all text-center border-b border-gray-50 last:border-0
-                                   ${editForm.japaneseCerInfor === level ? 'bg-[#006d37] text-white' : 'text-[#3d4a3f] hover:bg-[#f0fdf4] hover:text-[#006d37]'}`}
-                               >
-                                 {level}
-                               </div>
-                             ))}
-                           </div>
-                         </>
-                       )}
-                     </div>
+                  {/* JLPT Change Box */}
+                  <div className="bg-white border-2 border-dashed border-[#bccabc] rounded-[24px] p-[16px] flex flex-col items-center justify-between text-center gap-[8px] shadow-sm relative cursor-pointer hover:bg-[#f0fdf4] transition-all">
+                    <input
+                      type="file"
+                      accept="image/*,application/pdf"
+                      onChange={(e) => {
+                        if (e.target.files && e.target.files.length > 0) {
+                          showToast('日本語能力試験の証明書をアップロードしました。', 'success');
+                        }
+                      }}
+                      className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
+                    />
+                    <div className="size-[32px] bg-[#e9f0e6] rounded-full flex items-center justify-center text-[#006d37]">
+                      <svg className="size-[16px]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5c-.004 5.344-2.4 10.354-6.4 13.775" />
+                      </svg>
+                    </div>
+                    <span className="text-[12px] font-bold text-[#171d17]">日本語能力試験</span>
 
-                     <span className="bg-[#e9f0e6] text-[#006d37] font-bold text-[10px] px-[12px] py-[4px] rounded-full z-10 pointer-events-none">変更</span>
-                   </div>
-                 </div>
+                    <div className="relative z-20" onClick={(e) => e.stopPropagation()}>
+                      <div
+                        onClick={(e) => { e.preventDefault(); setIsJlptDropdownOpen(!isJlptDropdownOpen); }}
+                        className="flex items-center justify-between gap-[6px] bg-white border border-[#006d37] shadow-sm rounded-full px-[12px] py-[4px] cursor-pointer hover:bg-[#f0fdf4] transition-all"
+                      >
+                        <span className="font-bold text-[13px] text-[#006d37]">{editForm.japaneseCerInfor}</span>
+                        <svg className={`size-[14px] text-[#006d37] transition-transform duration-300 ${isJlptDropdownOpen ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                        </svg>
+                      </div>
+
+                      {isJlptDropdownOpen && (
+                        <>
+                          <div className="fixed inset-0 z-30" onClick={(e) => { e.stopPropagation(); setIsJlptDropdownOpen(false); }} />
+                          <div className="absolute top-[120%] left-1/2 -translate-x-1/2 w-[120px] bg-white/95 backdrop-blur-md border border-[rgba(0,109,55,0.15)] shadow-[0_8px_30px_rgb(0,0,0,0.12)] rounded-[16px] overflow-hidden flex flex-col z-40">
+                            {["JLPT N1", "JLPT N2", "JLPT N3", "JLPT N4", "JLPT N5"].map(level => (
+                              <div
+                                key={level}
+                                onClick={(e) => {
+                                  e.preventDefault();
+                                  e.stopPropagation();
+                                  setEditForm({ ...editForm, japaneseCerInfor: level });
+                                  setIsJlptDropdownOpen(false);
+                                }}
+                                className={`px-[16px] py-[10px] text-[13px] font-bold cursor-pointer transition-all text-center border-b border-gray-50 last:border-0
+                                   ${editForm.japaneseCerInfor === level ? 'bg-[#006d37] text-white' : 'text-[#3d4a3f] hover:bg-[#f0fdf4] hover:text-[#006d37]'}`}
+                              >
+                                {level}
+                              </div>
+                            ))}
+                          </div>
+                        </>
+                      )}
+                    </div>
+
+                    <span className="bg-[#e9f0e6] text-[#006d37] font-bold text-[10px] px-[12px] py-[4px] rounded-full z-10 pointer-events-none">変更</span>
+                  </div>
+                </div>
 
                 {/* Car Image Preview */}
 
                 <div className="rounded-[24px] overflow-hidden shadow-sm h-[180px] w-full border border-[rgba(0,109,55,0.1)] relative">
                   <img src={editCarImage ? URL.createObjectURL(editCarImage) : carImageUrl} alt="Vehicle" className="size-full object-cover" />
                   <label className="absolute bottom-[12px] right-[12px] bg-[#006d37] hover:bg-[#00542a] text-white p-[8px] rounded-full cursor-pointer shadow-md border-2 border-white transition-all flex items-center justify-center size-[36px]">
-                    <input 
-                      type="file" 
+                    <input
+                      type="file"
                       accept="image/*"
                       onChange={(e) => {
                         if (e.target.files && e.target.files.length > 0) {
                           setEditCarImage(e.target.files[0]);
                         }
                       }}
-                      className="hidden" 
+                      className="hidden"
                     />
                     <svg className="size-[16px]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
                       <path strokeLinecap="round" strokeLinejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
@@ -690,8 +690,8 @@ export default function DriverProfile() {
 
               {/* Action Buttons */}
               <div className="flex flex-col gap-[12px] pt-[12px]">
-                <button 
-                  type="submit" 
+                <button
+                  type="submit"
                   disabled={editLoading}
                   className="w-full bg-[#006d37] hover:bg-[#00542a] text-white py-[16px] rounded-full font-bold text-[16px] shadow-lg active:scale-[0.98] transition-all flex items-center justify-center gap-[8px]"
                 >
@@ -699,7 +699,7 @@ export default function DriverProfile() {
                     <span className="animate-spin rounded-full h-5 w-5 border-t-2 border-b-2 border-white"></span>
                   ) : "保存"}
                 </button>
-                <button 
+                <button
                   type="button"
                   onClick={() => setIsEditing(false)}
                   className="w-full bg-[#e9f0e6] hover:bg-[#d8e5d4] text-[#3d4a3f] py-[16px] rounded-full font-bold text-[16px] active:scale-[0.98] transition-all"

@@ -34,7 +34,7 @@ const uploadToSupabase = async (file: Express.Multer.File, folder: string): Prom
       if (fs.existsSync(file.path)) {
         fs.unlinkSync(file.path);
       }
-    } catch (e) {}
+    } catch (e) { }
 
     return urlData.publicUrl;
   } catch (err) {
@@ -271,7 +271,7 @@ export const register = async (req: Request, res: Response) => {
     if (role === 'DRIVER') {
       const { vehicleType, plate, year, drivingLicense, jlpt, carType, cccd } = req.body;
       const files = req.files as Express.Multer.File[];
-      
+
       const carImageFile = files?.find(f => f.fieldname === 'images');
       let carImageUrl = null;
       if (carImageFile) {
@@ -299,7 +299,7 @@ export const register = async (req: Request, res: Response) => {
       await prisma.driverProfile.create({
         data: {
           userId: profile.id,
-          vehicleType: carType || 'Sedan', 
+          vehicleType: carType || 'Sedan',
           vehicleInfor: vehicleInforJson,
           drivingLicenseInfor: drivingLicense || 'N/A',
           japaneseCerInfor: jlpt || 'N/A',
@@ -316,7 +316,7 @@ export const register = async (req: Request, res: Response) => {
             if (fs.existsSync(file.path)) {
               fs.unlinkSync(file.path);
             }
-          } catch (e) {}
+          } catch (e) { }
         }
       }
     }
@@ -348,7 +348,7 @@ export const updateProfile = async (req: any, res: Response) => {
   try {
     const userId = req.user.userId;
     const { fullName, phone, email, vehicleType, model, plate, year, japaneseCerInfor, drivingLicenseInfor, identityCard } = req.body;
-    
+
     // Check if profile exists
     const profile = await prisma.profile.findUnique({
       where: { id: userId },
@@ -361,7 +361,7 @@ export const updateProfile = async (req: any, res: Response) => {
 
     // Handle files if any
     const files = req.files as Express.Multer.File[];
-    
+
     const avatarFile = files?.find(f => f.fieldname === 'avatar');
     let avatarImageUrl = null;
     if (avatarFile) {
@@ -381,7 +381,7 @@ export const updateProfile = async (req: any, res: Response) => {
           if (fs.existsSync(file.path)) {
             fs.unlinkSync(file.path);
           }
-        } catch (e) {}
+        } catch (e) { }
       }
     }
 
