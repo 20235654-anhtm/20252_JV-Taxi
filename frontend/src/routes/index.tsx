@@ -24,6 +24,7 @@ import Rateyourtrip from '../pages/passenger/Rateyourtrip';
 import ChatwithDriver from '../pages/passenger/ChatwithDriver';
 import CallDriver from '../pages/passenger/CallDriver';
 import InTrip from '../pages/passenger/InTrip';
+import PassengerManagement from '../pages/passenger/Passenger management';
 
 // Driver Pages
 import DriverDashboard from '../pages/driver/DriverDashboard';
@@ -33,6 +34,9 @@ import DriverCallTest from '../pages/driver/DriverCallTest';
 import ChatwithPassenger from '../pages/driver/ChatwithPassenger';
 import CallPassenger from '../pages/driver/CallPassenger';
 import DriverApproval from '../pages/admin/DriverApproval';
+import DriverApprovalList from '../pages/admin/DriverApprovalList';
+import AdminDashboard from '../pages/admin/AdminDashboard';
+import DriverManagement from '../pages/admin/DriverManagement';
 
 // ── Auth Guards ──
 
@@ -110,6 +114,7 @@ const AppRoutes = () => {
       <Route path="/passenger/call-driver" element={<ProtectedRoute allowedRole="CUSTOMER"><CallDriver /></ProtectedRoute>} />
       <Route path="/passenger/in-trip" element={<ProtectedRoute allowedRole="CUSTOMER"><InTrip /></ProtectedRoute>} />
       <Route path="/passenger/rate-trip" element={<ProtectedRoute allowedRole="CUSTOMER"><Rateyourtrip /></ProtectedRoute>} />
+      <Route path="/passenger/management" element={<ProtectedRoute allowedRole="CUSTOMER"><PassengerManagement /></ProtectedRoute>} />
 
       {/* ======================= DRIVER FLOW (AUTHENTICATED) ======================= */}
       <Route path="/driver" element={<ProtectedRoute allowedRole="DRIVER"><DriverDashboard /></ProtectedRoute>} />
@@ -121,6 +126,9 @@ const AppRoutes = () => {
 
       {/* ======================= ADMIN FLOW ======================= */}
       <Route path="/admin" element={<DriverApproval />} />
+      <Route path="/admin/dashboard" element={<AdminDashboard />} />
+      <Route path="/admin/driver-management" element={<DriverManagement />} />
+      <Route path="/admin/driver-approval-list" element={<DriverApprovalList />} />
     </Routes>
   );
 };

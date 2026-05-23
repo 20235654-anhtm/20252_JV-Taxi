@@ -60,6 +60,11 @@ async function main() {
       { id: '22222222-2222-2222-2222-222222222222', name: "Giảng Viên HUST", phone: "0977777777", email: "giangvien@hust.edu.vn", password: "12345678" }
     ];
 
+    // Dữ liệu Admin
+    const admins = [
+      { id: '33333333-3333-3333-3333-111111111111', name: "Hệ Thống Admin", phone: "0900000000", email: "admin@jvtaxi.vn", password: "12345678" }
+    ];
+
     // Upsert Profiles Khách hàng
     for (const c of customers) {
       const hashedPassword = await bcrypt.hash(c.password, SALT_ROUNDS);
@@ -76,6 +81,17 @@ async function main() {
         ON CONFLICT DO NOTHING;
       `);
       console.log(`Đã cập nhật/tạo khách hàng: ${c.name}`);
+    }
+
+    // Upsert Profiles Admin
+    for (const a of admins) {
+      const hashedPassword = await bcrypt.hash(a.password, SALT_ROUNDS);
+      await prisma.$executeRawUnsafe(`
+        INSERT INTO "profiles" ("id", "full_name", "phone", "email", "password_hash", "role", "status") 
+        VALUES ('${a.id}'::uuid, '${a.name}', '${a.phone}', '${a.email}', '${hashedPassword}', 'ADMIN', 'ACTIVE')
+        ON CONFLICT (id) DO UPDATE SET "full_name" = EXCLUDED."full_name", "phone" = EXCLUDED."phone", "email" = EXCLUDED."email", "password_hash" = EXCLUDED."password_hash";
+      `);
+      console.log(`Đã cập nhật/tạo admin: ${a.name}`);
     }
 
     // Upsert Profiles & DriverProfiles Tài xế
