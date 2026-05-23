@@ -7,6 +7,7 @@ import authRoutes from './routes/auth.routes';
 import paymentRoutes from './routes/payment.routes';
 import callRoutes from './routes/call.routes';
 import rideRoutes from './routes/ride.routes';
+import adminRoutes from './routes/admin.routes';
 import dotenv from 'dotenv';
 import cors from 'cors';
 
@@ -51,6 +52,7 @@ app.use('/api/destinations', destinationRoutes);
 app.use('/api/payments', paymentRoutes);
 app.use('/api/call', callRoutes);
 app.use('/api/rides', rideRoutes);
+app.use('/api/admin', adminRoutes);
 app.get('/', (req: Request, res: Response) => {
     res.send('Backend Express Server is running');
 });
