@@ -180,19 +180,29 @@ const DriverApproval = () => {
 
           <div className="admin-header-actions">
             {/* Language Toggle */}
-            <div className="admin-lang-toggle">
+            <div className="flex items-center bg-[#f5f5f5] rounded-full p-1 min-w-[86px] relative h-[36px]">
               <button
-                className={`lang-btn ${lang === 'JP' ? 'active' : ''}`}
                 onClick={() => setLang('JP')}
+                className={`relative z-10 w-1/2 h-full flex justify-center items-center text-[10px] font-black transition-all duration-300 ${
+                  lang === 'JP' ? 'text-white' : 'text-[#8e8e8e]'
+                }`}
               >
                 JP
               </button>
               <button
-                className={`lang-btn ${lang === 'VN' ? 'active' : ''}`}
                 onClick={() => setLang('VN')}
+                className={`relative z-10 w-1/2 h-full flex justify-center items-center text-[10px] font-black transition-all duration-300 ${
+                  lang === 'VN' ? 'text-white' : 'text-[#8e8e8e]'
+                }`}
               >
                 VN
               </button>
+              {/* Sliding Indicator */}
+              <div
+                className={`absolute top-1 bottom-1 w-[calc(50%-4px)] bg-[#1a4d2e] rounded-full transition-all duration-300 shadow-sm ${
+                  lang === 'JP' ? 'left-1' : 'left-[calc(50%+3px)]'
+                }`}
+              />
             </div>
           </div>
         </div>

@@ -3,7 +3,14 @@ import { UsersRound, ShieldCheck } from 'lucide-react';
 import svgPaths from '../../pages/driver/svg-paths';
 import './BottomNavBar.css';
 
-const adminNavs = [
+interface AdminNavItem {
+  icon: (active: boolean) => React.ReactNode;
+  label: string;
+  active: boolean;
+  badge?: string | number;
+}
+
+const adminNavs: AdminNavItem[] = [
   {
     icon: (active: boolean) => (
       <svg width="24" height="24" viewBox="0 0 16.5 16.5">

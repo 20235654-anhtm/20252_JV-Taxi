@@ -51,31 +51,7 @@
   gap: 16px;
 }
 
-/* Language Toggle Button Pill */
-.admin-lang-toggle {
-  display: flex;
-  background-color: #eff6ec;
-  padding: 4px;
-  border-radius: 9999px;
-  border: 1.5px solid #d2ded5;
-}
 
-.lang-btn {
-  padding: 6px 12px;
-  border-radius: 9999px;
-  font-size: 12px;
-  font-weight: 700;
-  border: none;
-  cursor: pointer;
-  background-color: transparent;
-  color: #8fa695;
-  transition: all 0.2s ease;
-}
-
-.lang-btn.active {
-  background-color: #006D37;
-  color: #ffffff;
-}
 
 .admin-logout-icon-btn {
   background: transparent;
