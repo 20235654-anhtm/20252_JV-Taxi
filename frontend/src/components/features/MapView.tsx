@@ -128,6 +128,10 @@ interface MapViewProps {
   interactive?: boolean;
   routePadding?: [[number, number], [number, number]];
   viewPadding?: { top?: number; bottom?: number; left?: number; right?: number };
+  hideDestinationMarker?: boolean;
+  routeColor?: string;
+  routeOutlineColor?: string;
+  children?: React.ReactNode;
 }
 
 export function MapView({
@@ -143,7 +147,11 @@ export function MapView({
   showZoomControl = false,
   interactive = true,
   routePadding,
-  viewPadding
+  viewPadding,
+  hideDestinationMarker = false,
+  routeColor,
+  routeOutlineColor,
+  children
 }: MapViewProps) {
 
   // Loading spinner (chỉ khi CHƯA bị denied và chưa có vị trí)
@@ -190,7 +198,7 @@ export function MapView({
         />
 
         {/* Vẽ đường đi giữa 2 điểm */}
-        <MapRoute start={pickupPosition || null} end={destinationPosition || null} />
+        <MapRoute start={pickupPosition || null} end={destinationPosition || null} color={routeColor} outlineColor={routeOutlineColor} />
 
         {/* Marker vị trí GPS thực tế */}
         {position && !pickupPosition && (
@@ -205,13 +213,15 @@ export function MapView({
             type="pickup"
           />
         )}
-        {destinationPosition && (
+        {destinationPosition && !hideDestinationMarker && (
           <LocationMarker
             position={destinationPosition}
             label="目的地"
             type="destination"
           />
         )}
+
+        {children}
       </MapContainer>
 
       {/* Popup phủ lên bản đồ khi quyền GPS bị từ chối */}

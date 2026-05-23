@@ -60,15 +60,15 @@ const WaitingDriver = () => {
     };
   }, []);
 
-  // Redirect to chat when accepted
+  // Redirect to live tracking when accepted
   useEffect(() => {
     if (status === 'accepted') {
       const timer = setTimeout(() => {
-        navigate('/passenger/chat', { 
-          state: { 
-            driver, 
-            rideId: location.state?.rideId 
-          } 
+        navigate('/passenger/waiting-driver-pickup', {
+          state: {
+            driver,
+            rideId: location.state?.rideId
+          }
         });
       }, 2500);
       return () => clearTimeout(timer);
@@ -99,23 +99,31 @@ const WaitingDriver = () => {
         hideBrandName={true}
         hideLanguageToggle={true}
         rightContent={
-          <button 
-            onClick={() => setStatus('rejected')}
-            className="wd-demo-header-btn"
-          >
-            🛠️ Demo Reject
-          </button>
+          <div style={{ display: 'flex', gap: '8px' }}>
+            <button
+              onClick={() => setStatus('accepted')}
+              className="wd-demo-header-btn-accept"
+            >
+              ✅ Demo Accept
+            </button>
+            <button
+              onClick={() => setStatus('rejected')}
+              className="wd-demo-header-btn"
+            >
+              ❌ Demo Reject
+            </button>
+          </div>
         }
       />
 
       <div className="wd-content">
         {status === 'accepted' && (
-          <div className="wd-accepted-state" style={{ 
-            display: 'flex', 
-            flexDirection: 'column', 
-            alignItems: 'center', 
-            justifyContent: 'center', 
-            padding: '40px 20px', 
+          <div className="wd-accepted-state" style={{
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: '40px 20px',
             textAlign: 'center',
             margin: 'auto 0',
             width: '100%'
@@ -127,7 +135,7 @@ const WaitingDriver = () => {
             </div>
             <h2 className="wd-title" style={{ fontSize: '1.5rem', fontWeight: 800, color: '#0b1f0f', margin: '0 0 8px 0' }}>予約が確定しました！</h2>
             <p className="wd-status-text" style={{ color: '#006D37', fontWeight: 700, margin: '0 0 16px 0' }}>ドライバーがリクエストを承諾しました</p>
-            <p className="wd-message" style={{ color: '#5c6c5f', fontSize: '0.95rem' }}>チャット画面に移行しています...</p>
+            <p className="wd-message" style={{ color: '#5c6c5f', fontSize: '0.95rem' }}>追跡画面に移行しています...</p>
           </div>
         )}
 
@@ -135,11 +143,11 @@ const WaitingDriver = () => {
           <>
             <div className="wd-map-circle">
               <div className="wd-map-container">
-                <MapView 
-                  position={pickup} 
-                  interactive={false} 
-                  showZoomControl={false} 
-                  zoom={15} 
+                <MapView
+                  position={pickup}
+                  interactive={false}
+                  showZoomControl={false}
+                  zoom={15}
                 />
               </div>
               <div className="wd-car-icon-wrapper">
@@ -152,7 +160,7 @@ const WaitingDriver = () => {
             </div>
 
             <h2 className="wd-title">ドライバーを探しています</h2>
-            
+
             <div className="wd-status-text">
               <span className="wd-status-dot"></span>
               <span>リクエスト送信済み</span>
@@ -194,7 +202,7 @@ const WaitingDriver = () => {
               <Heading level={1} className="wd-rejected-title">
                 リクエストが{status === 'rejected' ? '拒否されました' : '期限切れになりました'}
               </Heading>
-              
+
               <Card className="wd-explanation-box" variant="default" padding="md" rounded="md">
                 <p>
                   申し訳ありませんが、現在ドライバーはリクエストを受け付けることができません。
@@ -206,18 +214,18 @@ const WaitingDriver = () => {
               </p>
 
               <div className="wd-rejected-actions">
-                <Button 
-                  variant="primary" 
-                  fullWidth 
-                  icon={ArrowRight} 
+                <Button
+                  variant="primary"
+                  fullWidth
+                  icon={ArrowRight}
                   onClick={handleRetry}
                   className="wd-retry-btn"
                 >
                   別のドライバーを探す
                 </Button>
-                <Button 
-                  variant="secondary" 
-                  fullWidth 
+                <Button
+                  variant="secondary"
+                  fullWidth
                   onClick={handleGoHome}
                   className="wd-home-btn"
                 >

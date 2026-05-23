@@ -51,18 +51,25 @@ export const Header: React.FC<HeaderProps> = ({
           )}
           
           <div className="flex items-center">
-            {!hideBrandName && (
+            {!hideBrandName && !title && (
               <span className="text-[20px] font-black text-[#1a4d2e] tracking-tight">
-                JV – Taxi
+                JV - Taxi
               </span>
             )}
-            {title && (
-              <>
-                {!hideBrandName && <div className="w-[1px] h-4 bg-gray-300 mx-3" />}
-                <span className={`${hideBrandName ? 'text-[18px] text-[#1a4d2e] font-black tracking-tight' : 'text-sm font-bold text-gray-700'}`}>
+            {!hideBrandName && title && (
+              <div className="flex flex-col items-start justify-center">
+                <div className="text-[#064E3B] text-[18px] font-bold leading-[28px]">
+                  JV - Taxi
+                </div>
+                <div className="text-[rgba(61,74,63,0.70)] text-[10px] font-normal uppercase leading-[10px] tracking-[1px]">
                   {title}
-                </span>
-              </>
+                </div>
+              </div>
+            )}
+            {hideBrandName && title && (
+              <span className="text-[18px] text-[#1a4d2e] font-black tracking-tight">
+                {title}
+              </span>
             )}
           </div>
         </div>
