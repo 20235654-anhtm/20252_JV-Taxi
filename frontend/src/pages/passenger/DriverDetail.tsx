@@ -1,17 +1,98 @@
+import { useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Header } from '../../components/layout/Header';
+import { API_BASE_URL } from '../../config/api';
 import './DriverDetail.css';
+
+interface DriverSummary {
+  id: string;
+  name: string;
+  car: string;
+  vehicleType: string;
+  distance: string;
+  distanceMeters: number;
+  time: string;
+  price: string;
+  rating: number;
+  avatar: string;
+}
+
+interface DriverDetailData extends DriverSummary {
+  email?: string;
+  phone?: string;
+  vehicleInfor?: string;
+  parsedVehicleInfor?: Record<string, any>;
+}
 
 const DriverDetail = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const driver = location.state?.driver;
+  const initialDriver = location.state?.driver as DriverSummary | undefined;
+  const [driver, setDriver] = useState<DriverDetailData | undefined>(initialDriver);
+  const [loading, setLoading] = useState<boolean>(!!initialDriver);
+  const [error, setError] = useState<string | undefined>();
+
+  useEffect(() => {
+    if (!initialDriver?.id) {
+      setLoading(false);
+      return;
+    }
+
+    const fetchDriverDetail = async () => {
+      setLoading(true);
+      setError(undefined);
+
+      try {
+        const response = await fetch(`${API_BASE_URL}/api/drivers/${initialDriver.id}`);
+        const data = await response.json();
+
+        if (!response.ok || !data.success) {
+          setError(data.message || 'ドライバー情報を取得できませんでした');
+          setLoading(false);
+          return;
+        }
+
+        setDriver(prev => ({
+          ...(prev ?? initialDriver),
+          email: data.data.email,
+          phone: data.data.phone,
+          vehicleInfor: data.data.driverProfile?.vehicleInfor || (prev ?? initialDriver).car,
+          parsedVehicleInfor: data.data.driverProfile?.parsedVehicleInfor || {},
+        }));
+      } catch (err) {
+        console.error('[DriverDetail] fetch error:', err);
+        setError('サーバーと通信できませんでした');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchDriverDetail();
+  }, [initialDriver?.id]);
+
+  if (loading) {
+    return (
+      <div className="driver-detail-page">
+        <Header variant="passenger" showBackButton title="ドライバー詳細" onBackClick={() => navigate(-1)} hideBrandName={true} hideLanguageToggle={true} />
+        <div style={{ padding: '40px', textAlign: 'center' }}>ドライバー情報を読み込み中...</div>
+      </div>
+    );
+  }
 
   if (!driver) {
     return (
       <div className="driver-detail-page">
         <Header variant="passenger" showBackButton title="ドライバー詳細" onBackClick={() => navigate(-1)} hideBrandName={true} hideLanguageToggle={true} />
         <div style={{ padding: '40px', textAlign: 'center' }}>ドライバー情報が見つかりません</div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="driver-detail-page">
+        <Header variant="passenger" showBackButton title="ドライバー詳細" onBackClick={() => navigate(-1)} hideBrandName={true} hideLanguageToggle={true} />
+        <div style={{ padding: '40px', textAlign: 'center', color: '#d32f2f' }}>{error}</div>
       </div>
     );
   }
@@ -64,6 +145,11 @@ const DriverDetail = () => {
 
           <h2 className="dd-name">{driver.name}</h2>
 
+          <div className="dd-contact-row">
+            {driver.email && <div className="dd-contact-item">📧 {driver.email}</div>}
+            {driver.phone && <div className="dd-contact-item">📞 {driver.phone}</div>}
+          </div>
+
           <div className="dd-badges-row">
             <div className="dd-badge dd-badge-rating">
               <span style={{ color: '#FEA520' }}>★</span> {driver.rating}
@@ -84,7 +170,16 @@ const DriverDetail = () => {
             </div>
             <div className="dd-vehicle-info">
               <div className="dd-vehicle-label">車両情報</div>
-              <div className="dd-vehicle-text">{driver.car}</div>
+              <div className="dd-vehicle-text">{driver.vehicleInfor || driver.car}</div>
+              {driver.parsedVehicleInfor && Object.keys(driver.parsedVehicleInfor).length > 0 && (
+                <div className="dd-vehicle-detail-list">
+                  {Object.entries(driver.parsedVehicleInfor).map(([key, value]) => (
+                    <div key={key} className="dd-vehicle-detail-item">
+                      <strong>{key}:</strong> {String(value)}
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
         </div>
