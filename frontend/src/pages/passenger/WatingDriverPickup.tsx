@@ -47,7 +47,7 @@ export default function WatingDriverPickup() {
       <Header
         title="ライブ追跡"
         showBackButton
-        onBackClick={() => navigate(-1)}
+        onBackClick={() => navigate('/passenger')}
         hideLanguageToggle
       />
 
