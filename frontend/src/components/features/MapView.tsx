@@ -29,7 +29,8 @@ function MapController({
   destinationPosition,
   recenterKey,
   routePadding = [[20, 80], [20, 80]],
-  viewPadding
+  viewPadding,
+  extraPositions = []
 }: {
   position: LatLng | null;
   pickupPosition?: LatLng | null;
@@ -37,6 +38,7 @@ function MapController({
   recenterKey: number;
   routePadding?: [[number, number], [number, number]];
   viewPadding?: { top?: number; bottom?: number; left?: number; right?: number };
+  extraPositions?: LatLng[];
 }) {
   const map = useMap();
 
@@ -51,6 +53,10 @@ function MapController({
           [pickupPosition.lat, pickupPosition.lng],
           [destinationPosition.lat, destinationPosition.lng]
         ]);
+        // Mở rộng bounds để chứa thêm các điểm phụ (ví dụ vị trí xe tài xế)
+        extraPositions.forEach(pos => {
+          bounds.extend([pos.lat, pos.lng]);
+        });
 
         map.fitBounds(bounds, {
           paddingTopLeft: routePadding[0],
@@ -83,7 +89,7 @@ function MapController({
     }, 200);
 
     return () => clearTimeout(timer);
-  }, [position, pickupPosition, destinationPosition, recenterKey, map, routePadding, viewPadding]);
+  }, [position, pickupPosition, destinationPosition, recenterKey, map, routePadding, viewPadding, extraPositions]);
 
   return null;
 }
@@ -128,9 +134,12 @@ interface MapViewProps {
   interactive?: boolean;
   routePadding?: [[number, number], [number, number]];
   viewPadding?: { top?: number; bottom?: number; left?: number; right?: number };
+  hidePickupMarker?: boolean;
   hideDestinationMarker?: boolean;
   routeColor?: string;
   routeOutlineColor?: string;
+  hideRoute?: boolean;
+  extraPositions?: LatLng[];
   children?: React.ReactNode;
 }
 
@@ -148,9 +157,12 @@ export function MapView({
   interactive = true,
   routePadding,
   viewPadding,
+  hidePickupMarker = false,
   hideDestinationMarker = false,
   routeColor,
   routeOutlineColor,
+  hideRoute = false,
+  extraPositions = [],
   children
 }: MapViewProps) {
 
@@ -195,10 +207,13 @@ export function MapView({
           recenterKey={recenterKey}
           routePadding={routePadding}
           viewPadding={viewPadding}
+          extraPositions={extraPositions}
         />
 
-        {/* Vẽ đường đi giữa 2 điểm */}
-        <MapRoute start={pickupPosition || null} end={destinationPosition || null} color={routeColor} outlineColor={routeOutlineColor} />
+        {/* Vẽ đường đi giữa 2 điểm (mặc định) */}
+        {!hideRoute && (
+          <MapRoute start={pickupPosition || null} end={destinationPosition || null} color={routeColor} outlineColor={routeOutlineColor} />
+        )}
 
         {/* Marker vị trí GPS thực tế */}
         {position && !pickupPosition && (
@@ -206,7 +221,7 @@ export function MapView({
         )}
 
         {/* Hiển thị lộ trình với nhãn chuẩn */}
-        {pickupPosition && (
+        {pickupPosition && !hidePickupMarker && (
           <LocationMarker
             position={pickupPosition}
             label="乗車場所"

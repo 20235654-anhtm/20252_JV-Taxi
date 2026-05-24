@@ -1,21 +1,35 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect, useRef } from 'react';
+import { useNavigate, Navigate, useLocation } from 'react-router-dom';
 import { Marker } from 'react-leaflet';
 import L from 'leaflet';
 import { Header } from '../../components/layout/Header';
 import { MapView } from '../../components/features/MapView';
 import { FAB } from '../../components/ui/FAB';
+import { useBooking } from '../../contexts/BookingContext';
 
 // SVG Icons
 import IconCall from '../../assets/IconCall.svg';
 import IconMess from '../../assets/IconMess.svg';
 import IconClock from '../../assets/IconClock.svg';
+import IconCar from '../../assets/IconCar.svg';
 import IconLocation from '../../assets/IconLocation.svg';
+import { socketService } from '../../services/socketService';
+import { SmartMapRoute } from '../../components/features/SmartMapRoute';
+import { getRouteWithDuration } from '../../hooks/useLocationSuggestions';
+import { distanceBetween } from '../../utils/routeUtils';
 
-const pickupPosition = { lat: 21.0285, lng: 105.8542 };
-const destinationPosition = { lat: 21.0031, lng: 105.8152 }; // Mock destination
+const carIcon = L.divIcon({
+  className: 'custom-car-marker',
+  iconSize: [44, 44],
+  iconAnchor: [22, 22],
+  html: `
+    <div class="w-[44px] h-[44px] bg-[#006D37] rounded-[9999px] flex items-center justify-center shadow-[0_4px_10px_rgba(0,0,0,0.15)] border-[4px] border-white box-border">
+      <img src="${IconCar}" alt="Current Location" class="w-[20px] h-[20px] object-contain" />
+    </div>
+  `
+});
 
-const destinationIcon = L.divIcon({
+const createDestinationIcon = (destName: string) => L.divIcon({
   className: 'custom-dest-marker',
   iconSize: [140, 100],
   iconAnchor: [70, 24],
@@ -26,7 +40,7 @@ const destinationIcon = L.divIcon({
       </div>
       <div class="bg-white border-[1.5px] border-[#865300] rounded-[10px] py-1 px-3.5 text-center shadow-md whitespace-nowrap">
         <div class="text-[10px] font-extrabold text-[#865300] leading-tight mb-0.5">目的地</div>
-        <div class="text-[13px] font-extrabold text-[#1a1a1a] leading-tight">ロイヤルシティ</div>
+        <div class="text-[13px] font-extrabold text-[#1a1a1a] leading-tight">${destName}</div>
       </div>
     </div>
   `
@@ -34,10 +48,82 @@ const destinationIcon = L.divIcon({
 
 export default function InTrip() {
   const navigate = useNavigate();
+  const location = useLocation();
   const [recenterKey, setRecenterKey] = useState(0);
+  const { pickup: pickupData, destination: destData } = useBooking();
 
-  const handleChat = () => navigate('/passenger/chat');
-  const handleCall = () => navigate('/passenger/call-driver');
+  const driver = location.state?.driver || {
+    name: 'Nguyen Tan',
+    avatar: 'https://i.pravatar.cc/150?img=11',
+    rating: '4.9',
+    car: 'Toyota Camry',
+    licensePlate: '51H-123.45'
+  };
+
+  // Vị trí tài xế (Khởi tạo từ pickup, cập nhật qua socket)
+  const [driverPosition, setDriverPosition] = useState({ 
+    lat: pickupData?.coords?.lat ? pickupData.coords.lat + 0.008 : 21.0150, 
+    lng: pickupData?.coords?.lng ? pickupData.coords.lng - 0.005 : 105.8350 
+  });
+  
+  const [etaMinutes, setEtaMinutes] = useState<number | null>(null);
+  const [arrivalTime, setArrivalTime] = useState<string>('--:--');
+  const lastFetchedPos = useRef<{ lat: number; lng: number } | null>(null);
+
+  useEffect(() => {
+    socketService.onDriverLocation((data) => {
+      setDriverPosition({ lat: data.lat, lng: data.lng });
+    });
+    return () => {
+      socketService.offDriverLocation();
+    };
+  }, []);
+
+  useEffect(() => {
+    const fetchEta = async () => {
+      if (!driverPosition || !destData?.coords) return;
+      
+      const destinationPos = { lat: destData.coords.lat, lng: destData.coords.lng };
+      
+      // Chỉ gọi lại API nếu di chuyển hơn 50m để tránh spam API
+      if (lastFetchedPos.current) {
+        const dist = distanceBetween(driverPosition, lastFetchedPos.current);
+        if (dist < 50) return;
+      }
+      
+      try {
+        const { duration } = await getRouteWithDuration(driverPosition, destinationPos);
+        if (duration !== Infinity) {
+          const minutes = Math.max(1, Math.ceil(duration / 60));
+          setEtaMinutes(minutes);
+          
+          // Calculate arrival time
+          const now = new Date();
+          now.setMinutes(now.getMinutes() + minutes);
+          const timeString = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+          setArrivalTime(timeString);
+          
+          lastFetchedPos.current = driverPosition;
+        }
+      } catch (e) {
+        console.error(e);
+      }
+    };
+    
+    fetchEta();
+  }, [driverPosition, destData?.coords]);
+
+  // Redirect if no location is selected
+  if (!pickupData?.coords || !destData?.coords) {
+    return <Navigate to="/passenger/search-location" replace />;
+  }
+
+  const destinationPosition = { lat: destData.coords.lat, lng: destData.coords.lng };
+  const destName = destData.address || '目的地';
+  const pickupName = pickupData.address || '乗車場所';
+
+  const handleChat = () => navigate('/passenger/chat', { state: { target: driver } });
+  const handleCall = () => navigate('/passenger/call-driver', { state: { target: driver } });
   const handleRecenter = () => setRecenterKey(prev => prev + 1);
 
   return (
@@ -52,16 +138,24 @@ export default function InTrip() {
       <div className="absolute inset-0 z-0">
         <MapView
           position={null}
-          pickupPosition={pickupPosition}
+          pickupPosition={pickupData?.coords}
           destinationPosition={destinationPosition}
           recenterKey={recenterKey}
           showPickupLabel={false}
+          hidePickupMarker={true}
           hideDestinationMarker={true}
-          routeColor="url(#routeGradient)"
+          hideRoute={true}
           routePadding={[[50, 120], [50, 420]]}
           viewPadding={{ top: 100, bottom: 420, left: 50, right: 50 }}
+          extraPositions={[driverPosition]}
         >
-          <Marker position={[destinationPosition.lat, destinationPosition.lng]} icon={destinationIcon} />
+          {/* Đường vẽ thông minh với 3 Case xử lý */}
+          <SmartMapRoute driverPosition={driverPosition} destination={destinationPosition} color="url(#routeGradient)" />
+
+          {/* Marker vị trí hiện tại (xe) */}
+          <Marker position={[driverPosition.lat, driverPosition.lng]} icon={carIcon} />
+          {/* Marker đích đến */}
+          <Marker position={[destinationPosition.lat, destinationPosition.lng]} icon={createDestinationIcon(destName)} />
         </MapView>
       </div>
 
@@ -77,7 +171,7 @@ export default function InTrip() {
                   <div style={{width: 165.91, height: 16, justifyContent: 'center', display: 'flex', flexDirection: 'column', color: '#3D4A3F', fontSize: 12, fontWeight: '400', textTransform: 'uppercase', lineHeight: '16px', letterSpacing: 1.20, wordWrap: 'break-word'}}>到着予定</div>
                 </div>
                 <div style={{alignSelf: 'stretch', height: 40, position: 'relative'}}>
-                  <div style={{width: 20.03, height: 40, left: 0, top: 0, position: 'absolute', justifyContent: 'center', display: 'flex', flexDirection: 'column', color: '#006D37', fontSize: 36, fontWeight: '800', lineHeight: '40px', wordWrap: 'break-word'}}>8</div>
+                  <div style={{width: 20.03, height: 40, left: 0, top: 0, position: 'absolute', justifyContent: 'center', display: 'flex', flexDirection: 'column', color: '#006D37', fontSize: 36, fontWeight: '800', lineHeight: '40px', wordWrap: 'break-word'}}>{etaMinutes !== null ? etaMinutes : '-'}</div>
                   <div style={{width: 38, height: 28, left: 27, top: 10, position: 'absolute', justifyContent: 'center', display: 'flex', flexDirection: 'column', color: '#006D37', fontSize: 24, fontWeight: '800', lineHeight: '28px', wordWrap: 'break-word'}}>分</div>
                 </div>
               </div>
@@ -86,7 +180,7 @@ export default function InTrip() {
                   <img src={IconClock} alt="Time" style={{width: 11.67, height: 11.67}} />
                 </div>
                 <div style={{flexDirection: 'column', justifyContent: 'flex-start', alignItems: 'flex-start', display: 'inline-flex'}}>
-                  <div style={{width: 52.25, height: 16, justifyContent: 'center', display: 'flex', flexDirection: 'column', color: '#006D37', fontSize: 12, fontWeight: '700', lineHeight: '16px', whiteSpace: 'nowrap'}}>10:45 AM</div>
+                  <div style={{width: 52.25, height: 16, justifyContent: 'center', display: 'flex', flexDirection: 'column', color: '#006D37', fontSize: 12, fontWeight: '700', lineHeight: '16px', whiteSpace: 'nowrap'}}>{arrivalTime}</div>
                 </div>
               </div>
             </div>
@@ -95,10 +189,10 @@ export default function InTrip() {
                 <div style={{width: 188, justifyContent: 'flex-start', alignItems: 'center', gap: 10, display: 'flex'}}>
                   <div style={{position: 'relative', flexDirection: 'column', justifyContent: 'flex-start', alignItems: 'flex-start', display: 'inline-flex'}}>
                     <div style={{width: 64, height: 64, background: 'rgba(255, 255, 255, 0)', boxShadow: '0px 2px 4px -2px rgba(0, 0, 0, 0.10), 0px 4px 6px -1px rgba(0, 0, 0, 0.10)', overflow: 'hidden', borderRadius: 16, flexDirection: 'column', justifyContent: 'center', alignItems: 'flex-start', display: 'flex'}}>
-                      <img style={{alignSelf: 'stretch', flex: '1 1 0', position: 'relative', objectFit: 'cover'}} src="https://i.pravatar.cc/150?img=11" alt="Driver" />
+                      <img style={{alignSelf: 'stretch', flex: '1 1 0', position: 'relative', objectFit: 'cover'}} src={driver.avatar} alt={driver.name} />
                     </div>
                     <div style={{paddingLeft: 8, paddingRight: 8, paddingTop: 2, paddingBottom: 2, left: 29.77, top: 53, position: 'absolute', background: '#FEA520', boxShadow: '0px 1px 2px rgba(0, 0, 0, 0.05)', borderRadius: 8, justifyContent: 'flex-start', alignItems: 'center', gap: 3.99, display: 'inline-flex'}}>
-                      <div style={{width: 13.91, height: 15, justifyContent: 'center', display: 'flex', flexDirection: 'column', color: '#694000', fontSize: 8, fontWeight: '900', lineHeight: '15px', wordWrap: 'break-word'}}>4.9</div>
+                      <div style={{width: 13.91, height: 15, justifyContent: 'center', display: 'flex', flexDirection: 'column', color: '#694000', fontSize: 8, fontWeight: '900', lineHeight: '15px', wordWrap: 'break-word'}}>{driver.rating}</div>
                       <div style={{flexDirection: 'column', justifyContent: 'flex-start', alignItems: 'flex-start', display: 'inline-flex'}}>
                         <span style={{fontSize: 8, color: '#694000', lineHeight: '15px'}}>★</span>
                       </div>
@@ -106,10 +200,10 @@ export default function InTrip() {
                   </div>
                   <div style={{width: 114, flexDirection: 'column', justifyContent: 'flex-start', alignItems: 'flex-start', display: 'inline-flex'}}>
                     <div style={{width: 114, height: 44, flexDirection: 'column', justifyContent: 'flex-start', alignItems: 'flex-start', display: 'flex'}}>
-                      <div style={{width: 155, height: 56, justifyContent: 'center', display: 'flex', flexDirection: 'column', color: '#171D17', fontSize: 20, fontWeight: '800', lineHeight: '32px', whiteSpace: 'nowrap'}}>Nguyen Tan</div>
+                      <div style={{width: 155, height: 56, justifyContent: 'center', display: 'flex', flexDirection: 'column', color: '#171D17', fontSize: 20, fontWeight: '800', lineHeight: '32px', whiteSpace: 'nowrap'}}>{driver.name}</div>
                     </div>
                     <div style={{width: 114, flexDirection: 'column', justifyContent: 'flex-start', alignItems: 'flex-start', display: 'flex'}}>
-                      <div style={{width: 114, height: 40, justifyContent: 'center', display: 'flex', flexDirection: 'column', color: '#3D4A3F', fontSize: 14, fontWeight: '400', lineHeight: '20px', wordWrap: 'break-word'}}>Toyota Camry •<br/>51H-123.45</div>
+                      <div style={{width: 114, height: 40, justifyContent: 'center', display: 'flex', flexDirection: 'column', color: '#3D4A3F', fontSize: 14, fontWeight: '400', lineHeight: '20px', wordWrap: 'break-word'}}>{driver.car} •<br/>{driver.licensePlate || '51H-123.45'}</div>
                     </div>
                     <div style={{alignSelf: 'stretch', flexDirection: 'column', justifyContent: 'flex-start', alignItems: 'flex-start', display: 'flex'}}>
                       <div style={{width: 109, height: 23, justifyContent: 'center', display: 'flex', flexDirection: 'column', color: 'rgba(61, 74, 63, 0.70)', fontSize: 10, fontWeight: '400', textTransform: 'uppercase', lineHeight: '15px', wordWrap: 'break-word'}}> 認定ドライバー</div>
@@ -137,17 +231,17 @@ export default function InTrip() {
                   </div>
                   <div style={{width: 12, height: 12, background: '#865300', boxShadow: '0px 0px 8px rgba(254, 165, 32, 0.40)', borderRadius: 9999}} />
                 </div>
-                <div style={{flex: '1 1 0', flexDirection: 'column', justifyContent: 'flex-start', alignItems: 'flex-start', gap: 16, display: 'inline-flex'}}>
-                  <div style={{alignSelf: 'stretch', opacity: 0.40, flexDirection: 'column', justifyContent: 'flex-start', alignItems: 'flex-start', display: 'flex'}}>
+                <div style={{flex: '1 1 0', minWidth: 0, flexDirection: 'column', justifyContent: 'flex-start', alignItems: 'flex-start', gap: 16, display: 'inline-flex'}}>
+                  <div style={{alignSelf: 'stretch', opacity: 0.40, flexDirection: 'column', justifyContent: 'flex-start', alignItems: 'stretch', display: 'flex'}}>
                     <div style={{width: 142.20, height: 15, justifyContent: 'center', display: 'flex', flexDirection: 'column', color: '#3D4A3F', fontSize: 10, fontWeight: '400', textTransform: 'uppercase', lineHeight: '15px', wordWrap: 'break-word'}}>現在地</div>
-                    <div style={{alignSelf: 'stretch', flexDirection: 'column', justifyContent: 'flex-start', alignItems: 'flex-start', display: 'flex'}}>
-                      <div style={{width: 93, height: 16, justifyContent: 'center', display: 'flex', flexDirection: 'column', color: '#171D17', fontSize: 12, fontWeight: '500', lineHeight: '16px', wordWrap: 'break-word'}}>ハノイ工科大学</div>
+                    <div style={{alignSelf: 'stretch', flexDirection: 'column', justifyContent: 'flex-start', alignItems: 'stretch', display: 'flex'}}>
+                      <div style={{width: '100%', minHeight: 16, display: 'block', color: '#171D17', fontSize: 12, fontWeight: '500', lineHeight: '16px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis'}}>{pickupName}</div>
                     </div>
                   </div>
-                  <div style={{alignSelf: 'stretch', flexDirection: 'column', justifyContent: 'flex-start', alignItems: 'flex-start', display: 'flex'}}>
+                  <div style={{alignSelf: 'stretch', flexDirection: 'column', justifyContent: 'flex-start', alignItems: 'stretch', display: 'flex'}}>
                     <div style={{width: 106.33, height: 15, justifyContent: 'center', display: 'flex', flexDirection: 'column', color: '#865300', fontSize: 10, fontWeight: '400', textTransform: 'uppercase', lineHeight: '15px', wordWrap: 'break-word'}}> 行き先</div>
-                    <div style={{alignSelf: 'stretch', flexDirection: 'column', justifyContent: 'flex-start', alignItems: 'flex-start', display: 'flex'}}>
-                      <div style={{width: 183, height: 24, justifyContent: 'center', display: 'flex', flexDirection: 'column', color: '#171D17', fontSize: 16, fontWeight: '700', lineHeight: '24px', wordWrap: 'break-word'}}>ロイヤルシティ</div>
+                    <div style={{alignSelf: 'stretch', flexDirection: 'column', justifyContent: 'flex-start', alignItems: 'stretch', display: 'flex'}}>
+                      <div style={{width: '100%', minHeight: 24, display: 'block', color: '#171D17', fontSize: 16, fontWeight: '700', lineHeight: '24px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis'}}>{destName}</div>
                     </div>
                   </div>
                 </div>

@@ -18,9 +18,9 @@ const WaitingDriver = () => {
   const { pickup: pickupData } = useBooking();
   const [status, setStatus] = useState<WaitingStatus>('waiting');
   const [timeLeft, setTimeLeft] = useState(180); // 3 minutes
+  const [driver, setDriver] = useState<any>(location.state?.driver || null);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  const driver = location.state?.driver;
   const pickup = pickupData?.coords || { lat: 21.0285, lng: 105.8542 };
 
   useEffect(() => {

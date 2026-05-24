@@ -80,6 +80,15 @@ export const socketService = {
         socket?.off('incoming-booking');
     },
 
+    // Lắng nghe vị trí tài xế cập nhật real-time
+    onDriverLocation: (callback: (data: { lat: number; lng: number }) => void) => {
+        socket?.on('driver-location', callback);
+    },
+
+    offDriverLocation: () => {
+        socket?.off('driver-location');
+    },
+
     // Ngắt kết nối (khi user đăng xuất)
     disconnect: () => {
         socket?.disconnect();

@@ -111,7 +111,7 @@ export const initiateCall = async (req: Request, res: Response) => {
             });
             console.log(`📞 Cuộc gọi từ ${callerProfile.fullName} → gửi đến userId=${targetUserId}`);
         } else {
-            console.log(`⚠️ Passenger ${targetUserId} không online (không tìm thấy socketId)`);
+            console.log(`⚠️ User ${targetUserId} không online (không tìm thấy socketId)`);
         }
 
         // 5. Trả về roomName + token cho driver để join phòng

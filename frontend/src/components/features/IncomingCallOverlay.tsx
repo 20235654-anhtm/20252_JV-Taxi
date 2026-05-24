@@ -151,13 +151,24 @@ export default function IncomingCallOverlay() {
     }, [isAuthenticated, userId]);
 
     // Chấp nhận cuộc gọi
-    const handleAccept = useCallback(() => {
+    const handleAccept = useCallback(async () => {
         if (!incomingCall) return;
 
-        const obj = DailyIframe.createCallObject({
-            audioSource: true,
-            videoSource: false,
-        });
+        try {
+            // Yêu cầu quyền mic ngay lập tức khi bấm Accept (bảo toàn user gesture)
+            await navigator.mediaDevices.getUserMedia({ audio: true });
+        } catch (err) {
+            console.error("Mic permission denied:", err);
+            // Có thể show toast lỗi ở đây
+        }
+
+        let obj = DailyIframe.getCallInstance();
+        if (!obj) {
+            obj = DailyIframe.createCallObject({
+                audioSource: true,
+                videoSource: false,
+            });
+        }
         setCallObject(obj);
         setAccepted(true);
     }, [incomingCall]);
