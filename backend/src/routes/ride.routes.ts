@@ -154,6 +154,7 @@ router.post('/accept', authMiddleware as any, async (req: AuthRequest, res: Resp
         io.to(passengerSocketId).emit('booking-accepted', {
           rideId,
           driver: {
+            id: driverId,
             name: driverProfile?.fullName || 'Tài xế',
             avatar: driverProfile?.driverProfile?.avatarPicture || 'https://placehold.co/100x100?text=Driver',
             rating: driverProfile?.driverProfile?.averageRating ? String(driverProfile.driverProfile.averageRating) : '5.0',

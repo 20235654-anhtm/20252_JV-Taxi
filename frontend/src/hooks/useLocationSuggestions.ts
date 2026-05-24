@@ -108,12 +108,47 @@ export const getRouteCoordinates = async (start: LatLng, end: LatLng): Promise<[
     
     if (data.code === 'Ok' && data.routes.length > 0) {
       // OSRM trả về [lng, lat], Leaflet cần [lat, lng] nên ta đảo lại
-      return data.routes[0].geometry.coordinates.map((coord: [number, number]) => [coord[1], coord[0]]);
+      const routeCoords = data.routes[0].geometry.coordinates.map((coord: [number, number]) => [coord[1], coord[0]] as [number, number]);
+      // Connect exact start and end points to close any snapping gaps
+      return [
+        [start.lat, start.lng],
+        ...routeCoords,
+        [end.lat, end.lng]
+      ];
     }
     return [];
   } catch (error) {
     console.error('Routing error:', error);
     return [];
+  }
+};
+
+/**
+ * Hàm lấy tọa độ đường đi ngắn nhất (Routing) kèm theo thời gian (duration)
+ */
+export const getRouteWithDuration = async (start: LatLng, end: LatLng): Promise<{ coords: [number, number][]; duration: number }> => {
+  try {
+    const response = await fetch(
+      `https://router.project-osrm.org/route/v1/driving/${start.lng},${start.lat};${end.lng},${end.lat}?overview=full&geometries=geojson`
+    );
+    const data = await response.json();
+    
+    if (data.code === 'Ok' && data.routes.length > 0) {
+      const routeCoords = data.routes[0].geometry.coordinates.map((coord: [number, number]) => [coord[1], coord[0]] as [number, number]);
+      const duration = data.routes[0].duration; // Thời gian đi (giây)
+      
+      const coords: [number, number][] = [
+        [start.lat, start.lng],
+        ...routeCoords,
+        [end.lat, end.lng]
+      ];
+      
+      return { coords, duration };
+    }
+    return { coords: [], duration: Infinity };
+  } catch (error) {
+    console.error('Routing error:', error);
+    return { coords: [], duration: Infinity };
   }
 };
 

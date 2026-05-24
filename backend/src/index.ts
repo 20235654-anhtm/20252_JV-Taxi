@@ -32,8 +32,16 @@ io.on('connection', (socket) => {
         userSocketMap.set(userId, socket.id);
         console.log(`📝 Registered: userId=${userId} → socketId=${socket.id}`);
     });
-    
-    socket.on('disconnect', async () => {
+
+    // Driver sends their live location → relay to the passenger
+    socket.on('driver-location-update', (data: { passengerId: string; lat: number; lng: number }) => {
+        const passengerSocketId = userSocketMap.get(data.passengerId);
+        if (passengerSocketId) {
+            io.to(passengerSocketId).emit('driver-location', { lat: data.lat, lng: data.lng });
+        }
+    });
+
+    socket.on('disconnect', () => {
         for (const [userId, socketId] of userSocketMap.entries()) {
             if (socketId === socket.id) {
                 userSocketMap.delete(userId);

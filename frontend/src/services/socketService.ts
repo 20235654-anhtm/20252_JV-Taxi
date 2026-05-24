@@ -98,6 +98,13 @@ export const socketService = {
         socket?.off('incoming-booking');
     },
 
+    // Lắng nghe vị trí tài xế cập nhật real-time
+    onDriverLocation: (callback: (data: { lat: number; lng: number }) => void) => {
+        socket?.on('driver-location', callback);
+    },
+
+    offDriverLocation: () => {
+        socket?.off('driver-location');
     // Chat logic
     joinChat: (rideId: string) => {
         activeRideId = rideId;

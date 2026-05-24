@@ -5,9 +5,11 @@ import { getRouteCoordinates } from '../../hooks/useLocationSuggestions';
 interface MapRouteProps {
   start: { lat: number; lng: number } | null;
   end: { lat: number; lng: number } | null;
+  color?: string;
+  outlineColor?: string;
 }
 
-export const MapRoute: React.FC<MapRouteProps> = ({ start, end }) => {
+export const MapRoute: React.FC<MapRouteProps> = ({ start, end, color = '#0f4c3a', outlineColor }) => {
   const [positions, setPositions] = useState<[number, number][]>([]);
 
   useEffect(() => {
@@ -27,11 +29,33 @@ export const MapRoute: React.FC<MapRouteProps> = ({ start, end }) => {
 
   return (
     <>
+      <svg style={{ width: 0, height: 0, position: 'absolute' }}>
+        <defs>
+          <linearGradient id="routeGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" stopColor="#1a1a1a" />
+            <stop offset="100%" stopColor="#C4843D" />
+          </linearGradient>
+        </defs>
+      </svg>
+      {/* Viền outline nét cứng (nếu có) */}
+      {outlineColor && (
+        <Polyline
+          positions={positions}
+          pathOptions={{
+            color: outlineColor,
+            weight: 8,
+            opacity: 1,
+            lineJoin: 'round',
+            lineCap: 'round'
+          }}
+        />
+      )}
+
       {/* Đường vẽ chính (Cốt lõi) */}
       <Polyline
         positions={positions}
         pathOptions={{
-          color: '#0f4c3a',
+          color: color,
           weight: 5,
           opacity: 0.8,
           lineJoin: 'round',
@@ -39,16 +63,18 @@ export const MapRoute: React.FC<MapRouteProps> = ({ start, end }) => {
         }}
       />
       {/* Hiệu ứng viền ngoài mờ để trông đẹp hơn */}
-      <Polyline
-        positions={positions}
-        pathOptions={{
-          color: '#0f4c3a',
-          weight: 10,
-          opacity: 0.2,
-          lineJoin: 'round',
-          lineCap: 'round'
-        }}
-      />
+      {!outlineColor && (
+        <Polyline
+          positions={positions}
+          pathOptions={{
+            color: color,
+            weight: 10,
+            opacity: 0.2,
+            lineJoin: 'round',
+            lineCap: 'round'
+          }}
+        />
+      )}
     </>
   );
 };

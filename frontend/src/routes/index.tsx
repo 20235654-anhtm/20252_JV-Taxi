@@ -19,6 +19,7 @@ import PassengerProfile from '../pages/passenger/Profile';
 import PassengerProfileEdit from '../pages/passenger/ProfileEdit';
 import AddCard from '../pages/passenger/AddCard';
 import WaitingDriver from '../pages/passenger/WaitingDriver';
+import WatingDriverPickup from '../pages/passenger/WatingDriverPickup';
 import BookingConfirmation from '../pages/passenger/BookingConfirmationWrapper';
 import Rateyourtrip from '../pages/passenger/Rateyourtrip';
 import ChatwithDriver from '../pages/passenger/ChatwithDriver';
@@ -107,6 +108,7 @@ const AppRoutes = () => {
       <Route path="/passenger/profile/edit" element={<ProtectedRoute allowedRole="CUSTOMER"><PassengerProfileEdit /></ProtectedRoute>} />
       <Route path="/passenger/add-card" element={<ProtectedRoute allowedRole="CUSTOMER"><AddCard /></ProtectedRoute>} />
       <Route path="/passenger/waiting-driver" element={<ProtectedRoute allowedRole="CUSTOMER"><WaitingDriver /></ProtectedRoute>} />
+      <Route path="/passenger/waiting-driver-pickup" element={<ProtectedRoute allowedRole="CUSTOMER"><WatingDriverPickup /></ProtectedRoute>} />
       <Route path="/passenger/chat" element={<ProtectedRoute allowedRole="CUSTOMER"><ChatwithDriver /></ProtectedRoute>} />
       <Route path="/passenger/call-driver" element={<ProtectedRoute allowedRole="CUSTOMER"><CallDriver /></ProtectedRoute>} />
       <Route path="/passenger/in-trip" element={<ProtectedRoute allowedRole="CUSTOMER"><InTrip /></ProtectedRoute>} />
