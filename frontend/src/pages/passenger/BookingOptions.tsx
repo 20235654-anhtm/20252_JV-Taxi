@@ -4,6 +4,8 @@ import { CarFront, User, Search } from 'lucide-react';
 import { Header } from '../../components/layout/Header';
 import { MapView } from '../../components/features/MapView';
 import { useBooking } from '../../contexts/BookingContext';
+import { showToast } from '../../components/ui/Toast';
+import { API_BASE_URL } from '../../config/api';
 import './BookingOptions.css';
 
 const CarIcon = ({ size = 24, color = 'currentColor' }) => (
@@ -27,6 +29,7 @@ const BookingOptions = () => {
   const navigate = useNavigate();
   const { pickup: pickupData, destination: destData } = useBooking();
   const [selectedOption, setSelectedOption] = useState<'auto' | 'designated'>('auto');
+  const [isLoading, setIsLoading] = useState(false);
 
   // Bảo vệ an toàn
   if (!pickupData?.coords || !destData?.coords) {
@@ -36,12 +39,33 @@ const BookingOptions = () => {
   const pickup = pickupData.coords; 
   const destination = destData.coords;
 
-  const handleNext = () => {
+  const handleNext = async () => {
     if (selectedOption === 'designated') {
       navigate('/passenger/select-driver');
     } else {
       // Chế độ tự động
-      navigate('/passenger/booking-confirmation', { state: { mode: 'auto' } });
+      setIsLoading(true);
+      try {
+        const token = sessionStorage.getItem('authToken') || localStorage.getItem('authToken');
+        const response = await fetch(`${API_BASE_URL}/api/drivers/nearby?lng=${pickup.lng}&lat=${pickup.lat}&radius=5000`, {
+          headers: token ? { 'Authorization': `Bearer ${token}` } : {}
+        });
+        const data = await response.json();
+        
+        if (data.success && data.data && data.data.length > 0) {
+          const closestDriver = data.data[0];
+          navigate('/passenger/booking-confirmation', { 
+            state: { mode: 'auto', driver: closestDriver } 
+          });
+        } else {
+          showToast('Không tìm thấy tài xế gần đây. Vui lòng thử lại sau.', 'error');
+        }
+      } catch (error) {
+        console.error('Error finding driver:', error);
+        showToast('Lỗi hệ thống khi tìm tài xế.', 'error');
+      } finally {
+        setIsLoading(false);
+      }
     }
   };
 
@@ -125,8 +149,8 @@ const BookingOptions = () => {
           </div>
         </div>
 
-        <button className="bo-confirm-btn" onClick={handleNext}>
-          次へ進む <span>→</span>
+        <button className="bo-confirm-btn" onClick={handleNext} disabled={isLoading}>
+          {isLoading ? 'Đang tìm tài xế...' : '次へ進む'} <span>→</span>
         </button>
       </div>
     </div>

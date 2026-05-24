@@ -23,6 +23,19 @@ const WaitingDriver = () => {
   const driver = location.state?.driver;
   const pickup = pickupData?.coords || { lat: 21.0285, lng: 105.8542 };
 
+  const getCarDisplayName = (carInfo: string | any) => {
+    if (!carInfo) return 'Toyota Camry';
+    if (typeof carInfo === 'string') {
+      try {
+        const parsed = JSON.parse(carInfo);
+        return parsed.model ? `${parsed.model} • ${parsed.plate || ''}` : carInfo;
+      } catch (e) {
+        return carInfo;
+      }
+    }
+    return carInfo.model ? `${carInfo.model} • ${carInfo.plate || ''}` : 'Toyota Camry';
+  };
+
   useEffect(() => {
     // Timer countdown
     timerRef.current = setInterval(() => {
@@ -63,11 +76,18 @@ const WaitingDriver = () => {
   // Redirect to chat when accepted
   useEffect(() => {
     if (status === 'accepted') {
+      const activeRideId = location.state?.rideId || '';
+      if (activeRideId) {
+        sessionStorage.setItem('active_ride_id', activeRideId);
+      }
+      if (driver) {
+        sessionStorage.setItem('active_driver', JSON.stringify(driver));
+      }
       const timer = setTimeout(() => {
         navigate('/passenger/chat', { 
           state: { 
             driver, 
-            rideId: location.state?.rideId 
+            rideId: activeRideId 
           } 
         });
       }, 2500);
@@ -168,7 +188,7 @@ const WaitingDriver = () => {
                   <img src={driver.avatar} alt={driver.name} className="wd-driver-avatar" />
                   <div className="wd-driver-details">
                     <h3 className="wd-driver-name">{driver.name}</h3>
-                    <p className="wd-driver-car">{driver.car} • {driver.vehicleType}</p>
+                    <p className="wd-driver-car">{getCarDisplayName(driver.car)} • {driver.vehicleType}</p>
                   </div>
                   <div className="wd-driver-rating">★ {driver.rating}</div>
                 </div>
@@ -198,6 +218,8 @@ const WaitingDriver = () => {
               <Card className="wd-explanation-box" variant="default" padding="md" rounded="md">
                 <p>
                   申し訳ありませんが、現在ドライバーはリクエストを受け付けることができません。
+                  {status === 'rejected' && <br />}
+                  {status === 'rejected' && <span style={{ color: '#A4394E', fontWeight: 'bold' }}>Tài xế đã từ chối chuyến đi. Hệ thống đã tiến hành hoàn tiền cho bạn (nếu thanh toán bằng thẻ).</span>}
                 </p>
               </Card>
 

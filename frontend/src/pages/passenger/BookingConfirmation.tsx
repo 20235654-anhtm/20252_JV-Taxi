@@ -17,7 +17,19 @@ const BookingConfirmation = () => {
   const { pickup: pickupData, destination: destData } = useBooking();
   const passedDriver = location.state?.driver;
   
-  // Dùng driver từ state, nếu không có (như chế độ Auto) thì hiển thị mock data
+  const getCarDisplayName = (carInfo: string | any) => {
+    if (!carInfo) return 'Toyota Camry';
+    if (typeof carInfo === 'string') {
+      try {
+        const parsed = JSON.parse(carInfo);
+        return parsed.model ? `${parsed.model} • ${parsed.plate || ''}` : carInfo;
+      } catch (e) {
+        return carInfo;
+      }
+    }
+    return carInfo.model ? `${carInfo.model} • ${carInfo.plate || ''}` : 'Toyota Camry';
+  };
+
   const driver = passedDriver || {
     name: 'Nguyen Tan',
     avatar: 'https://randomuser.me/api/portraits/men/32.jpg',
@@ -69,14 +81,21 @@ const BookingConfirmation = () => {
             endLat: destination.lat,
             matchFee: 145000,
             matchType: location.state?.mode || 'designated',
-            vehicleTypeRequested: driver.vehicleType || 'Sedan'
+            vehicleTypeRequested: driver.vehicleType || 'Sedan',
+            paymentType: 'CASH',
+            distance: driver.distance
           })
         });
         const rideData = await rideResponse.json();
         if (rideData.success) {
-          setCreatedRideId(rideData.data.id);
-          setPaymentDetails({ id: result.transactionId || 'CASH-TEMP' });
-          setShowSuccessPopup(true);
+          // If cash, go directly to WaitingDriver instead of showing success popup
+          navigate('/passenger/waiting-driver', { 
+            state: { 
+              driver, 
+              rideId: rideData.data.id,
+              mode: location.state?.mode || 'designated' 
+            } 
+          });
         } else {
           throw new Error(rideData.message || '配車リクエストの作成に失敗しました');
         }
@@ -137,7 +156,10 @@ const BookingConfirmation = () => {
             endLat: destination.lat,
             matchFee: 145000,
             matchType: location.state?.mode || 'designated',
-            vehicleTypeRequested: driver.vehicleType || 'Sedan'
+            vehicleTypeRequested: driver.vehicleType || 'Sedan',
+            paymentType: 'CARD',
+            stripePaymentId: paymentIntent.id,
+            distance: driver.distance
           })
         });
         const rideData = await rideResponse.json();
@@ -223,7 +245,7 @@ const BookingConfirmation = () => {
             </div>
             <div className="bc-driver-details">
               <div className="bc-driver-name">{driver.name}</div>
-              <div className="bc-driver-car">{driver.car}</div>
+              <div className="bc-driver-car">{getCarDisplayName(driver.car)}</div>
             </div>
           </div>
           
