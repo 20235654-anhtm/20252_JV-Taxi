@@ -190,12 +190,24 @@ const DriverDashboard = () => {
         sessionStorage.setItem('active_ride_id', currentRequest.rideId);
         sessionStorage.setItem('active_passenger_name', currentRequest.passengerName);
         sessionStorage.setItem('active_passenger_avatar', currentRequest.passengerAvatar);
+        sessionStorage.setItem('active_pickup_location', currentRequest.pickupLocation || '高島屋サイゴン（1区）');
+        sessionStorage.setItem('active_destination_location', currentRequest.destinationLocation || 'タンソンニャット空港第2ターミナル');
+        sessionStorage.setItem('active_distance_to_pickup', currentRequest.distanceToPickup || '1.2 km');
+        sessionStorage.setItem('active_duration', currentRequest.duration || '約25分');
+        sessionStorage.setItem('active_fare', currentRequest.estimatedFare || '145k VND');
+        sessionStorage.setItem('active_payment_method', currentRequest.paymentMethod || 'クレジットカード');
 
         navigate('/driver/in-trip', { 
           state: { 
             passengerName: currentRequest.passengerName, 
             passengerAvatar: currentRequest.passengerAvatar,
-            rideId: currentRequest.rideId 
+            rideId: currentRequest.rideId,
+            pickupLocation: currentRequest.pickupLocation,
+            destinationLocation: currentRequest.destinationLocation,
+            distanceToPickup: currentRequest.distanceToPickup,
+            duration: currentRequest.duration,
+            estimatedFare: currentRequest.estimatedFare,
+            paymentMethod: currentRequest.paymentMethod
           } 
         });
       } else {

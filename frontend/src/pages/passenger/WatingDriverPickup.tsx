@@ -18,6 +18,7 @@ import IconCar from '../../assets/IconCar.svg';
 import { socketService } from '../../services/socketService';
 import { getRouteWithDuration } from '../../hooks/useLocationSuggestions';
 import { distanceBetween } from '../../utils/routeUtils';
+import { showToast } from '../../components/ui/Toast';
 
 const createDestinationIcon = (destName: string) => L.divIcon({
   className: 'custom-dest-marker',
@@ -61,6 +62,33 @@ export default function WatingDriverPickup() {
     licensePlate: '51H-123.45'
   };
 
+  const getCarModel = (car: any) => {
+    if (!car) return 'Toyota Camry';
+    if (typeof car === 'string') {
+      try {
+        const parsed = JSON.parse(car);
+        return parsed.model || car;
+      } catch (e) {
+        return car;
+      }
+    }
+    return car.model || 'Toyota Camry';
+  };
+
+  const getCarPlate = (car: any, licensePlate: any) => {
+    if (licensePlate && licensePlate !== '51H-123.45') return licensePlate;
+    if (!car) return '51H-123.45';
+    if (typeof car === 'string') {
+      try {
+        const parsed = JSON.parse(car);
+        return parsed.plate || licensePlate || '51H-123.45';
+      } catch (e) {
+        return licensePlate || '51H-123.45';
+      }
+    }
+    return car.plate || licensePlate || '51H-123.45';
+  };
+
   // Redirect if no location is selected
   if (!pickupData?.coords || !destData?.coords) {
     return <Navigate to="/passenger/search-location" replace />;
@@ -100,6 +128,31 @@ export default function WatingDriverPickup() {
   }, [driverPosition, pickupPosition]);
 
   useEffect(() => {
+    const userStr = sessionStorage.getItem('user') || localStorage.getItem('user');
+    const rideId = location.state?.rideId || sessionStorage.getItem('active_ride_id');
+    
+    if (userStr && rideId) {
+      const user = JSON.parse(userStr);
+      socketService.connect(user.id);
+      socketService.joinChat(rideId);
+    }
+  }, [location.state?.rideId]);
+
+  useEffect(() => {
+    socketService.onReceiveMessage((msg) => {
+      console.log("📡 [WaitingDriverPickup] Received socket message:", msg);
+      if (msg.text === 'DRIVER_ARRIVED') {
+        console.log("🚀 Driver has arrived! Automatically navigating to InTrip...");
+        showToast('ドライバーが到着しました！', 'success');
+        navigate('/passenger/in-trip', { state: { driver } });
+      }
+    });
+    return () => {
+      socketService.offReceiveMessage();
+    };
+  }, [navigate, driver]);
+
+  useEffect(() => {
     socketService.onDriverLocation((data) => {
       setDriverPosition({ lat: data.lat, lng: data.lng });
     });
@@ -108,8 +161,16 @@ export default function WatingDriverPickup() {
     };
   }, []);
 
-  const handleChat = () => navigate('/passenger/chat');
-  const handleCall = () => navigate('/passenger/call-driver');
+  const handleChat = () => {
+    const rideId = location.state?.rideId || sessionStorage.getItem('active_ride_id');
+    navigate('/passenger/chat', { state: { target: driver, rideId } });
+  };
+  
+  const handleCall = () => {
+    const rideId = location.state?.rideId || sessionStorage.getItem('active_ride_id');
+    navigate('/passenger/call-driver', { state: { target: driver, rideId } });
+  };
+
   const handleRecenter = () => setRecenterKey(prev => prev + 1);
 
   return (
@@ -166,8 +227,8 @@ export default function WatingDriverPickup() {
         <div className="flex flex-col gap-6 pt-2 px-1.5 pb-4">
           {/* Driver Info */}
           <div className="flex items-center justify-between w-full">
-            <div className="flex items-center gap-[20px]">
-              <div className="relative inline-flex flex-col items-start justify-start">
+            <div className="flex items-center gap-[12px] sm:gap-[20px] flex-1 min-w-0 pr-2">
+              <div className="relative inline-flex flex-col items-start justify-start flex-shrink-0">
                 <img 
                   src={driver.avatar} 
                   alt={driver.name} 
@@ -180,29 +241,29 @@ export default function WatingDriverPickup() {
                 </div>
               </div>
               
-              <div className="inline-flex flex-col items-start justify-start">
-                <div className="text-[#171D17] text-[24px] font-extrabold leading-[32px]">
+              <div className="flex flex-col items-start justify-start flex-1 min-w-0">
+                <div className="text-[#171D17] text-[18px] sm:text-[20px] font-extrabold leading-[28px] w-full truncate">
                   {driver.name}
                 </div>
-                <div className="text-[#3D4A3F] text-[16px] font-medium leading-[24px]">
-                  {driver.car}
+                <div className="text-[#3D4A3F] text-[13px] sm:text-[14px] font-medium leading-[20px] w-full truncate">
+                  {getCarModel(driver.car)}
                 </div>
                 <div className="pt-1 flex flex-col items-start justify-start">
                   <div className="px-2 py-[2px] bg-[#E3EAE0] rounded flex items-center justify-center">
-                    <div className="text-[#3D4A3F] text-[11px] font-bold uppercase leading-[16.5px] tracking-[0.55px]">
-                      {driver.licensePlate || '51H-123.45'}
+                    <div className="text-[#3D4A3F] text-[10px] sm:text-[11px] font-bold uppercase leading-[16.5px] tracking-[0.55px] whitespace-nowrap">
+                      {getCarPlate(driver.car, driver.licensePlate)}
                     </div>
                   </div>
                 </div>
               </div>
             </div>
 
-            <div className="inline-flex flex-col items-start justify-start w-[75.5px]">
-              <div className="relative w-full h-[41px]">
-                <div className="absolute left-[24.5px] top-[-0.5px] flex flex-col justify-center text-right text-[#006D37] text-[36px] font-black leading-[40px]">
+            <div className="inline-flex flex-col items-start justify-start flex-shrink-0 ml-2">
+              <div style={{ display: 'flex', alignItems: 'baseline', gap: '4px', height: 41 }}>
+                <div style={{ color: '#006D37', fontSize: 36, fontWeight: '900', lineHeight: '40px' }}>
                   {etaMinutes !== null ? etaMinutes : '-'}
                 </div>
-                <div className="absolute left-[48.5px] top-[5.5px] flex flex-col justify-center text-right text-[#006D37] text-[24px] font-extrabold leading-[28px]">
+                <div style={{ color: '#006D37', fontSize: 24, fontWeight: '800', lineHeight: '28px' }}>
                   分
                 </div>
               </div>
@@ -220,7 +281,7 @@ export default function WatingDriverPickup() {
               className="flex-1 py-5 bg-[#EFF6EC] rounded-[24px] flex justify-center items-center gap-3 hover:bg-[#e8edea] transition-colors" 
               onClick={handleChat}
             >
-              <div className="w-[40px] h-[40px] bg-white shadow-[0px_1px_2px_rgba(0,0,0,0.05)] rounded-full flex items-center justify-center flex-shrink-0">
+              <div className="w-[40px] h-[40px] bg-[#E9F0E6] shadow-[0px_1px_2px_rgba(0,0,0,0.05)] rounded-full flex items-center justify-center flex-shrink-0">
                 <img src={IconMess} alt="Chat" className="w-[18px] h-[18px] object-contain" />
               </div>
               <div className="flex flex-col justify-start items-start">
@@ -234,7 +295,7 @@ export default function WatingDriverPickup() {
               className="flex-1 py-5 bg-[#EFF6EC] rounded-[24px] flex justify-center items-center gap-3 hover:bg-[#e8edea] transition-colors" 
               onClick={handleCall}
             >
-              <div className="w-[40px] h-[40px] bg-white shadow-[0px_1px_2px_rgba(0,0,0,0.05)] rounded-full flex items-center justify-center flex-shrink-0">
+              <div className="w-[40px] h-[40px] bg-[#E9F0E6] shadow-[0px_1px_2px_rgba(0,0,0,0.05)] rounded-full flex items-center justify-center flex-shrink-0">
                 <img src={IconCall} alt="Call" className="w-[18px] h-[18px] object-contain" />
               </div>
               <div className="flex flex-col justify-start items-start">

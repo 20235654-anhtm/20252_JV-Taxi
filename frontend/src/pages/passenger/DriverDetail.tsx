@@ -177,7 +177,18 @@ const DriverDetail = () => {
             <div key={review.id} className="dd-review-card">
               <div className="dd-review-header">
                 <div className="dd-reviewer-info">
-                  <div className="dd-reviewer-avatar">{review.reviewer?.fullName?.charAt(0) || 'U'}</div>
+                  {review.reviewer?.avatar ? (
+                    <img 
+                      src={review.reviewer.avatar} 
+                      alt={review.reviewer.fullName || 'User'} 
+                      className="dd-reviewer-avatar" 
+                      style={{ objectFit: 'cover' }}
+                    />
+                  ) : (
+                    <div className="dd-reviewer-avatar">
+                      {review.reviewer?.fullName?.charAt(0) || 'U'}
+                    </div>
+                  )}
                   <div>
                     <h4 className="dd-reviewer-name">{review.reviewer?.fullName || 'ユーザー'}</h4>
                     <div className="dd-review-stars">

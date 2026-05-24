@@ -97,7 +97,7 @@ const WaitingDriver = () => {
         navigate('/passenger/waiting-driver-pickup', {
           state: {
             driver,
-            rideId: location.state?.rideId
+            rideId: location.state?.rideId || activeRideId
           }
         });
       }, 2500);
@@ -143,22 +143,6 @@ const WaitingDriver = () => {
         onBackClick={() => navigate(-1)}
         hideBrandName={true}
         hideLanguageToggle={true}
-        rightContent={
-          <div style={{ display: 'flex', gap: '8px' }}>
-            <button
-              onClick={() => setStatus('accepted')}
-              className="wd-demo-header-btn-accept"
-            >
-              ✅ Demo Accept
-            </button>
-            <button
-              onClick={() => setStatus('rejected')}
-              className="wd-demo-header-btn"
-            >
-              ❌ Demo Reject
-            </button>
-          </div>
-        }
       />
 
       <div className="wd-content">
@@ -250,9 +234,7 @@ const WaitingDriver = () => {
 
               <Card className="wd-explanation-box" variant="default" padding="md" rounded="md">
                 <p>
-                  申し訳ありませんが、現在ドライバーはリクエストを受け付けることができません。
-                  {status === 'rejected' && <br />}
-                  {status === 'rejected' && <span style={{ color: '#A4394E', fontWeight: 'bold' }}>ドライバーがリクエストを拒否しました。カード決済の場合は自動的に返金されます。</span>}
+                  申し訳ありませんが、現在ドライバー là リクエスト を受け付けることができません。
                 </p>
               </Card>
 

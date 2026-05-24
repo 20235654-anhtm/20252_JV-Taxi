@@ -6,6 +6,7 @@ import { Header } from '../../components/layout/Header';
 import { MapView } from '../../components/features/MapView';
 import { FAB } from '../../components/ui/FAB';
 import { useBooking } from '../../contexts/BookingContext';
+import { showToast } from '../../components/ui/Toast';
 
 // SVG Icons
 import IconCall from '../../assets/IconCall.svg';
@@ -52,13 +53,16 @@ export default function InTrip() {
   const [recenterKey, setRecenterKey] = useState(0);
   const { pickup: pickupData, destination: destData } = useBooking();
 
-  const driver = location.state?.driver || {
+  // Retrieve active ride ID & driver info from state or sessionStorage fallback
+  const rideId = location.state?.rideId || sessionStorage.getItem('active_ride_id') || '';
+  const storedDriverStr = sessionStorage.getItem('active_driver');
+  const driver = location.state?.driver || (storedDriverStr ? JSON.parse(storedDriverStr) : {
     name: 'Nguyen Tan',
     avatar: 'https://i.pravatar.cc/150?img=11',
     rating: '4.9',
     car: 'Toyota Camry',
     licensePlate: '51H-123.45'
-  };
+  });
 
   // Vị trí tài xế (Khởi tạo từ pickup, cập nhật qua socket)
   const [driverPosition, setDriverPosition] = useState({ 
@@ -71,13 +75,41 @@ export default function InTrip() {
   const lastFetchedPos = useRef<{ lat: number; lng: number } | null>(null);
 
   useEffect(() => {
+    if (!rideId) {
+      showToast('乗車情報が見つかりませんでした。', 'error');
+      navigate('/passenger');
+      return;
+    }
+
+    // Connect socket and listen for ride completion
+    const userStr = sessionStorage.getItem('user') || localStorage.getItem('user') || '{}';
+    const user = JSON.parse(userStr);
+    if (user.id) {
+      socketService.connect(user.id);
+    }
+
     socketService.onDriverLocation((data) => {
       setDriverPosition({ lat: data.lat, lng: data.lng });
     });
+
+    // Listen for ride-completed event from backend
+    socketService.onRideCompleted((data) => {
+      console.log('🏁 Ride completed successfully!', data);
+      showToast('目的地に到着しました。ご利用ありがとうございました。', 'success');
+      
+      // Clear active ride session
+      sessionStorage.removeItem('active_ride_id');
+      sessionStorage.removeItem('active_driver');
+      
+      // Redirect to rating page
+      navigate('/passenger/rate-trip', { state: { driver, rideId } });
+    });
+
     return () => {
       socketService.offDriverLocation();
+      socketService.offRideCompleted();
     };
-  }, []);
+  }, [rideId, navigate, driver]);
 
   useEffect(() => {
     const fetchEta = async () => {
@@ -122,7 +154,12 @@ export default function InTrip() {
   const destName = destData.address || '目的地';
   const pickupName = pickupData.address || '乗車場所';
 
-  const handleChat = () => navigate('/passenger/chat', { state: { target: driver } });
+  const handleChat = () => {
+    sessionStorage.setItem('active_ride_id', rideId);
+    sessionStorage.setItem('active_driver', JSON.stringify(driver));
+    navigate('/passenger/chat', { state: { driver, rideId } });
+  };
+  
   const handleCall = () => navigate('/passenger/call-driver', { state: { target: driver } });
   const handleRecenter = () => setRecenterKey(prev => prev + 1);
 
@@ -203,23 +240,38 @@ export default function InTrip() {
                       <div style={{width: 155, height: 56, justifyContent: 'center', display: 'flex', flexDirection: 'column', color: '#171D17', fontSize: 20, fontWeight: '800', lineHeight: '32px', whiteSpace: 'nowrap'}}>{driver.name}</div>
                     </div>
                     <div style={{width: 114, flexDirection: 'column', justifyContent: 'flex-start', alignItems: 'flex-start', display: 'flex'}}>
-                      <div style={{width: 114, height: 40, justifyContent: 'center', display: 'flex', flexDirection: 'column', color: '#3D4A3F', fontSize: 14, fontWeight: '400', lineHeight: '20px', wordWrap: 'break-word'}}>{driver.car} •<br/>{driver.licensePlate || '51H-123.45'}</div>
+                      <div style={{width: 114, height: 40, justifyContent: 'center', display: 'flex', flexDirection: 'column', color: '#3D4A3F', fontSize: 14, fontWeight: '400', lineHeight: '20px', wordWrap: 'break-word'}}>
+                        {(() => {
+                          try {
+                            if (typeof driver.car === 'string' && driver.car.startsWith('{')) {
+                              const carObj = JSON.parse(driver.car);
+                              return `${carObj.model || ''} • ${carObj.plate || ''}`;
+                            }
+                            if (typeof driver.car === 'object' && driver.car !== null) {
+                              return `${(driver.car as any).model || ''} • ${(driver.car as any).plate || ''}`;
+                            }
+                            return driver.car;
+                          } catch (e) {
+                            return driver.car;
+                          }
+                        })() || 'Toyota Camry • 51H-123.45'}
+                      </div>
                     </div>
                     <div style={{alignSelf: 'stretch', flexDirection: 'column', justifyContent: 'flex-start', alignItems: 'flex-start', display: 'flex'}}>
                       <div style={{width: 109, height: 23, justifyContent: 'center', display: 'flex', flexDirection: 'column', color: 'rgba(61, 74, 63, 0.70)', fontSize: 10, fontWeight: '400', textTransform: 'uppercase', lineHeight: '15px', wordWrap: 'break-word'}}> 認定ドライバー</div>
                     </div>
                   </div>
                 </div>
-                <div style={{justifyContent: 'flex-start', alignItems: 'flex-start', gap: 8, display: 'flex'}}>
+                <div style={{justifyContent: 'flex-start', alignItems: 'flex-start', gap: 8, display: 'flex', alignSelf: 'flex-end', marginTop: 16}}>
+                  <div className="cursor-pointer" onClick={handleChat} style={{width: 48, height: 48, background: '#E9F0E6', borderRadius: 24, justifyContent: 'center', alignItems: 'center', display: 'flex'}}>
+                    <div style={{flexDirection: 'column', justifyContent: 'flex-start', alignItems: 'center', display: 'inline-flex'}}>
+                      <img src={IconMess} alt="Chat" style={{width: 20, height: 20, objectFit: 'contain'}} />
+                    </div>
+                  </div>
                   <div className="cursor-pointer" onClick={handleCall} style={{width: 48, height: 48, background: '#E9F0E6', borderRadius: 24, justifyContent: 'center', alignItems: 'center', display: 'flex'}}>
                     <div style={{flexDirection: 'column', justifyContent: 'flex-start', alignItems: 'center', display: 'inline-flex'}}>
                       <img src={IconCall} alt="Call" style={{width: 18, height: 18, objectFit: 'contain'}} />
                     </div>
-                  </div>
-                </div>
-                <div className="cursor-pointer" onClick={handleChat} style={{width: 48, height: 48, background: '#E9F0E6', borderRadius: 24, justifyContent: 'center', alignItems: 'center', display: 'flex'}}>
-                  <div style={{flexDirection: 'column', justifyContent: 'flex-start', alignItems: 'center', display: 'inline-flex'}}>
-                    <img src={IconMess} alt="Chat" style={{width: 20, height: 20, objectFit: 'contain'}} />
                   </div>
                 </div>
               </div>

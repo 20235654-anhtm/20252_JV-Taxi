@@ -152,4 +152,26 @@ export const getRouteWithDuration = async (start: LatLng, end: LatLng): Promise<
   }
 };
 
+/**
+ * Hàm Geocoding: Chuyển địa chỉ chữ sang tọa độ { lat, lng }
+ */
+export const geocodeAddress = async (query: string): Promise<{ lat: number; lng: number } | null> => {
+  try {
+    const response = await fetch(
+      `https://photon.komoot.io/api/?q=${encodeURIComponent(query)}&limit=1&lang=en&bbox=102.14,8.33,109.46,23.39`
+    );
+    if (!response.ok) return null;
+    const data = await response.json();
+    if (data.features && data.features.length > 0) {
+      const coords = data.features[0].geometry.coordinates; // [lng, lat]
+      return { lat: coords[1], lng: coords[0] };
+    }
+    return null;
+  } catch (error) {
+    console.error('Geocode error:', error);
+    return null;
+  }
+};
+
+
 

@@ -105,6 +105,8 @@ export const socketService = {
 
     offDriverLocation: () => {
         socket?.off('driver-location');
+    },
+
     // Chat logic
     joinChat: (rideId: string) => {
         activeRideId = rideId;
