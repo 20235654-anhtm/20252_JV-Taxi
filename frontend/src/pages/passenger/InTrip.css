@@ -1,0 +1,243 @@
+/* Premium styles for Passenger In-Trip page */
+
+.in-trip-container {
+  position: relative;
+  width: 100%;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background-color: #F4FBF1;
+  overflow: hidden;
+  font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+.it-map-wrapper {
+  flex: 1;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+}
+
+/* Custom premium demo button */
+.it-demo-btn {
+  background: rgba(39, 174, 96, 0.1);
+  color: #27AE60;
+  border: 1px solid rgba(39, 174, 96, 0.3);
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.it-demo-btn:hover {
+  background: #27AE60;
+  color: white;
+}
+
+/* Safety badge */
+.it-safety-badge {
+  position: absolute;
+  top: 80px;
+  left: 50%;
+  transform: translateX(-55%);
+  z-index: 100;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(8px);
+  padding: 8px 16px;
+  border-radius: 30px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #065F46;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  border: 1px solid rgba(39, 174, 96, 0.15);
+}
+
+/* Sliding bottom panel */
+.it-bottom-panel {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
+  background: #FFFFFF;
+  border-radius: 28px 28px 0 0;
+  padding: 20px 24px 34px 24px;
+  box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.08);
+  animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.it-panel-handle {
+  width: 40px;
+  height: 5px;
+  background: #E5E9E5;
+  border-radius: 10px;
+  margin: 0 auto 18px auto;
+}
+
+/* Pulsing Status dot */
+.it-status-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 20px;
+  justify-content: center;
+}
+
+.it-status-dot-pulse {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #27AE60;
+  position: relative;
+}
+
+.it-status-dot-pulse::after {
+  content: '';
+  position: absolute;
+  top: -5px;
+  left: -5px;
+  right: -5px;
+  bottom: -5px;
+  border-radius: 50%;
+  border: 2px solid #27AE60;
+  animation: pulse 1.8s infinite ease-in-out;
+  opacity: 0;
+}
+
+/* Driver Details Card */
+.it-driver-card {
+  background: #F4FBF1;
+  border-radius: 20px;
+  padding: 16px;
+  margin-bottom: 20px;
+  border: 1px solid rgba(39, 174, 96, 0.08);
+}
+
+.it-driver-profile {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.it-driver-text {
+  flex: 1;
+}
+
+.it-driver-rating {
+  background: #FEA520;
+  color: white;
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+}
+
+/* Actions styling */
+.it-actions {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.it-chat-btn, .it-call-btn {
+  flex: 1;
+  height: 50px !important;
+  border-radius: 16px !important;
+  font-weight: 700 !important;
+  font-size: 15px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  transition: all 0.2s ease !important;
+}
+
+.it-chat-btn {
+  background-color: #EEF6EA !important;
+  color: #065F46 !important;
+  border: none !important;
+}
+
+.it-chat-btn:hover {
+  background-color: #DCEFDB !important;
+  box-shadow: none !important;
+}
+
+.it-call-btn {
+  background-color: #FFFFFF !important;
+  color: #065F46 !important;
+  border: 1px solid #E5E9E5 !important;
+}
+
+.it-call-btn:hover {
+  background-color: #F8FBF8 !important;
+  border-color: #065F46 !important;
+}
+
+/* Trip Stats details */
+.it-stats {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 18px;
+  border-top: 1px solid #F0F4F0;
+}
+
+.it-stat-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+  justify-content: center;
+}
+
+.it-stat-val {
+  display: block;
+  font-size: 16px;
+  font-weight: 800;
+  color: #0B1F0F;
+}
+
+.it-stat-lbl {
+  display: block;
+  font-size: 11px;
+  color: #8C9C8F;
+  font-weight: 600;
+  margin-top: 1px;
+}
+
+.it-divider {
+  width: 1px;
+  height: 32px;
+  background: #E5E9E5;
+}
+
+/* Animations */
+@keyframes slideUp {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(0.6);
+    opacity: 0;
+  }
+  50% {
+    opacity: 0.5;
+  }
+  100% {
+    transform: scale(1.6);
+    opacity: 0;
+  }
+}

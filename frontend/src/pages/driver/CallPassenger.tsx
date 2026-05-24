@@ -1,16 +1,19 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { MicOff, Mic, Phone, BadgeCheck } from 'lucide-react';
 import { MapView } from '../../components/features/MapView';
 import './CallPassenger.css';
 
 const CallPassenger = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const [isMicOpen, setIsMicOpen] = useState(false);
   const [isSpeakerOpen, setIsSpeakerOpen] = useState(false);
+  const passengerName = location.state?.passengerName || sessionStorage.getItem('active_passenger_name') || 'Hành khách';
+  const passengerAvatar = location.state?.passengerAvatar || sessionStorage.getItem('active_passenger_avatar') || 'https://api.dicebear.com/7.x/avataaars/svg?seed=passenger';
 
   const handleEndCall = () => {
-    navigate('/driver/chat');
+    navigate('/driver/chat', { state: location.state });
   };
 
   return (
@@ -25,12 +28,12 @@ const CallPassenger = () => {
       <div className="call-content">
         <div className="call-header">
           <div className="call-avatar-container">
-            <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=passenger" alt="Nguyen Tan" className="call-avatar" />
+            <img src={passengerAvatar} alt={passengerName} className="call-avatar" />
             <div className="call-badge">
               <BadgeCheck size={18} color="#519A64" fill="white" strokeWidth={2.5} />
             </div>
           </div>
-          <h2 className="call-name">Nguyen Tan</h2>
+          <h2 className="call-name">{passengerName}</h2>
           <p className="call-status">発信中...</p>
         </div>
 

@@ -4,6 +4,8 @@ import { CarFront, User, Search } from 'lucide-react';
 import { Header } from '../../components/layout/Header';
 import { MapView } from '../../components/features/MapView';
 import { useBooking } from '../../contexts/BookingContext';
+import { API_BASE_URL } from '../../config/api';
+import { showToast } from '../../components/ui/Toast';
 import './BookingOptions.css';
 
 const CarIcon = ({ size = 24, color = 'currentColor' }) => (
@@ -27,6 +29,7 @@ const BookingOptions = () => {
   const navigate = useNavigate();
   const { pickup: pickupData, destination: destData } = useBooking();
   const [selectedOption, setSelectedOption] = useState<'auto' | 'designated'>('auto');
+  const [isLoading, setIsLoading] = useState(false);
 
   // Bảo vệ an toàn
   if (!pickupData?.coords || !destData?.coords) {
@@ -36,12 +39,30 @@ const BookingOptions = () => {
   const pickup = pickupData.coords; 
   const destination = destData.coords;
 
-  const handleNext = () => {
+  const handleNext = async () => {
     if (selectedOption === 'designated') {
       navigate('/passenger/select-driver');
     } else {
       // Chế độ tự động
-      navigate('/passenger/booking-confirmation', { state: { mode: 'auto' } });
+      setIsLoading(true);
+      try {
+        const token = sessionStorage.getItem('authToken') || localStorage.getItem('authToken');
+        const response = await fetch(`${API_BASE_URL}/api/drivers/nearby?lng=${pickup.lng}&lat=${pickup.lat}`, {
+          headers: token ? { 'Authorization': `Bearer ${token}` } : {}
+        });
+        const data = await response.json();
+        if (data.success && data.data && data.data.length > 0) {
+          const nearestDriver = data.data[0];
+          navigate('/passenger/booking-confirmation', { state: { mode: 'auto', driver: nearestDriver } });
+        } else {
+          showToast('周辺にドライバーが見つかりませんでした。', 'error');
+        }
+      } catch (error) {
+        console.error('Error finding nearest driver', error);
+        showToast('エラーが発生しました。', 'error');
+      } finally {
+        setIsLoading(false);
+      }
     }
   };
 
@@ -125,8 +146,8 @@ const BookingOptions = () => {
           </div>
         </div>
 
-        <button className="bo-confirm-btn" onClick={handleNext}>
-          次へ進む <span>→</span>
+        <button className="bo-confirm-btn" onClick={handleNext} disabled={isLoading}>
+          {isLoading ? '検索中...' : '次へ進む'} <span>→</span>
         </button>
       </div>
     </div>

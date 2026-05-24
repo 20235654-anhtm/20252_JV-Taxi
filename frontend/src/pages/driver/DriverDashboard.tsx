@@ -20,6 +20,7 @@ const DriverDashboard = () => {
   const [isOnline, setIsOnline] = useState(true);
   const [recenterKey, setRecenterKey] = useState(0);
   const [showPopup, setShowPopup] = useState(false);
+  const [showCanceledPopup, setShowCanceledPopup] = useState(false);
   const [currentRequest, setCurrentRequest] = useState<any>(null);
   const [driverData, setDriverData] = useState<any>(() => getCache(CACHE_KEYS.DRIVER_PROFILE) || null);
   const [revenueData, setRevenueData] = useState<any>({
@@ -152,8 +153,21 @@ const DriverDashboard = () => {
       setShowPopup(true);
     });
 
+    socketService.onBookingCancelled((data) => {
+      console.log('❌ Booking cancelled by passenger!', data);
+      setCurrentRequest((prev: any) => {
+        if (prev && prev.rideId === data.rideId) {
+          setShowPopup(false);
+          setShowCanceledPopup(true);
+          return null;
+        }
+        return prev;
+      });
+    });
+
     return () => {
       socketService.offIncomingBooking();
+      socketService.offBookingCancelled();
     };
   }, []);
 
@@ -172,9 +186,15 @@ const DriverDashboard = () => {
       const data = await response.json();
       if (data.success) {
         setShowPopup(false);
-        navigate('/driver/chat', { 
+        // Persist active ride info
+        sessionStorage.setItem('active_ride_id', currentRequest.rideId);
+        sessionStorage.setItem('active_passenger_name', currentRequest.passengerName);
+        sessionStorage.setItem('active_passenger_avatar', currentRequest.passengerAvatar);
+
+        navigate('/driver/in-trip', { 
           state: { 
             passengerName: currentRequest.passengerName, 
+            passengerAvatar: currentRequest.passengerAvatar,
             rideId: currentRequest.rideId 
           } 
         });
@@ -325,6 +345,23 @@ const DriverDashboard = () => {
             onDecline={handleDeclineRide}
             timeoutSeconds={180}
           />
+        </div>
+      )}
+
+      {/* CANCELED POPUP */}
+      {showCanceledPopup && (
+        <div className="dd-popup-overlay">
+          <div className="dd-canceled-popup" style={{ background: 'white', padding: '24px', borderRadius: '16px', textAlign: 'center', width: '90%', maxWidth: '400px' }}>
+            <h2 style={{ fontSize: '1.2rem', fontWeight: 700, color: '#C62828', marginBottom: '16px' }}>
+              お客様によってリクエストがキャンセルされました
+            </h2>
+            <button 
+              onClick={() => setShowCanceledPopup(false)}
+              style={{ background: '#171D17', color: 'white', padding: '12px 24px', borderRadius: '8px', width: '100%', fontWeight: 600 }}
+            >
+              確認
+            </button>
+          </div>
         </div>
       )}
     </div>

@@ -17,8 +17,13 @@ const CallDriverUI = () => {
   const userStr = sessionStorage.getItem('user') || localStorage.getItem('user');
   const user = userStr ? JSON.parse(userStr) : null;
   
-  // Lấy dữ liệu tài xế từ màn hình trước
-  const targetDriver = location.state?.target || null;
+  // Lấy dữ liệu tài xế từ màn hình trước (Kết hợp fallback từ main để chống lỗi)
+  const storedDriverStr = sessionStorage.getItem('active_driver');
+  const targetDriver = location.state?.target || location.state?.driver || (storedDriverStr ? JSON.parse(storedDriverStr) : {
+    id: '', // Để trống id nếu fallback không có
+    name: 'Tài xế',
+    avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=driver'
+  });
 
   const { callStatus, isMuted, callDuration, startCall, endCall, toggleMute } = useCallManager();
   const daily = useDaily();
@@ -67,6 +72,7 @@ const CallDriverUI = () => {
   }, [callStatus, endCall]);
 
   const handleEndCall = () => {
+    // Luôn phải kết thúc cuộc gọi thực tế trước khi điều hướng
     endCall();
     navigate(-1);
   };
@@ -94,7 +100,7 @@ const CallDriverUI = () => {
       <div className="call-content">
         <div className="call-header">
           <div className="call-avatar-container">
-            <img src={targetDriver?.avatar || "https://api.dicebear.com/7.x/avataaars/svg?seed=driver"} alt={targetDriver?.name || 'Tài xế'} className="call-avatar" />
+            <img src={targetDriver?.avatar} alt={targetDriver?.name} className="call-avatar" />
             <div className="call-badge">
               <BadgeCheck size={18} color="#519A64" fill="white" strokeWidth={2.5} />
             </div>

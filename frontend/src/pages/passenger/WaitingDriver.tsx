@@ -8,9 +8,19 @@ import { Heading } from '../../components/ui/Heading';
 import { MapView } from '../../components/features/MapView';
 import { useBooking } from '../../contexts/BookingContext';
 import { socketService } from '../../services/socketService';
+import { API_BASE_URL } from '../../config/api';
 import './WaitingDriver.css';
 
 type WaitingStatus = 'waiting' | 'rejected' | 'accepted' | 'expired';
+
+const getCarModel = (info: string) => {
+  try {
+    const parsed = JSON.parse(info);
+    return parsed.model || info;
+  } catch (e) {
+    return info;
+  }
+};
 
 const WaitingDriver = () => {
   const navigate = useNavigate();
@@ -22,6 +32,19 @@ const WaitingDriver = () => {
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const pickup = pickupData?.coords || { lat: 21.0285, lng: 105.8542 };
+
+  const getCarDisplayName = (carInfo: string | any) => {
+    if (!carInfo) return 'Toyota Camry';
+    if (typeof carInfo === 'string') {
+      try {
+        const parsed = JSON.parse(carInfo);
+        return parsed.model ? `${parsed.model} • ${parsed.plate || ''}` : carInfo;
+      } catch (e) {
+        return carInfo;
+      }
+    }
+    return carInfo.model ? `${carInfo.model} • ${carInfo.plate || ''}` : 'Toyota Camry';
+  };
 
   useEffect(() => {
     // Timer countdown
@@ -37,7 +60,7 @@ const WaitingDriver = () => {
     }, 1000);
 
     // Socket.io connection and listeners
-    const userStr = localStorage.getItem('user');
+    const userStr = sessionStorage.getItem('user') || localStorage.getItem('user');
     if (userStr) {
       const user = JSON.parse(userStr);
       socketService.connect(user.id);
@@ -63,6 +86,13 @@ const WaitingDriver = () => {
   // Redirect to live tracking when accepted
   useEffect(() => {
     if (status === 'accepted') {
+      const activeRideId = location.state?.rideId || '';
+      if (activeRideId) {
+        sessionStorage.setItem('active_ride_id', activeRideId);
+      }
+      if (driver) {
+        sessionStorage.setItem('active_driver', JSON.stringify(driver));
+      }
       const timer = setTimeout(() => {
         navigate('/passenger/waiting-driver-pickup', {
           state: {
@@ -73,7 +103,7 @@ const WaitingDriver = () => {
       }, 2500);
       return () => clearTimeout(timer);
     }
-  }, [status, navigate, driver, location.state?.rideId]);
+  }, [status, navigate, driver, location.state?.rideId, location.state?.mode]);
 
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
@@ -85,7 +115,22 @@ const WaitingDriver = () => {
     navigate('/passenger/booking-options');
   };
 
-  const handleGoHome = () => {
+  const handleGoHome = async () => {
+    try {
+      if (location.state?.rideId && status === 'waiting') {
+        const token = sessionStorage.getItem('authToken') || localStorage.getItem('authToken');
+        await fetch(`${API_BASE_URL}/api/rides/cancel`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify({ rideId: location.state.rideId })
+        });
+      }
+    } catch (e) {
+      console.error('Error cancelling ride:', e);
+    }
     navigate('/passenger');
   };
 
@@ -176,7 +221,7 @@ const WaitingDriver = () => {
                   <img src={driver.avatar} alt={driver.name} className="wd-driver-avatar" />
                   <div className="wd-driver-details">
                     <h3 className="wd-driver-name">{driver.name}</h3>
-                    <p className="wd-driver-car">{driver.car} • {driver.vehicleType}</p>
+                    <p className="wd-driver-car">{getCarModel(driver.car)} • {driver.vehicleType}</p>
                   </div>
                   <div className="wd-driver-rating">★ {driver.rating}</div>
                 </div>
@@ -206,6 +251,8 @@ const WaitingDriver = () => {
               <Card className="wd-explanation-box" variant="default" padding="md" rounded="md">
                 <p>
                   申し訳ありませんが、現在ドライバーはリクエストを受け付けることができません。
+                  {status === 'rejected' && <br />}
+                  {status === 'rejected' && <span style={{ color: '#A4394E', fontWeight: 'bold' }}>ドライバーがリクエストを拒否しました。カード決済の場合は自動的に返金されます。</span>}
                 </p>
               </Card>
 

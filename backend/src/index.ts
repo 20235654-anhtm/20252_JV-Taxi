@@ -7,6 +7,9 @@ import authRoutes from './routes/auth.routes';
 import paymentRoutes from './routes/payment.routes';
 import callRoutes from './routes/call.routes';
 import rideRoutes from './routes/ride.routes';
+import messageRoutes from './routes/message.routes';
+import reviewRoutes from './routes/review.routes';
+import prisma from './config/db';
 import dotenv from 'dotenv';
 import cors from 'cors';
 
@@ -43,8 +46,51 @@ io.on('connection', (socket) => {
             if (socketId === socket.id) {
                 userSocketMap.delete(userId);
                 console.log(`🗑️ Unregistered: userId=${userId}`);
+                
+                // Set driver offline in DB if they disconnect
+                try {
+                    await prisma.driverProfile.updateMany({
+                        where: { userId },
+                        data: { isOnline: false }
+                    });
+                    console.log(`🔻 Set driver offline: userId=${userId}`);
+                } catch (e) {
+                    // Ignore errors (e.g., if user is not a driver)
+                }
                 break;
             }
+        }
+    });
+
+    // --- Chat logic ---
+    socket.on('join-chat', (rideId: string) => {
+        socket.join(rideId);
+        console.log(`💬 Socket ${socket.id} joined room ${rideId}`);
+    });
+
+    socket.on('send-message', async (data: { rideId: string; senderId: string; text: string }) => {
+        try {
+            const { rideId, senderId, text } = data;
+            
+            // Lưu tin nhắn vào CSDL
+            // Lưu tin nhắn vào CSDL
+            
+            const message = await prisma.message.create({
+                data: {
+                    rideId,
+                    senderId,
+                    text
+                }
+            });
+
+            // Gửi tin nhắn cho tất cả người trong phòng (bao gồm cả người gửi, hoặc frontend tự cập nhật UI)
+            // Phát cho các client khác trong phòng
+            socket.to(rideId).emit('receive-message', message);
+            
+            console.log(`💬 Message sent in room ${rideId}: ${text}`);
+        } catch (error: any) {
+            console.error('Error handling send-message:', error);
+            socket.emit('chat-error', { message: 'Failed to send message', error: error.message });
         }
     });
 });
@@ -60,10 +106,13 @@ app.use('/api/destinations', destinationRoutes);
 app.use('/api/payments', paymentRoutes);
 app.use('/api/call', callRoutes);
 app.use('/api/rides', rideRoutes);
+app.use('/api/messages', messageRoutes);
+app.use('/api/reviews', reviewRoutes);
 app.get('/', (req: Request, res: Response) => {
     res.send('Backend Express Server is running');
 });
 
+// Nodemon trigger comment for DB synchronization
 httpServer.listen(port, () => {
     console.log(`⚡️[server]: Server is running at http://localhost:${port}`);
     console.log(`Prisma client fully synchronized on port 5432.`);
