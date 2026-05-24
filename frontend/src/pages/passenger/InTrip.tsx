@@ -19,7 +19,7 @@ const InTrip: React.FC = () => {
   const rideId = location.state?.rideId || sessionStorage.getItem('active_ride_id') || '';
   const storedDriverStr = sessionStorage.getItem('active_driver');
   const driver = location.state?.driver || (storedDriverStr ? JSON.parse(storedDriverStr) : {
-    name: 'Tài xế',
+    name: 'ドライバー',
     avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=driver',
     rating: '5.0',
     car: 'Toyota Camry • 29A-888.88',
@@ -30,7 +30,7 @@ const InTrip: React.FC = () => {
 
   useEffect(() => {
     if (!rideId) {
-      showToast('Không tìm thấy thông tin chuyến đi.', 'error');
+      showToast('乗車情報が見つかりませんでした。', 'error');
       navigate('/passenger');
       return;
     }
@@ -45,7 +45,7 @@ const InTrip: React.FC = () => {
     // Listen for ride-completed event from backend
     socketService.onRideCompleted((data) => {
       console.log('🏁 Ride completed successfully!', data);
-      showToast('Chuyến đi đã hoàn thành! Cảm ơn bạn đã sử dụng dịch vụ.', 'success');
+      showToast('目的地に到着しました。ご利用ありがとうございました。', 'success');
       
       // Clear active ride session
       sessionStorage.removeItem('active_ride_id');
@@ -75,8 +75,9 @@ const InTrip: React.FC = () => {
     <div className="in-trip-container">
       <Header
         variant="passenger"
-        showBackButton={false}
-        title="Đang trong chuyến đi"
+        showBackButton={true}
+        onBackClick={() => navigate(-1)}
+        title="乗車中"
         hideBrandName={true}
         hideLanguageToggle={true}
       />
@@ -138,7 +139,7 @@ const InTrip: React.FC = () => {
             onClick={handleChat}
           >
             <MessageSquare size={18} style={{ marginRight: '8px' }} />
-            Nhắn tin
+            メッセージ
           </button>
         </div>
       </div>

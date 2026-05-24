@@ -8,9 +8,19 @@ import { Heading } from '../../components/ui/Heading';
 import { MapView } from '../../components/features/MapView';
 import { useBooking } from '../../contexts/BookingContext';
 import { socketService } from '../../services/socketService';
+import { API_BASE_URL } from '../../config/api';
 import './WaitingDriver.css';
 
 type WaitingStatus = 'waiting' | 'rejected' | 'accepted' | 'expired';
+
+const getCarModel = (info: string) => {
+  try {
+    const parsed = JSON.parse(info);
+    return parsed.model || info;
+  } catch (e) {
+    return info;
+  }
+};
 
 const WaitingDriver = () => {
   const navigate = useNavigate();
@@ -73,7 +83,7 @@ const WaitingDriver = () => {
     };
   }, []);
 
-  // Redirect to chat when accepted
+  // Redirect to in-trip when accepted
   useEffect(() => {
     if (status === 'accepted') {
       const activeRideId = location.state?.rideId || '';
@@ -84,16 +94,17 @@ const WaitingDriver = () => {
         sessionStorage.setItem('active_driver', JSON.stringify(driver));
       }
       const timer = setTimeout(() => {
-        navigate('/passenger/chat', { 
+        navigate('/passenger/in-trip', { 
           state: { 
             driver, 
-            rideId: activeRideId 
+            rideId: activeRideId,
+            mode: location.state?.mode || 'designated'
           } 
         });
       }, 2500);
       return () => clearTimeout(timer);
     }
-  }, [status, navigate, driver, location.state?.rideId]);
+  }, [status, navigate, driver, location.state?.rideId, location.state?.mode]);
 
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
@@ -105,7 +116,22 @@ const WaitingDriver = () => {
     navigate('/passenger/booking-options');
   };
 
-  const handleGoHome = () => {
+  const handleGoHome = async () => {
+    try {
+      if (location.state?.rideId && status === 'waiting') {
+        const token = sessionStorage.getItem('authToken') || localStorage.getItem('authToken');
+        await fetch(`${API_BASE_URL}/api/rides/cancel`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify({ rideId: location.state.rideId })
+        });
+      }
+    } catch (e) {
+      console.error('Error cancelling ride:', e);
+    }
     navigate('/passenger');
   };
 
@@ -118,14 +144,6 @@ const WaitingDriver = () => {
         onBackClick={() => navigate(-1)}
         hideBrandName={true}
         hideLanguageToggle={true}
-        rightContent={
-          <button 
-            onClick={() => setStatus('rejected')}
-            className="wd-demo-header-btn"
-          >
-            🛠️ Demo Reject
-          </button>
-        }
       />
 
       <div className="wd-content">
@@ -147,7 +165,7 @@ const WaitingDriver = () => {
             </div>
             <h2 className="wd-title" style={{ fontSize: '1.5rem', fontWeight: 800, color: '#0b1f0f', margin: '0 0 8px 0' }}>予約が確定しました！</h2>
             <p className="wd-status-text" style={{ color: '#006D37', fontWeight: 700, margin: '0 0 16px 0' }}>ドライバーがリクエストを承諾しました</p>
-            <p className="wd-message" style={{ color: '#5c6c5f', fontSize: '0.95rem' }}>チャット画面に移行しています...</p>
+            <p className="wd-message" style={{ color: '#5c6c5f', fontSize: '0.95rem' }}>移動画面に移行しています...</p>
           </div>
         )}
 
@@ -188,7 +206,7 @@ const WaitingDriver = () => {
                   <img src={driver.avatar} alt={driver.name} className="wd-driver-avatar" />
                   <div className="wd-driver-details">
                     <h3 className="wd-driver-name">{driver.name}</h3>
-                    <p className="wd-driver-car">{getCarDisplayName(driver.car)} • {driver.vehicleType}</p>
+                    <p className="wd-driver-car">{getCarModel(driver.car)} • {driver.vehicleType}</p>
                   </div>
                   <div className="wd-driver-rating">★ {driver.rating}</div>
                 </div>
@@ -219,7 +237,7 @@ const WaitingDriver = () => {
                 <p>
                   申し訳ありませんが、現在ドライバーはリクエストを受け付けることができません。
                   {status === 'rejected' && <br />}
-                  {status === 'rejected' && <span style={{ color: '#A4394E', fontWeight: 'bold' }}>Tài xế đã từ chối chuyến đi. Hệ thống đã tiến hành hoàn tiền cho bạn (nếu thanh toán bằng thẻ).</span>}
+                  {status === 'rejected' && <span style={{ color: '#A4394E', fontWeight: 'bold' }}>ドライバーがリクエストを拒否しました。カード決済の場合は自動的に返金されます。</span>}
                 </p>
               </Card>
 

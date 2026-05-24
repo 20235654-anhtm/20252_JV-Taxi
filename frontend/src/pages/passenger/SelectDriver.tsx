@@ -21,6 +21,19 @@ interface Driver {
 /** Search status types */
 type SearchStatus = 'searching' | 'found' | 'timeout' | 'error' | 'no_gps';
 
+/** Helper to format JSON vehicle info string to a readable string */
+const formatVehicleInfo = (info: string) => {
+  try {
+    const parsed = JSON.parse(info);
+    const model = parsed.model || '';
+    const secondary = parsed.color || parsed.plate || '';
+    if (model && secondary) return `${model} • ${secondary}`;
+    return model || info;
+  } catch (e) {
+    return info;
+  }
+};
+
 /** Search timeout (5 minutes = 300,000ms) */
 // const SEARCH_TIMEOUT_MS = 5 * 60 * 1000;
 const SEARCH_TIMEOUT_MS = 5 * 1000;
@@ -292,7 +305,7 @@ const SelectDriver = () => {
 
                       <div className="sd-driver-details">
                         <h3 className="sd-driver-name">{driver.name}</h3>
-                        <p className="sd-car-model">{driver.car}</p>
+                        <p className="sd-car-model">{formatVehicleInfo(driver.car)}</p>
                         <div className="sd-tags">
                           <span className="sd-tag">{driver.distance}</span>
                           <span className="sd-tag">{driver.time}</span>
