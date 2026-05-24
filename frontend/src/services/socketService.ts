@@ -71,6 +71,15 @@ export const socketService = {
         socket?.off('booking-rejected');
     },
 
+    // Lắng nghe huỷ đặt xe (phía tài xế)
+    onBookingCancelled: (callback: (data: any) => void) => {
+        socket?.on('booking-cancelled', callback);
+    },
+
+    offBookingCancelled: () => {
+        socket?.off('booking-cancelled');
+    },
+
     // Lắng nghe yêu cầu đặt xe mới (phía tài xế)
     onIncomingBooking: (callback: (data: any) => void) => {
         socket?.on('incoming-booking', callback);

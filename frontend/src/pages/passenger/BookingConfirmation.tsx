@@ -9,6 +9,15 @@ import { paymentService } from '../../services/paymentService';
 import { API_BASE_URL } from '../../config/api';
 import './BookingConfirmation.css';
 
+const getCarModel = (info: string) => {
+  try {
+    const parsed = JSON.parse(info);
+    return parsed.model || info;
+  } catch (e) {
+    return info;
+  }
+};
+
 const BookingConfirmation = () => {
   const stripe = useStripe();
   const elements = useElements();
@@ -33,6 +42,29 @@ const BookingConfirmation = () => {
   const [showCardModal, setShowCardModal] = useState(false);
   const [paymentDetails, setPaymentDetails] = useState<{ id?: string, card?: string }>({});
   const [createdRideId, setCreatedRideId] = useState<string | null>(null);
+
+  const userStr = sessionStorage.getItem('user');
+  const user = userStr ? JSON.parse(userStr) : null;
+  const defaultCard = user?.paymentMethods?.find((pm: any) => pm.isDefault) || user?.paymentMethods?.[0];
+  const cardDetailsString = defaultCard?.cardDetails || "";
+
+  const [cardData, setCardData] = useState(() => {
+    if (cardDetailsString) {
+      const [cardNumber, cardHolder, expiry, cvv] = cardDetailsString.split('|');
+      return {
+        cardNumber: cardNumber || "",
+        cardHolder: cardHolder || "",
+        expiry: expiry || "",
+        cvv: cvv || ""
+      };
+    }
+    return {
+      cardNumber: '',
+      cardHolder: '',
+      expiry: '',
+      cvv: ''
+    };
+  });
 
   if (!pickupData?.coords || !destData?.coords) {
     return <Navigate to="/passenger/search-location" replace />;
@@ -76,7 +108,13 @@ const BookingConfirmation = () => {
         if (rideData.success) {
           setCreatedRideId(rideData.data.id);
           setPaymentDetails({ id: result.transactionId || 'CASH-TEMP' });
-          setShowSuccessPopup(true);
+          navigate('/passenger/waiting-driver', { 
+            state: { 
+              driver, 
+              rideId: rideData.data.id,
+              mode: location.state?.mode || 'designated' 
+            } 
+          });
         } else {
           throw new Error(rideData.message || '配車リクエストの作成に失敗しました');
         }
@@ -93,65 +131,48 @@ const BookingConfirmation = () => {
   };
 
   const handleStripePayment = async () => {
-    if (!stripe || !elements) return;
-
     setIsProcessing(true);
     try {
-      const intentData = await paymentService.createPaymentIntent(145000);
-      
-      if ('error' in intentData) {
-        throw new Error(intentData.error);
+      if (!cardData.cardNumber || cardData.cardNumber.length < 14) {
+        throw new Error("カード番号が正しくありません (14桁以上)");
+      }
+      if (!cardData.expiry || cardData.expiry.length < 5) {
+        throw new Error("有効期限が正しくありません (MM/YY)");
       }
 
-      const cardElement = elements.getElement(CardElement);
-      if (!cardElement) throw new Error('カード情報が見つかりません');
+      await new Promise(r => setTimeout(r, 1000)); // Simulate processing
 
-      const { error, paymentIntent } = await stripe.confirmCardPayment(intentData.clientSecret, {
-        payment_method: {
-          card: cardElement,
-          billing_details: {
-            name: 'Demo User',
-          },
+      const token = sessionStorage.getItem('authToken') || localStorage.getItem('authToken');
+      const rideResponse = await fetch(`${API_BASE_URL}/api/rides/create`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
         },
+        body: JSON.stringify({
+          driverId: driver.id,
+          startAddress: pickupData.address || 'ハノイ工科大学',
+          endAddress: destData.address || 'ロイヤルシティ',
+          startLng: pickup.lng,
+          startLat: pickup.lat,
+          endLng: destination.lng,
+          endLat: destination.lat,
+          matchFee: 145000,
+          matchType: location.state?.mode || 'designated',
+          vehicleTypeRequested: driver.vehicleType || 'Sedan'
+        })
       });
-
-      if (error) {
-        setErrorMessage(error.message || '決済に失敗しました');
-        setShowErrorPopup(true);
-      } else if (paymentIntent && paymentIntent.status === 'succeeded') {
-        // Create Ride in database
-        const token = sessionStorage.getItem('authToken') || localStorage.getItem('authToken');
-        const rideResponse = await fetch(`${API_BASE_URL}/api/rides/create`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`
-          },
-          body: JSON.stringify({
-            driverId: driver.id,
-            startAddress: pickupData.address || 'ハノイ工科大学',
-            endAddress: destData.address || 'ロイヤルシティ',
-            startLng: pickup.lng,
-            startLat: pickup.lat,
-            endLng: destination.lng,
-            endLat: destination.lat,
-            matchFee: 145000,
-            matchType: location.state?.mode || 'designated',
-            vehicleTypeRequested: driver.vehicleType || 'Sedan'
-          })
+      const rideData = await rideResponse.json();
+      if (rideData.success) {
+        setCreatedRideId(rideData.data.id);
+        setPaymentDetails({ 
+          id: 'CARD-' + Math.random().toString(36).substr(2, 9).toUpperCase(), 
+          card: `**** ${cardData.cardNumber.slice(-4)}` 
         });
-        const rideData = await rideResponse.json();
-        if (rideData.success) {
-          setCreatedRideId(rideData.data.id);
-          setPaymentDetails({ 
-            id: paymentIntent.id, 
-            card: 'Visa **** 4242' 
-          });
-          setShowCardModal(false);
-          setShowSuccessPopup(true);
-        } else {
-          throw new Error(rideData.message || '配車リクエストの作成に失敗しました');
-        }
+        setShowCardModal(false);
+        setShowSuccessPopup(true);
+      } else {
+        throw new Error(rideData.message || '配車リクエストの作成に失敗しました');
       }
     } catch (error: any) {
       setErrorMessage(error.message || '支払い処理中にエラーが発生しました。');
@@ -223,7 +244,7 @@ const BookingConfirmation = () => {
             </div>
             <div className="bc-driver-details">
               <div className="bc-driver-name">{driver.name}</div>
-              <div className="bc-driver-car">{driver.car}</div>
+              <div className="bc-driver-car">{getCarModel(driver.car)}</div>
             </div>
           </div>
           
@@ -274,23 +295,38 @@ const BookingConfirmation = () => {
             
             <div className="bc-stripe-container" style={{ width: '100%', marginBottom: '24px' }}>
               <label className="bc-stripe-label">カード情報を入力してください</label>
-              <CardElement 
-                options={{
-                  style: {
-                    base: {
-                      fontSize: '16px',
-                      color: '#171D17',
-                      '::placeholder': {
-                        color: '#8C998E',
-                      },
-                      fontFamily: 'Plus Jakarta Sans, sans-serif',
-                    },
-                    invalid: {
-                      color: '#C62828',
-                    },
-                  },
-                }} 
-              />
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginTop: '10px' }}>
+                <input 
+                  type="text" 
+                  placeholder="カード番号 (0000 0000 0000 0000)" 
+                  value={cardData.cardNumber} 
+                  onChange={(e) => setCardData({...cardData, cardNumber: e.target.value})}
+                  style={{ width: '100%', padding: '12px', border: '1px solid #DDE5DB', borderRadius: '8px', fontSize: '16px', outline: 'none' }}
+                />
+                <input 
+                  type="text" 
+                  placeholder="名義人 (TARO YAMADA)" 
+                  value={cardData.cardHolder} 
+                  onChange={(e) => setCardData({...cardData, cardHolder: e.target.value})}
+                  style={{ width: '100%', padding: '12px', border: '1px solid #DDE5DB', borderRadius: '8px', fontSize: '16px', outline: 'none' }}
+                />
+                <div style={{ display: 'flex', gap: '10px' }}>
+                  <input 
+                    type="text" 
+                    placeholder="MM/YY" 
+                    value={cardData.expiry} 
+                    onChange={(e) => setCardData({...cardData, expiry: e.target.value})}
+                    style={{ width: '50%', padding: '12px', border: '1px solid #DDE5DB', borderRadius: '8px', fontSize: '16px', outline: 'none' }}
+                  />
+                  <input 
+                    type="text" 
+                    placeholder="CVC" 
+                    value={cardData.cvv} 
+                    onChange={(e) => setCardData({...cardData, cvv: e.target.value})}
+                    style={{ width: '50%', padding: '12px', border: '1px solid #DDE5DB', borderRadius: '8px', fontSize: '16px', outline: 'none' }}
+                  />
+                </div>
+              </div>
             </div>
             
             <button 

@@ -7,8 +7,10 @@ import authRoutes from './routes/auth.routes';
 import paymentRoutes from './routes/payment.routes';
 import callRoutes from './routes/call.routes';
 import rideRoutes from './routes/ride.routes';
+import reviewRoutes from './routes/review.routes';
 import dotenv from 'dotenv';
 import cors from 'cors';
+import prisma from './config/db';
 
 dotenv.config();
 
@@ -29,11 +31,22 @@ io.on('connection', (socket) => {
         userSocketMap.set(userId, socket.id);
         console.log(`📝 Registered: userId=${userId} → socketId=${socket.id}`);
     });
-    socket.on('disconnect', () => {
+    socket.on('disconnect', async () => {
         for (const [userId, socketId] of userSocketMap.entries()) {
             if (socketId === socket.id) {
                 userSocketMap.delete(userId);
                 console.log(`🗑️ Unregistered: userId=${userId}`);
+                
+                // Set driver offline in DB if they disconnect
+                try {
+                    await prisma.driverProfile.updateMany({
+                        where: { userId },
+                        data: { isOnline: false }
+                    });
+                    console.log(`🔻 Set driver offline: userId=${userId}`);
+                } catch (e) {
+                    // Ignore errors (e.g., if user is not a driver)
+                }
                 break;
             }
         }
@@ -51,6 +64,7 @@ app.use('/api/destinations', destinationRoutes);
 app.use('/api/payments', paymentRoutes);
 app.use('/api/call', callRoutes);
 app.use('/api/rides', rideRoutes);
+app.use('/api/reviews', reviewRoutes);
 app.get('/', (req: Request, res: Response) => {
     res.send('Backend Express Server is running');
 });

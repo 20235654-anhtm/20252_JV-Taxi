@@ -4,6 +4,8 @@ import { CarFront, User, Search } from 'lucide-react';
 import { Header } from '../../components/layout/Header';
 import { MapView } from '../../components/features/MapView';
 import { useBooking } from '../../contexts/BookingContext';
+import { API_BASE_URL } from '../../config/api';
+import { showToast } from '../../components/ui/Toast';
 import './BookingOptions.css';
 
 const CarIcon = ({ size = 24, color = 'currentColor' }) => (
@@ -36,12 +38,24 @@ const BookingOptions = () => {
   const pickup = pickupData.coords; 
   const destination = destData.coords;
 
-  const handleNext = () => {
+  const handleNext = async () => {
     if (selectedOption === 'designated') {
       navigate('/passenger/select-driver');
     } else {
       // Chế độ tự động
-      navigate('/passenger/booking-confirmation', { state: { mode: 'auto' } });
+      try {
+        const response = await fetch(`${API_BASE_URL}/api/drivers/nearby?lng=${pickup.lng}&lat=${pickup.lat}`);
+        const data = await response.json();
+        if (data.success && data.data && data.data.length > 0) {
+          const nearestDriver = data.data[0];
+          navigate('/passenger/booking-confirmation', { state: { mode: 'auto', driver: nearestDriver } });
+        } else {
+          showToast('周辺にドライバーが見つかりませんでした。', 'error');
+        }
+      } catch (error) {
+        console.error('Error finding nearest driver', error);
+        showToast('エラーが発生しました。', 'error');
+      }
     }
   };
 

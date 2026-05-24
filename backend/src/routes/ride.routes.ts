@@ -51,6 +51,23 @@ router.post('/create', authMiddleware as any, async (req: AuthRequest, res: Resp
       where: { id: passengerId }
     });
 
+    let distanceStr = '1.2 km';
+    if (driverId) {
+      try {
+        const drivers = await prisma.$queryRaw<any[]>`
+          SELECT ST_Distance("current_location", ST_SetSRID(ST_MakePoint(${Number(startLng || 105.8542)}, ${Number(startLat || 21.0285)}), 4326)::geography) as distance
+          FROM "driver_profiles"
+          WHERE "user_id" = ${driverId}::uuid
+        `;
+        if (drivers && drivers.length > 0 && drivers[0].distance != null) {
+          const distance = Number(drivers[0].distance);
+          distanceStr = distance < 1000 ? `${Math.round(distance)} m` : `${(distance / 1000).toFixed(1)} km`;
+        }
+      } catch (e) {
+        console.error('Error calculating distance:', e);
+      }
+    }
+
     // Notify Driver via Socket.io
     if (driverId) {
       const driverSocketId = userSocketMap.get(driverId);
@@ -58,10 +75,10 @@ router.post('/create', authMiddleware as any, async (req: AuthRequest, res: Resp
         io.to(driverSocketId).emit('incoming-booking', {
           rideId: ride.id,
           passengerName: passenger?.fullName || 'Hành khách',
-          passengerAvatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=160&h=160&fit=crop',
+          passengerAvatar: passenger?.avatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=160&h=160&fit=crop',
           pickupLocation: ride.start_address,
           destinationLocation: ride.end_address,
-          distanceToPickup: '1.2 km',
+          distanceToPickup: distanceStr,
           estimatedFare: `${Math.round(Number(ride.match_fee) / 1000)}k VND`,
           duration: '約25分',
           paymentMethod: 'Tiền mặt'
@@ -194,6 +211,45 @@ router.post('/decline', authMiddleware as any, async (req: AuthRequest, res: Res
     res.status(500).json({
       success: false,
       message: 'Server error while declining ride.'
+    });
+  }
+});
+
+/**
+ * POST /api/rides/cancel
+ * Passenger cancels the pending ride request.
+ */
+router.post('/cancel', authMiddleware as any, async (req: AuthRequest, res: Response) => {
+  try {
+    const passengerId = req.user?.userId;
+    if (!passengerId) {
+      res.status(401).json({ success: false, message: 'Unauthorized' });
+      return;
+    }
+
+    const { rideId } = req.body;
+
+    // Update Ride status
+    const ride = await rideService.updateRideStatus(rideId, 'CANCELLED');
+
+    // Notify Driver via Socket.io
+    if (ride.driverId) {
+      const driverSocketId = userSocketMap.get(ride.driverId);
+      if (driverSocketId) {
+        io.to(driverSocketId).emit('booking-cancelled', { rideId });
+        console.log(`📡 Booking cancel sent to Driver: ${ride.driverId}`);
+      }
+    }
+
+    res.status(200).json({
+      success: true,
+      message: 'Ride cancelled successfully.'
+    });
+  } catch (error) {
+    console.error('Error cancelling ride:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error while cancelling ride.'
     });
   }
 });
