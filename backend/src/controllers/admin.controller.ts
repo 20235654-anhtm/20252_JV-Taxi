@@ -58,6 +58,12 @@ export const getUsers = async (req: Request, res: Response) => {
             isBusy: true,
             averageRating: true
           }
+        },
+        _count: {
+          select: {
+            ridesAsPassenger: { where: { status: 'COMPLETED' } },
+            ridesAsDriver: { where: { status: 'COMPLETED' } }
+          }
         }
       },
       orderBy: { createdAt: 'desc' },
@@ -65,9 +71,24 @@ export const getUsers = async (req: Request, res: Response) => {
       take: limit
     });
 
+    // Map lại để trả về số lượng chuyến đi hoàn thành trực tiếp dưới tên thuộc tính completedRides
+    const usersWithRideCount = users.map((user: any) => {
+      const completedRides = user.role === 'DRIVER'
+        ? user._count?.ridesAsDriver || 0
+        : user.role === 'CUSTOMER'
+          ? user._count?.ridesAsPassenger || 0
+          : 0;
+
+      const { _count, ...userWithoutCount } = user;
+      return {
+        ...userWithoutCount,
+        completedRides
+      };
+    });
+
     return res.status(200).json({
       success: true,
-      data: users,
+      data: usersWithRideCount,
       pagination: {
         currentPage: page,
         limit,
