@@ -12,7 +12,6 @@ import reviewRoutes from './routes/review.routes';
 import prisma from './config/db';
 import dotenv from 'dotenv';
 import cors from 'cors';
-import prisma from './config/db';
 
 dotenv.config();
 
@@ -105,6 +104,7 @@ app.get('/', (req: Request, res: Response) => {
     res.send('Backend Express Server is running');
 });
 
+// Nodemon trigger comment for DB synchronization
 httpServer.listen(port, () => {
     console.log(`⚡️[server]: Server is running at http://localhost:${port}`);
     console.log(`Prisma client fully synchronized on port 5432.`);

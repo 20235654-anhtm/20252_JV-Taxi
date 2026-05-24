@@ -60,7 +60,7 @@ const WaitingDriver = () => {
     }, 1000);
 
     // Socket.io connection and listeners
-    const userStr = localStorage.getItem('user');
+    const userStr = sessionStorage.getItem('user') || localStorage.getItem('user');
     if (userStr) {
       const user = JSON.parse(userStr);
       socketService.connect(user.id);

@@ -4,6 +4,8 @@ import { API_BASE_URL } from '../config/api';
 const SOCKET_URL = API_BASE_URL;
 
 let socket: Socket | null = null;
+let currentUserId: string | null = null;
+let activeRideId: string | null = null;
 
 // Dữ liệu cuộc gọi đến mà passenger sẽ nhận
 export interface IncomingCallData {
@@ -20,10 +22,12 @@ export const socketService = {
     // Kết nối socket + đăng ký userId
     // Gọi hàm này khi user đăng nhập xong
     connect: (userId: string) => {
+        currentUserId = userId;
+
         if (socket) {
-            // Nếu socket đã tồn tại (đang kết nối hoặc đã kết nối)
-            // Đảm bảo register lại đúng userId nếu nó đã connected
-            if (socket.connected) {
+            if (!socket.connected) {
+                socket.connect();
+            } else {
                 socket.emit('register', userId);
             }
             return;
@@ -33,8 +37,13 @@ export const socketService = {
 
         socket.on('connect', () => {
             console.log('🔌 Socket connected:', socket?.id);
-            // Gửi userId lên server → server lưu mapping userId → socketId
-            socket?.emit('register', userId);
+            if (currentUserId) {
+                socket?.emit('register', currentUserId);
+            }
+            if (activeRideId) {
+                socket?.emit('join-chat', activeRideId);
+                console.log(`💬 Auto-rejoined chat room ${activeRideId} on socket connect`);
+            }
         });
 
         socket.on('disconnect', () => {
@@ -91,7 +100,9 @@ export const socketService = {
 
     // Chat logic
     joinChat: (rideId: string) => {
+        activeRideId = rideId;
         socket?.emit('join-chat', rideId);
+        console.log(`💬 Joined active chat room ${rideId}`);
     },
 
     sendMessage: (data: { rideId: string; senderId: string; text: string }) => {
@@ -118,6 +129,8 @@ export const socketService = {
     disconnect: () => {
         socket?.disconnect();
         socket = null;
+        currentUserId = null;
+        activeRideId = null;
     },
 
     // Kiểm tra đang kết nối không
