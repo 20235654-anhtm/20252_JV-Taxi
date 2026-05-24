@@ -262,6 +262,8 @@ export default function SignIn() {
       // Điều hướng dựa trên vai trò (Role)
       if (data.user.role === 'DRIVER') {
         navigate('/driver');
+      } else if (data.user.role === 'ADMIN') {
+        navigate('/admin');
       } else {
         navigate('/passenger');
       }

@@ -30,6 +30,8 @@ const PassengerManagement: React.FC = () => {
 
   const [passengers, setPassengers] = useState<Passenger[]>([]);
   const [loading, setLoading] = useState(true);
+  const [unauthorized, setUnauthorized] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchPassengers = async () => {
@@ -40,7 +42,18 @@ const PassengerManagement: React.FC = () => {
             'Authorization': `Bearer ${token}`
           }
         });
+        if (response.status === 403) {
+          setUnauthorized(true);
+          setErrorMessage('Bạn không có quyền truy cập trang này (Admin required).');
+          setLoading(false);
+          return;
+        }
+
         const data = await response.json();
+        if (!response.ok) {
+          throw new Error(data.message || 'Lỗi khi lấy dữ liệu người dùng');
+        }
+
         if (data.success && data.data) {
           const mappedPassengers: Passenger[] = data.data.map((user: any) => {
             let status: 'active' | 'pending' | 'suspended' = 'active';
@@ -59,8 +72,8 @@ const PassengerManagement: React.FC = () => {
               name: user.fullName || 'Unknown',
               email: user.email || '',
               phone: user.phone || '',
-              avatarUrl: '', // Not provided by the API currently
-              rides: 0, // Placeholder as backend does not return rides yet
+              avatarUrl: user.avatar || user.driverProfile?.avatarPicture || '',
+              rides: user.completedRides ?? 0,
               status: status,
               statusText: statusText
             };

@@ -24,7 +24,7 @@ import Rateyourtrip from '../pages/passenger/Rateyourtrip';
 import ChatwithDriver from '../pages/passenger/ChatwithDriver';
 import CallDriver from '../pages/passenger/CallDriver';
 import InTrip from '../pages/passenger/InTrip';
-import PassengerManagement from '../pages/passenger/Passenger management';
+import PassengerManagement from '../pages/admin/Passenger management';
 
 // Driver Pages
 import DriverDashboard from '../pages/driver/DriverDashboard';
@@ -42,7 +42,7 @@ import DriverManagement from '../pages/admin/DriverManagement';
 
 interface ProtectedRouteProps {
   children: React.ReactElement;
-  allowedRole: 'CUSTOMER' | 'DRIVER';
+  allowedRole: 'CUSTOMER' | 'DRIVER' | 'ADMIN';
 }
 
 const ProtectedRoute = ({ children, allowedRole }: ProtectedRouteProps) => {
@@ -59,6 +59,8 @@ const ProtectedRoute = ({ children, allowedRole }: ProtectedRouteProps) => {
   if (userRole !== allowedRole) {
     if (userRole === 'DRIVER') {
       return <Navigate to="/driver" replace />;
+    } else if (userRole === 'ADMIN') {
+      return <Navigate to="/admin" replace />;
     } else {
       return <Navigate to="/passenger" replace />;
     }
@@ -80,6 +82,8 @@ const GuestRoute = ({ children }: GuestRouteProps) => {
     const userRole = user.role?.toUpperCase();
     if (userRole === 'DRIVER') {
       return <Navigate to="/driver" replace />;
+    } else if (userRole === 'ADMIN') {
+      return <Navigate to="/admin" replace />;
     } else {
       return <Navigate to="/passenger" replace />;
     }
@@ -125,10 +129,11 @@ const AppRoutes = () => {
       <Route path="/driver/call-passenger" element={<ProtectedRoute allowedRole="DRIVER"><CallPassenger /></ProtectedRoute>} />
 
       {/* ======================= ADMIN FLOW ======================= */}
-      <Route path="/admin" element={<DriverApproval />} />
-      <Route path="/admin/dashboard" element={<AdminDashboard />} />
-      <Route path="/admin/driver-management" element={<DriverManagement />} />
-      <Route path="/admin/driver-approval-list" element={<DriverApprovalList />} />
+      <Route path="/admin" element={<ProtectedRoute allowedRole="ADMIN"><DriverApproval /></ProtectedRoute>} />
+      <Route path="/admin/dashboard" element={<ProtectedRoute allowedRole="ADMIN"><AdminDashboard /></ProtectedRoute>} />
+      <Route path="/admin/passenger-management" element={<ProtectedRoute allowedRole="ADMIN"><PassengerManagement /></ProtectedRoute>} />
+      <Route path="/admin/driver-management" element={<ProtectedRoute allowedRole="ADMIN"><DriverManagement /></ProtectedRoute>} />
+      <Route path="/admin/driver-approval-list" element={<ProtectedRoute allowedRole="ADMIN"><DriverApprovalList /></ProtectedRoute>} />
     </Routes>
   );
 };
