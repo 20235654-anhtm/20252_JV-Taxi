@@ -101,7 +101,9 @@ const BookingConfirmation = () => {
             endLat: destination.lat,
             matchFee: 145000,
             matchType: location.state?.mode || 'designated',
-            vehicleTypeRequested: driver.vehicleType || 'Sedan'
+            vehicleTypeRequested: driver.vehicleType || 'Sedan',
+            paymentType: 'CASH',
+            distance: driver.distance
           })
         });
         const rideData = await rideResponse.json();
@@ -143,6 +145,7 @@ const BookingConfirmation = () => {
       await new Promise(r => setTimeout(r, 1000)); // Simulate processing
 
       const token = sessionStorage.getItem('authToken') || localStorage.getItem('authToken');
+      const generatedStripePaymentId = 'CARD-' + Math.random().toString(36).substr(2, 9).toUpperCase();
       const rideResponse = await fetch(`${API_BASE_URL}/api/rides/create`, {
         method: 'POST',
         headers: {
@@ -159,14 +162,17 @@ const BookingConfirmation = () => {
           endLat: destination.lat,
           matchFee: 145000,
           matchType: location.state?.mode || 'designated',
-          vehicleTypeRequested: driver.vehicleType || 'Sedan'
+          vehicleTypeRequested: driver.vehicleType || 'Sedan',
+          paymentType: 'CARD',
+          stripePaymentId: generatedStripePaymentId,
+          distance: driver.distance
         })
       });
       const rideData = await rideResponse.json();
       if (rideData.success) {
         setCreatedRideId(rideData.data.id);
         setPaymentDetails({ 
-          id: 'CARD-' + Math.random().toString(36).substr(2, 9).toUpperCase(), 
+          id: generatedStripePaymentId, 
           card: `**** ${cardData.cardNumber.slice(-4)}` 
         });
         setShowCardModal(false);

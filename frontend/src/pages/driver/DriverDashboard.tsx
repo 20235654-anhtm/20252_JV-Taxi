@@ -186,9 +186,15 @@ const DriverDashboard = () => {
       const data = await response.json();
       if (data.success) {
         setShowPopup(false);
+        // Persist active ride info
+        sessionStorage.setItem('active_ride_id', currentRequest.rideId);
+        sessionStorage.setItem('active_passenger_name', currentRequest.passengerName);
+        sessionStorage.setItem('active_passenger_avatar', currentRequest.passengerAvatar);
+
         navigate('/driver/in-trip', { 
           state: { 
             passengerName: currentRequest.passengerName, 
+            passengerAvatar: currentRequest.passengerAvatar,
             rideId: currentRequest.rideId 
           } 
         });

@@ -73,11 +73,18 @@ const WaitingDriver = () => {
   // Redirect to in-trip when accepted
   useEffect(() => {
     if (status === 'accepted') {
+      const activeRideId = location.state?.rideId || '';
+      if (activeRideId) {
+        sessionStorage.setItem('active_ride_id', activeRideId);
+      }
+      if (driver) {
+        sessionStorage.setItem('active_driver', JSON.stringify(driver));
+      }
       const timer = setTimeout(() => {
         navigate('/passenger/in-trip', { 
           state: { 
             driver, 
-            rideId: location.state?.rideId,
+            rideId: activeRideId,
             mode: location.state?.mode || 'designated'
           } 
         });
@@ -216,6 +223,8 @@ const WaitingDriver = () => {
               <Card className="wd-explanation-box" variant="default" padding="md" rounded="md">
                 <p>
                   申し訳ありませんが、現在ドライバーはリクエストを受け付けることができません。
+                  {status === 'rejected' && <br />}
+                  {status === 'rejected' && <span style={{ color: '#A4394E', fontWeight: 'bold' }}>ドライバーがリクエストを拒否しました。カード決済の場合は自動的に返金されます。</span>}
                 </p>
               </Card>
 

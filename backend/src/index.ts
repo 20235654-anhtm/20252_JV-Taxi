@@ -7,6 +7,7 @@ import authRoutes from './routes/auth.routes';
 import paymentRoutes from './routes/payment.routes';
 import callRoutes from './routes/call.routes';
 import rideRoutes from './routes/ride.routes';
+import messageRoutes from './routes/message.routes';
 import reviewRoutes from './routes/review.routes';
 import dotenv from 'dotenv';
 import cors from 'cors';
@@ -31,6 +32,7 @@ io.on('connection', (socket) => {
         userSocketMap.set(userId, socket.id);
         console.log(`📝 Registered: userId=${userId} → socketId=${socket.id}`);
     });
+    
     socket.on('disconnect', async () => {
         for (const [userId, socketId] of userSocketMap.entries()) {
             if (socketId === socket.id) {
@@ -51,6 +53,34 @@ io.on('connection', (socket) => {
             }
         }
     });
+
+    // --- Chat logic ---
+    socket.on('join-chat', (rideId: string) => {
+        socket.join(rideId);
+        console.log(`💬 Socket ${socket.id} joined room ${rideId}`);
+    });
+
+    socket.on('send-message', async (data: { rideId: string; senderId: string; text: string }) => {
+        try {
+            const { rideId, senderId, text } = data;
+            
+            const message = await prisma.message.create({
+                data: {
+                    rideId,
+                    senderId,
+                    text
+                }
+            });
+
+            // Gửi tin nhắn cho tất cả người trong phòng
+            socket.to(rideId).emit('receive-message', message);
+            
+            console.log(`💬 Message sent in room ${rideId}: ${text}`);
+        } catch (error: any) {
+            console.error('Error handling send-message:', error);
+            socket.emit('chat-error', { message: 'Failed to send message', error: error.message });
+        }
+    });
 });
 
 export { io, userSocketMap };
@@ -64,6 +94,7 @@ app.use('/api/destinations', destinationRoutes);
 app.use('/api/payments', paymentRoutes);
 app.use('/api/call', callRoutes);
 app.use('/api/rides', rideRoutes);
+app.use('/api/messages', messageRoutes);
 app.use('/api/reviews', reviewRoutes);
 app.get('/', (req: Request, res: Response) => {
     res.send('Backend Express Server is running');

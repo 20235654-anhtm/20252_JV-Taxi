@@ -89,6 +89,31 @@ export const socketService = {
         socket?.off('incoming-booking');
     },
 
+    // Chat logic
+    joinChat: (rideId: string) => {
+        socket?.emit('join-chat', rideId);
+    },
+
+    sendMessage: (data: { rideId: string; senderId: string; text: string }) => {
+        socket?.emit('send-message', data);
+    },
+
+    onReceiveMessage: (callback: (message: any) => void) => {
+        socket?.on('receive-message', callback);
+    },
+
+    offReceiveMessage: () => {
+        socket?.off('receive-message');
+    },
+
+    onRideCompleted: (callback: (data: any) => void) => {
+        socket?.on('ride-completed', callback);
+    },
+
+    offRideCompleted: () => {
+        socket?.off('ride-completed');
+    },
+
     // Ngắt kết nối (khi user đăng xuất)
     disconnect: () => {
         socket?.disconnect();

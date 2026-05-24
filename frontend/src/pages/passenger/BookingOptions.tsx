@@ -29,6 +29,7 @@ const BookingOptions = () => {
   const navigate = useNavigate();
   const { pickup: pickupData, destination: destData } = useBooking();
   const [selectedOption, setSelectedOption] = useState<'auto' | 'designated'>('auto');
+  const [isLoading, setIsLoading] = useState(false);
 
   // Bảo vệ an toàn
   if (!pickupData?.coords || !destData?.coords) {
@@ -43,8 +44,12 @@ const BookingOptions = () => {
       navigate('/passenger/select-driver');
     } else {
       // Chế độ tự động
+      setIsLoading(true);
       try {
-        const response = await fetch(`${API_BASE_URL}/api/drivers/nearby?lng=${pickup.lng}&lat=${pickup.lat}`);
+        const token = sessionStorage.getItem('authToken') || localStorage.getItem('authToken');
+        const response = await fetch(`${API_BASE_URL}/api/drivers/nearby?lng=${pickup.lng}&lat=${pickup.lat}`, {
+          headers: token ? { 'Authorization': `Bearer ${token}` } : {}
+        });
         const data = await response.json();
         if (data.success && data.data && data.data.length > 0) {
           const nearestDriver = data.data[0];
@@ -55,6 +60,8 @@ const BookingOptions = () => {
       } catch (error) {
         console.error('Error finding nearest driver', error);
         showToast('エラーが発生しました。', 'error');
+      } finally {
+        setIsLoading(false);
       }
     }
   };
@@ -139,8 +146,8 @@ const BookingOptions = () => {
           </div>
         </div>
 
-        <button className="bo-confirm-btn" onClick={handleNext}>
-          次へ進む <span>→</span>
+        <button className="bo-confirm-btn" onClick={handleNext} disabled={isLoading}>
+          {isLoading ? '検索中...' : '次へ進む'} <span>→</span>
         </button>
       </div>
     </div>

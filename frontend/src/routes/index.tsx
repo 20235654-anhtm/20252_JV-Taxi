@@ -32,7 +32,7 @@ import DriverProfileEdit from '../pages/driver/ProfileEdit';
 import DriverCallTest from '../pages/driver/DriverCallTest';
 import ChatwithPassenger from '../pages/driver/ChatwithPassenger';
 import CallPassenger from '../pages/driver/CallPassenger';
-import DriverInTrip from '../pages/driver/InTrip';
+import DriverInTrip from '../pages/driver/DriverInTrip';
 import DriverApproval from '../pages/admin/DriverApproval';
 
 // ── Auth Guards ──
