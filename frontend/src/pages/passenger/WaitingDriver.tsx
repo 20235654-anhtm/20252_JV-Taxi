@@ -33,6 +33,19 @@ const WaitingDriver = () => {
   const driver = location.state?.driver;
   const pickup = pickupData?.coords || { lat: 21.0285, lng: 105.8542 };
 
+  const getCarDisplayName = (carInfo: string | any) => {
+    if (!carInfo) return 'Toyota Camry';
+    if (typeof carInfo === 'string') {
+      try {
+        const parsed = JSON.parse(carInfo);
+        return parsed.model ? `${parsed.model} • ${parsed.plate || ''}` : carInfo;
+      } catch (e) {
+        return carInfo;
+      }
+    }
+    return carInfo.model ? `${carInfo.model} • ${carInfo.plate || ''}` : 'Toyota Camry';
+  };
+
   useEffect(() => {
     // Timer countdown
     timerRef.current = setInterval(() => {

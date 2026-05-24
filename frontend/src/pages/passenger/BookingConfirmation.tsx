@@ -26,7 +26,19 @@ const BookingConfirmation = () => {
   const { pickup: pickupData, destination: destData } = useBooking();
   const passedDriver = location.state?.driver;
   
-  // Dùng driver từ state, nếu không có (như chế độ Auto) thì hiển thị mock data
+  const getCarDisplayName = (carInfo: string | any) => {
+    if (!carInfo) return 'Toyota Camry';
+    if (typeof carInfo === 'string') {
+      try {
+        const parsed = JSON.parse(carInfo);
+        return parsed.model ? `${parsed.model} • ${parsed.plate || ''}` : carInfo;
+      } catch (e) {
+        return carInfo;
+      }
+    }
+    return carInfo.model ? `${carInfo.model} • ${carInfo.plate || ''}` : 'Toyota Camry';
+  };
+
   const driver = passedDriver || {
     name: 'Nguyen Tan',
     avatar: 'https://randomuser.me/api/portraits/men/32.jpg',

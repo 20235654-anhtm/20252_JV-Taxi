@@ -32,7 +32,7 @@ router.post('/create', authMiddleware as any, async (req: AuthRequest, res: Resp
       vehicleTypeRequested,
       paymentType,
       stripePaymentId,
-      distance 
+      distance
     } = req.body;
 
     // Create Ride in database

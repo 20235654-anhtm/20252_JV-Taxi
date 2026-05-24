@@ -9,6 +9,7 @@ import callRoutes from './routes/call.routes';
 import rideRoutes from './routes/ride.routes';
 import messageRoutes from './routes/message.routes';
 import reviewRoutes from './routes/review.routes';
+import prisma from './config/db';
 import dotenv from 'dotenv';
 import cors from 'cors';
 import prisma from './config/db';
@@ -64,6 +65,9 @@ io.on('connection', (socket) => {
         try {
             const { rideId, senderId, text } = data;
             
+            // Lưu tin nhắn vào CSDL
+            // Lưu tin nhắn vào CSDL
+            
             const message = await prisma.message.create({
                 data: {
                     rideId,
@@ -72,7 +76,8 @@ io.on('connection', (socket) => {
                 }
             });
 
-            // Gửi tin nhắn cho tất cả người trong phòng
+            // Gửi tin nhắn cho tất cả người trong phòng (bao gồm cả người gửi, hoặc frontend tự cập nhật UI)
+            // Phát cho các client khác trong phòng
             socket.to(rideId).emit('receive-message', message);
             
             console.log(`💬 Message sent in room ${rideId}: ${text}`);
