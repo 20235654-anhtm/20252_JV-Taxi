@@ -9,6 +9,7 @@ import callRoutes from './routes/call.routes';
 import rideRoutes from './routes/ride.routes';
 import messageRoutes from './routes/message.routes';
 import reviewRoutes from './routes/review.routes';
+import fareRoutes from './routes/fare.routes';
 import prisma from './config/db';
 import dotenv from 'dotenv';
 import cors from 'cors';
@@ -69,28 +70,77 @@ io.on('connection', (socket) => {
     });
 
     socket.on('send-message', async (data: { rideId: string; senderId: string; text: string }) => {
-        try {
-            const { rideId, senderId, text } = data;
-            
-            // Lưu tin nhắn vào CSDL
-            // Lưu tin nhắn vào CSDL
-            
-            const message = await prisma.message.create({
-                data: {
-                    rideId,
-                    senderId,
-                    text
-                }
-            });
+        const { rideId, senderId, text } = data;
+        let message = {
+            id: 'temp-' + Date.now(),
+            rideId,
+            senderId,
+            text,
+            createdAt: new Date()
+        };
 
-            // Gửi tin nhắn cho tất cả người trong phòng (bao gồm cả người gửi, hoặc frontend tự cập nhật UI)
-            // Phát cho các client khác trong phòng
-            socket.to(rideId).emit('receive-message', message);
-            
-            console.log(`💬 Message sent in room ${rideId}: ${text}`);
+        try {
+            if (rideId !== 'mock-ride-id') {
+                const dbMsg = await prisma.message.create({
+                    data: {
+                        rideId,
+                        senderId,
+                        text
+                    }
+                });
+                message = {
+                    id: String(dbMsg.id),
+                    rideId: dbMsg.rideId,
+                    senderId: dbMsg.senderId,
+                    text: dbMsg.text,
+                    createdAt: dbMsg.createdAt
+                };
+            }
         } catch (error: any) {
-            console.error('Error handling send-message:', error);
-            socket.emit('chat-error', { message: 'Failed to send message', error: error.message });
+            console.warn('⚠️ [Socket send-message] Failed to save message to DB, proceeding with memory emit:', error.message);
+        }
+
+        // Always relay the message to the socket room to avoid breaking UI transitions (e.g., driver arrived)
+        socket.to(rideId).emit('receive-message', message);
+        console.log(`💬 Message relayed in room ${rideId}: ${text}`);
+    });
+
+    socket.on('end-call', (data: { targetUserId: string }) => {
+        console.log(`[WebRTC-Debug] socket received 'end-call' from socket.id=${socket.id} for targetUserId=${data.targetUserId}`);
+        const targetSocketId = userSocketMap.get(data.targetUserId);
+        if (targetSocketId) {
+            io.to(targetSocketId).emit('end-call');
+            console.log(`[WebRTC-Debug] 📡 Relayed 'end-call' to targetSocketId=${targetSocketId} (userId=${data.targetUserId})`);
+        } else {
+            console.log(`[WebRTC-Debug] ⚠️ Target user ${data.targetUserId} is offline. Cannot relay 'end-call'.`);
+        }
+    });
+
+    socket.on('notify-incoming-call', (data: {
+        targetUserId: string;
+        roomName: string;
+        roomUrl: string;
+        callerId: string;
+        callerName: string;
+        callerPhone: string;
+        callerAvatar: string | null;
+        callerVehicle: string | null;
+    }) => {
+        console.log(`[WebRTC-Debug] socket received 'notify-incoming-call' from callerId=${data.callerId} for targetUserId=${data.targetUserId}`);
+        const targetSocketId = userSocketMap.get(data.targetUserId);
+        if (targetSocketId) {
+            io.to(targetSocketId).emit('incoming-call', {
+                roomName: data.roomName,
+                roomUrl: data.roomUrl,
+                callerId: data.callerId,
+                callerName: data.callerName,
+                callerPhone: data.callerPhone,
+                callerAvatar: data.callerAvatar,
+                callerVehicle: data.callerVehicle,
+            });
+            console.log(`[WebRTC-Debug] 📡 Relayed 'incoming-call' from ${data.callerName} to targetSocketId=${targetSocketId} (userId=${data.targetUserId})`);
+        } else {
+            console.log(`[WebRTC-Debug] ⚠️ Target user ${data.targetUserId} is offline. Cannot relay 'incoming-call'.`);
         }
     });
 });
@@ -108,6 +158,7 @@ app.use('/api/call', callRoutes);
 app.use('/api/rides', rideRoutes);
 app.use('/api/messages', messageRoutes);
 app.use('/api/reviews', reviewRoutes);
+app.use('/api/fare', fareRoutes);
 app.get('/', (req: Request, res: Response) => {
     res.send('Backend Express Server is running');
 });

@@ -6,7 +6,10 @@ import { supabase, supabaseAdmin } from '../config/supabase';
 import fs from 'fs';
 import path from 'path';
 
-const JWT_SECRET = process.env.JWT_SECRET || 'change_this_secret';
+const JWT_SECRET = process.env.JWT_SECRET;
+if (!JWT_SECRET) {
+  throw new Error('FATAL: JWT_SECRET environment variable is not set. Please configure it in your .env file.');
+}
 
 const uploadToSupabase = async (file: Express.Multer.File, folder: string): Promise<string | null> => {
   try {

@@ -71,7 +71,7 @@ const PassengerHome = () => {
           <div className="absolute bottom-0 left-0 right-0 h-[400px] gradient-sheet pointer-events-none z-[1010]" />
 
           <QuickBookingCard
-            userName={user?.fullName || 'お客様'}
+            userName={user?.fullName || '...'}
             destinationValue={destinationInput}
             setDestinationValue={setDestinationInput}
             onBookNow={handleBookNow}

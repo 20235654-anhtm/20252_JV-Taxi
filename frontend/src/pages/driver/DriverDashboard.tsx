@@ -188,10 +188,15 @@ const DriverDashboard = () => {
         setShowPopup(false);
         // Persist active ride info
         sessionStorage.setItem('active_ride_id', currentRequest.rideId);
+        sessionStorage.setItem('active_passenger_id', currentRequest.passengerId || '');
         sessionStorage.setItem('active_passenger_name', currentRequest.passengerName);
         sessionStorage.setItem('active_passenger_avatar', currentRequest.passengerAvatar);
         sessionStorage.setItem('active_pickup_location', currentRequest.pickupLocation || '高島屋サイゴン（1区）');
         sessionStorage.setItem('active_destination_location', currentRequest.destinationLocation || 'タンソンニャット空港第2ターミナル');
+        sessionStorage.setItem('active_start_lat', String(currentRequest.startLat || ''));
+        sessionStorage.setItem('active_start_lng', String(currentRequest.startLng || ''));
+        sessionStorage.setItem('active_end_lat', String(currentRequest.endLat || ''));
+        sessionStorage.setItem('active_end_lng', String(currentRequest.endLng || ''));
         sessionStorage.setItem('active_distance_to_pickup', currentRequest.distanceToPickup || '1.2 km');
         sessionStorage.setItem('active_duration', currentRequest.duration || '約25分');
         sessionStorage.setItem('active_fare', currentRequest.estimatedFare || '145k VND');
@@ -199,11 +204,16 @@ const DriverDashboard = () => {
 
         navigate('/driver/in-trip', { 
           state: { 
+            passengerId: currentRequest.passengerId,
             passengerName: currentRequest.passengerName, 
             passengerAvatar: currentRequest.passengerAvatar,
             rideId: currentRequest.rideId,
             pickupLocation: currentRequest.pickupLocation,
             destinationLocation: currentRequest.destinationLocation,
+            startLat: currentRequest.startLat,
+            startLng: currentRequest.startLng,
+            endLat: currentRequest.endLat,
+            endLng: currentRequest.endLng,
             distanceToPickup: currentRequest.distanceToPickup,
             duration: currentRequest.duration,
             estimatedFare: currentRequest.estimatedFare,
@@ -244,17 +254,6 @@ const DriverDashboard = () => {
     value: d.value,
     highlight: index === todayIndex
   }));
-
-  const mockRequest = {
-    passengerName: '山田 亜希子',
-    passengerAvatar: 'https://i.pravatar.cc/150?u=akiko',
-    pickupLocation: '高島屋サイゴン（1区）',
-    destinationLocation: 'タンソンニャット空港第2ターミナル',
-    distanceToPickup: '1.2 km',
-    estimatedFare: '145k VND',
-    duration: '約25分',
-    paymentMethod: 'クレジットカード'
-  };
 
   return (
     <div className="driver-dashboard-page">
@@ -349,10 +348,10 @@ const DriverDashboard = () => {
       />
 
       {/* INCOMING REQUEST POPUP */}
-      {showPopup && (
+      {showPopup && currentRequest && (
         <div className="dd-popup-overlay">
           <IncomingRequestPopup
-            request={currentRequest || mockRequest}
+            request={currentRequest}
             onAccept={handleAcceptRide}
             onDecline={handleDeclineRide}
             timeoutSeconds={180}

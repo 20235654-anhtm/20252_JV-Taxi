@@ -1,10 +1,18 @@
 import { Router, Request, Response } from 'express';
-import { getNearbyDrivers, getAllDrivers, getNearbyDriversMock } from '../services/driver.service';
+import { getNearbyDrivers, getAllDrivers } from '../services/driver.service';
 import prisma from '../config/db';
 import { authMiddleware, AuthRequest } from '../middleware/auth.middleware';
 import { driverProfileService } from '../services/driverProfile.service';
 
 const router = Router();
+
+const getAvatarUrl = (pic: string | null): string => {
+  if (!pic) return 'https://placehold.co/80x80';
+  if (pic.startsWith('http://') || pic.startsWith('https://')) return pic;
+  const host = process.env.APP_URL || `http://localhost:${process.env.PORT || 5000}`;
+  const path = pic.startsWith('/') ? pic : `/${pic}`;
+  return `${host}${path}`;
+};
 
 /**
  * API: GET /api/drivers/nearby?lng=...&lat=...&radius=...
@@ -65,7 +73,7 @@ router.get('/nearby', async (req: Request, res: Response) => {
       distanceMeters: Number(driver.distance),
       time: `${Math.max(1, Math.ceil(Number(driver.distance) / 500))} min`,
       rating: Number(driver.average_rating),
-      avatar: driver.avatar_picture || 'https://placehold.co/80x80',
+      avatar: getAvatarUrl(driver.avatar_picture),
       // Calculate estimated price based on distance
       price: calculateEstimatedPrice(Number(driver.distance)),
     }));
@@ -105,7 +113,7 @@ router.get('/', async (req: Request, res: Response) => {
       distanceMeters: driver.distance,
       time: driver.distance > 0 ? `${Math.max(1, Math.ceil(driver.distance / 500))} min` : '--',
       rating: Number(driver.average_rating),
-      avatar: driver.avatar_picture || 'https://placehold.co/80x80',
+      avatar: getAvatarUrl(driver.avatar_picture),
       price: calculateEstimatedPrice(driver.distance > 0 ? driver.distance : 5000), // Default 5km for price if no distance
     }));
 

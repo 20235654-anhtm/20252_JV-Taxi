@@ -19,6 +19,8 @@ import { socketService } from '../../services/socketService';
 import { getRouteWithDuration } from '../../hooks/useLocationSuggestions';
 import { distanceBetween } from '../../utils/routeUtils';
 import { showToast } from '../../components/ui/Toast';
+import { API_BASE_URL } from '../../config/api';
+import { SmartMapRoute } from '../../components/features/SmartMapRoute';
 
 const createDestinationIcon = (destName: string) => L.divIcon({
   className: 'custom-dest-marker',
@@ -55,15 +57,15 @@ export default function WatingDriverPickup() {
   const { pickup: pickupData, destination: destData } = useBooking();
 
   const driver = location.state?.driver || {
-    name: 'Nguyen Van Nam',
-    avatar: 'https://i.pravatar.cc/150?img=11',
-    rating: '4.9',
-    car: 'Toyota Camry',
-    licensePlate: '51H-123.45'
+    name: '...',
+    avatar: '',
+    rating: '...',
+    car: '...',
+    licensePlate: '...'
   };
 
   const getCarModel = (car: any) => {
-    if (!car) return 'Toyota Camry';
+    if (!car) return '...';
     if (typeof car === 'string') {
       try {
         const parsed = JSON.parse(car);
@@ -72,21 +74,21 @@ export default function WatingDriverPickup() {
         return car;
       }
     }
-    return car.model || 'Toyota Camry';
+    return car.model || '...';
   };
 
   const getCarPlate = (car: any, licensePlate: any) => {
-    if (licensePlate && licensePlate !== '51H-123.45') return licensePlate;
-    if (!car) return '51H-123.45';
+    if (licensePlate && licensePlate !== '...') return licensePlate;
+    if (!car) return '...';
     if (typeof car === 'string') {
       try {
         const parsed = JSON.parse(car);
-        return parsed.plate || licensePlate || '51H-123.45';
+        return parsed.plate || licensePlate || '...';
       } catch (e) {
-        return licensePlate || '51H-123.45';
+        return licensePlate || '...';
       }
     }
-    return car.plate || licensePlate || '51H-123.45';
+    return car.plate || licensePlate || '...';
   };
 
   // Redirect if no location is selected
@@ -97,11 +99,80 @@ export default function WatingDriverPickup() {
   const pickupPosition = { lat: pickupData.coords.lat, lng: pickupData.coords.lng };
   const destinationPosition = { lat: destData.coords.lat, lng: destData.coords.lng };
   const destName = destData.address || '目的地';
+  const pickupLocationName = pickupData.address || '乗車場所';
 
-  // Vị trí tài xế (mock ban đầu gần điểm đón, cập nhật qua socket)
-  const [driverPosition, setDriverPosition] = useState({ lat: pickupPosition.lat + 0.008, lng: pickupPosition.lng - 0.005 });
+  const getDistanceKm = (lat1: number, lon1: number, lat2: number, lon2: number) => {
+    const R = 6371;
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLon = (lon2 - lon1) * Math.PI / 180;
+    const a = 
+      Math.sin(dLat/2) * Math.sin(dLat/2) +
+      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
+      Math.sin(dLon/2) * Math.sin(dLon/2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    return R * c;
+  };
+
+  const updateDriverPosWithFilter = (lat: number, lng: number) => {
+    const dist = getDistanceKm(lat, lng, pickupPosition.lat, pickupPosition.lng);
+    if (dist < 4) {
+      setDriverPosition({ lat, lng });
+    } else {
+      // Nếu GPS ở quá xa (ví dụ Hoàng Đạo Thúy), mock tài xế ở gần điểm đón để vẽ tuyến đường đón khách đẹp mắt
+      setDriverPosition({ lat: pickupPosition.lat + 0.006, lng: pickupPosition.lng - 0.004 });
+    }
+  };
+
+  const fallbackDriverPos = { lat: pickupPosition.lat + 0.006, lng: pickupPosition.lng - 0.004 };
+
+  const formatFare = (val: any) => {
+    if (!val) return '...';
+    if (typeof val === 'number') return `${val.toLocaleString()} VND`;
+    const num = parseInt(val.replace(/[^0-9]/g, ''), 10);
+    if (!isNaN(num)) return `${num.toLocaleString()} VND`;
+    return val;
+  };
+
+  // Vị trí tài xế khởi tạo bằng toạ độ mock để bản đồ vẽ đường ngay lập tức, cập nhật khi fetch thành công hoặc qua socket
+  const [driverPosition, setDriverPosition] = useState<{ lat: number; lng: number }>(fallbackDriverPos);
   const [etaMinutes, setEtaMinutes] = useState<number | null>(null);
   const lastFetchedPos = useRef<{ lat: number; lng: number } | null>(null);
+  const [rideDetails, setRideDetails] = useState<any>(null);
+  const [fareDisplay, setFareDisplay] = useState<string>(
+    formatFare(location.state?.fare || sessionStorage.getItem('active_fare'))
+  );
+
+  // Fetch ride details to get actual fare and driver coordinates
+  useEffect(() => {
+    const fetchRideDetails = async () => {
+      const rideId = location.state?.rideId || sessionStorage.getItem('active_ride_id');
+      if (!rideId) return;
+      try {
+        const token = sessionStorage.getItem('authToken') || localStorage.getItem('authToken');
+        const response = await fetch(`${API_BASE_URL}/api/rides/${rideId}`, {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+        const res = await response.json();
+        if (res.success && res.data) {
+          setRideDetails(res.data);
+          if (res.data.matchFee) {
+            setFareDisplay(formatFare(res.data.matchFee));
+          }
+          if (res.data.driver?.driverProfile?.lat && res.data.driver?.driverProfile?.lng) {
+            updateDriverPosWithFilter(
+              Number(res.data.driver.driverProfile.lat),
+              Number(res.data.driver.driverProfile.lng)
+            );
+          }
+        }
+      } catch (err) {
+        console.error('Error fetching ride details:', err);
+      }
+    };
+    fetchRideDetails();
+  }, [location.state?.rideId]);
 
   useEffect(() => {
     const fetchEta = async () => {
@@ -141,7 +212,7 @@ export default function WatingDriverPickup() {
   useEffect(() => {
     socketService.onReceiveMessage((msg) => {
       console.log("📡 [WaitingDriverPickup] Received socket message:", msg);
-      if (msg.text === 'DRIVER_ARRIVED') {
+      if (msg.text === 'ドライバーが到着しました') {
         console.log("🚀 Driver has arrived! Automatically navigating to InTrip...");
         showToast('ドライバーが到着しました！', 'success');
         navigate('/passenger/in-trip', { state: { driver } });
@@ -154,12 +225,12 @@ export default function WatingDriverPickup() {
 
   useEffect(() => {
     socketService.onDriverLocation((data) => {
-      setDriverPosition({ lat: data.lat, lng: data.lng });
+      updateDriverPosWithFilter(data.lat, data.lng);
     });
     return () => {
       socketService.offDriverLocation();
     };
-  }, []);
+  }, [pickupPosition]);
 
   const handleChat = () => {
     const rideId = location.state?.rideId || sessionStorage.getItem('active_ride_id');
@@ -180,17 +251,6 @@ export default function WatingDriverPickup() {
         showBackButton
         onBackClick={() => navigate('/passenger')}
         hideLanguageToggle
-        rightContent={
-          <button 
-            onClick={() => {
-              alert('Tài xế đã đến!');
-              navigate('/passenger/in-trip', { state: { driver } });
-            }}
-            className="text-[#FEA520] font-bold text-xs bg-[#FEA520]/10 px-3 py-1.5 rounded-full"
-          >
-            [TEST] Xe đến
-          </button>
-        }
       />
 
       <div className="absolute inset-0 z-0">
@@ -201,15 +261,18 @@ export default function WatingDriverPickup() {
           recenterKey={recenterKey}
           showPickupLabel={false}
           hideDestinationMarker={true}
-          routeColor="url(#routeGradient)"
+          hideRoute={true}
           routePadding={[[50, 120], [50, 380]]}
           viewPadding={{ top: 100, bottom: 400, left: 50, right: 50 }}
           extraPositions={[driverPosition]}
         >
+          {/* Đường vẽ từ vị trí hiện tại của driver -> điểm đón */}
+          <SmartMapRoute driverPosition={driverPosition} destination={pickupPosition} color="url(#routeGradient)" />
+
           {/* Marker vị trí tài xế (xe) */}
           <Marker position={[driverPosition.lat, driverPosition.lng]} icon={carIcon} />
-          {/* Marker điểm đến */}
-          <Marker position={[destinationPosition.lat, destinationPosition.lng]} icon={createDestinationIcon(destName)} />
+          {/* Marker điểm đón */}
+          <Marker position={[pickupPosition.lat, pickupPosition.lng]} icon={createDestinationIcon(pickupLocationName)} />
         </MapView>
       </div>
 
@@ -236,7 +299,7 @@ export default function WatingDriverPickup() {
                 />
                 <div className="absolute left-[40px] top-[65px] px-2 py-[2px] bg-[#FEA520] rounded-lg border-2 border-white flex flex-col justify-start items-start">
                   <div className="text-[#2B1700] text-[10px] font-bold leading-[15px] whitespace-nowrap">
-                    {driver.rating} ★
+                    {driver.rating && driver.rating !== '...' && !isNaN(Number(driver.rating)) ? Number(driver.rating).toFixed(1) : driver.rating} ★
                   </div>
                 </div>
               </div>
@@ -261,7 +324,7 @@ export default function WatingDriverPickup() {
             <div className="inline-flex flex-col items-start justify-start flex-shrink-0 ml-2">
               <div style={{ display: 'flex', alignItems: 'baseline', gap: '4px', height: 41 }}>
                 <div style={{ color: '#006D37', fontSize: 36, fontWeight: '900', lineHeight: '40px' }}>
-                  {etaMinutes !== null ? etaMinutes : '-'}
+                  {etaMinutes !== null && !isNaN(etaMinutes) ? etaMinutes : '...'}
                 </div>
                 <div style={{ color: '#006D37', fontSize: 24, fontWeight: '800', lineHeight: '28px' }}>
                   分
@@ -316,7 +379,7 @@ export default function WatingDriverPickup() {
                 ウォレット決済
               </div>
               <div className="text-[#3D4A3F] text-[10px] font-medium leading-[15px]">
-                145,000 VND
+                {fareDisplay}
               </div>
             </div>
           </div>

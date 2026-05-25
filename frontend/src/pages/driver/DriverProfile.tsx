@@ -51,13 +51,13 @@ export default function DriverProfile() {
   // Helper to dynamically calculate birthdate from Vietnamese ID Card (CCCD)
   const getBirthdate = (cccd: string | null) => {
     if (!cccd || cccd === "N/A" || cccd.length !== 12) {
-      return "1985年5月12日"; // Default fallback
+      return "..."; // Default fallback
     }
     
     const centuryDigit = parseInt(cccd.charAt(3), 10);
     const yearDigits = cccd.substring(4, 6);
     if (isNaN(centuryDigit) || isNaN(parseInt(yearDigits, 10))) {
-      return "1985年5月12日";
+      return "...";
     }
     
     let birthYear = 1900 + parseInt(yearDigits, 10);
@@ -85,9 +85,9 @@ export default function DriverProfile() {
   const startEdit = () => {
     if (!driverData) return;
     const dp = driverData.driverProfile || {};
-    let carModel = "BMW";
-    let carPlate = "51A-888.88";
-    let carYear = "2022";
+    let carModel = "...";
+    let carPlate = "...";
+    let carYear = "...";
     if (dp.vehicleInfor) {
       try {
         const data = JSON.parse(dp.vehicleInfor);
@@ -113,8 +113,8 @@ export default function DriverProfile() {
       year: carYear,
       vehicleType: dp.vehicleType || "Sedan",
       identityCard: dp.identityCard || "",
-      japaneseCerInfor: dp.japaneseCerInfor || "JLPT N2",
-      drivingLicenseInfor: dp.drivingLicenseInfor || "B2"
+      japaneseCerInfor: dp.japaneseCerInfor || "...",
+      drivingLicenseInfor: dp.drivingLicenseInfor || "..."
     });
     setEditAvatarImage(null);
     setEditCarImage(null);
@@ -236,9 +236,9 @@ export default function DriverProfile() {
   const dp = profile.driverProfile || {};
 
   // Bóc tách thông tin xe từ chuỗi JSON hoặc chuỗi cũ
-  let carModel = "BMW";
-  let carPlate = "51A-888.88";
-  let carYear = "2022";
+  let carModel = "...";
+  let carPlate = "...";
+  let carYear = "...";
   let carImageUrl = imgVehicleHero;
 
   if (dp.vehicleInfor) {
@@ -256,7 +256,7 @@ export default function DriverProfile() {
         carYear = parts[2] || carYear;
       } else {
         carPlate = dp.vehicleInfor;
-        carModel = dp.vehicleType || "BMW";
+        carModel = dp.vehicleType || "...";
       }
     }
   }
@@ -275,18 +275,18 @@ export default function DriverProfile() {
           </div>
 
           <div className="text-center">
-            <h1 className="text-[24px] font-extrabold text-[#171d17] leading-tight mb-[4px]">{(profile.fullName || "山本 健二").split('(')[0].trim()}</h1>
-            <p className="text-[14px] text-[#3d4a3f]">{profile.createdAt ? new Date(profile.createdAt).getFullYear() : 2021}年からJV Taxiのパートナー</p>
+            <h1 className="text-[24px] font-extrabold text-[#171d17] leading-tight mb-[4px]">{(profile.fullName || "...").split('(')[0].trim()}</h1>
+            <p className="text-[14px] text-[#3d4a3f]">{profile.createdAt ? new Date(profile.createdAt).getFullYear() : "..."}年からJV Taxiのパートナー</p>
           </div>
 
           <div className="flex gap-[8px]">
             <div className="bg-[#e9f0e6] rounded-full px-[12px] py-[6px] flex items-center gap-[6px]">
               <svg className="size-[14px]" fill="none" viewBox="0 0 15 14.25"><path d={svgPaths.p389def00} fill="#006D37"/></svg>
-              <span className="text-[14px] font-bold text-[#171d17]">{dp.averageRating || "4.98"}</span>
+              <span className="text-[14px] font-bold text-[#171d17]">{dp.averageRating && !isNaN(Number(dp.averageRating)) ? Number(dp.averageRating).toFixed(1) : (dp.averageRating || "...")}</span>
             </div>
             <div className="bg-[#e9f0e6] rounded-full px-[12px] py-[6px] flex items-center gap-[6px]">
               <svg className="size-[14px]" fill="none" viewBox="0 0 16.5 15"><path d={svgPaths.p2cad85c0} fill="#006D37"/></svg>
-              <span className="text-[14px] font-bold text-[#171d17]">{dp.japaneseCerInfor || "JLPT N2"}</span>
+              <span className="text-[14px] font-bold text-[#171d17]">{dp.japaneseCerInfor || "..."}</span>
             </div>
           </div>
         </div>
@@ -302,11 +302,11 @@ export default function DriverProfile() {
           <div className="flex flex-col gap-[16px]">
             <div>
               <div className="text-[#3d4a3f] text-[10px] font-bold uppercase tracking-wide mb-[2px]">電話番号</div>
-              <div className="text-[#171d17] text-[16px] font-semibold">{profile.phone || "+84 90 123 4567"}</div>
+              <div className="text-[#171d17] text-[16px] font-semibold">{profile.phone || "..."}</div>
             </div>
             <div>
               <div className="text-[#3d4a3f] text-[10px] font-bold uppercase tracking-wide mb-[2px]">メールアドレス</div>
-              <div className="text-[#171d17] text-[16px] font-semibold">{profile.email || "k.yamamoto@zenlink.vn"}</div>
+              <div className="text-[#171d17] text-[16px] font-semibold">{profile.email || "..."}</div>
             </div>
             <div>
               <div className="text-[#3d4a3f] text-[10px] font-bold uppercase tracking-wide mb-[2px]">生年月日</div>
@@ -328,7 +328,7 @@ export default function DriverProfile() {
             <div className="text-[#171d17] text-[18px] font-bold tracking-[1.5px] mb-[6px]">
               {(() => {
                 const cccd = dp.identityCard;
-                if (!cccd || cccd === "N/A") return "079xxxxxx889";
+                if (!cccd || cccd === "N/A") return "...";
                 if (cccd.length > 6) {
                   const start = Math.max(0, Math.floor((cccd.length - 6) / 2));
                   return cccd.substring(0, start) + "xxxxxx" + cccd.substring(start + 6);
@@ -390,11 +390,11 @@ export default function DriverProfile() {
           <div className="flex flex-col gap-[12px]">
             <div className="bg-white rounded-[24px] p-[20px] shadow-sm">
               <div className="text-[#3d4a3f] text-[10px] font-bold uppercase mb-[4px]">日本語能力</div>
-              <div className="text-[#171d17] text-[18px] font-extrabold">{dp.japaneseCerInfor || "JLPT N2"}</div>
+              <div className="text-[#171d17] text-[18px] font-extrabold">{dp.japaneseCerInfor || "..."}</div>
             </div>
             <div className="bg-white rounded-[24px] p-[20px] shadow-sm">
               <div className="text-[#3d4a3f] text-[10px] font-bold uppercase mb-[4px]">運転免許証</div>
-              <div className="text-[#171d17] text-[18px] font-extrabold">{dp.drivingLicenseInfor || "B2"}</div>
+              <div className="text-[#171d17] text-[18px] font-extrabold">{dp.drivingLicenseInfor || "..."}</div>
             </div>
           </div>
         </div>

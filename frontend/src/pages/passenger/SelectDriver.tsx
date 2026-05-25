@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { Header } from '../../components/layout/Header';
 import { useBooking } from '../../contexts/BookingContext';
 import './SelectDriver.css';
@@ -48,6 +48,8 @@ const API_BASE = `${API_BASE_URL}/api/drivers`;
 
 const SelectDriver = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+  const passedFare = location.state?.fare;
   const { pickup } = useBooking();
   const [drivers, setDrivers] = useState<Driver[]>([]);
   const [searchStatus, setSearchStatus] = useState<SearchStatus>('searching');
@@ -224,7 +226,7 @@ const SelectDriver = () => {
   const handleSelectDriver = (driver: Driver) => {
     console.log('Driver selected:', driver.name);
     // Navigate to details
-    navigate('/passenger/driver-detail', { state: { driver } });
+    navigate('/passenger/driver-detail', { state: { driver, fare: passedFare } });
   };
 
   return (
@@ -299,7 +301,7 @@ const SelectDriver = () => {
                         />
                         <div className="sd-rating-badge">
                           <span className="sd-rating-star">★</span>
-                          {driver.rating}
+                          {driver.rating && !isNaN(Number(driver.rating)) ? Number(driver.rating).toFixed(1) : driver.rating}
                         </div>
                       </div>
 
@@ -314,7 +316,7 @@ const SelectDriver = () => {
                     </div>
 
                     <div className="sd-price-info">
-                      <p className="sd-price">₫{driver.price}</p>
+                      <p className="sd-price">₫{passedFare ? passedFare.toLocaleString() : driver.price}</p>
                       <p className="sd-price-label">合計予想金額</p>
                     </div>
                   </div>
