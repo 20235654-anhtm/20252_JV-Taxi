@@ -29,6 +29,7 @@ import Rateyourtrip from '../pages/passenger/Rateyourtrip';
 import ChatwithDriver from '../pages/passenger/ChatwithDriver';
 import CallDriver from '../pages/passenger/CallDriver';
 import InTrip from '../pages/passenger/InTrip';
+import RideHistory from '../pages/passenger/RideHistory';
 
 // Driver Pages
 import DriverDashboard from '../pages/driver/DriverDashboard';
@@ -120,6 +121,7 @@ const AppRoutes = () => {
       <Route path="/passenger/call-driver" element={<ProtectedRoute allowedRole="CUSTOMER"><CallDriver /></ProtectedRoute>} />
       <Route path="/passenger/in-trip" element={<ProtectedRoute allowedRole="CUSTOMER"><InTrip /></ProtectedRoute>} />
       <Route path="/passenger/rate-trip" element={<ProtectedRoute allowedRole="CUSTOMER"><Rateyourtrip /></ProtectedRoute>} />
+      <Route path="/passenger/history" element={<RideHistory />} />
 
       {/* ======================= DRIVER FLOW (AUTHENTICATED) ======================= */}
       <Route path="/driver" element={<ProtectedRoute allowedRole="DRIVER"><DriverDashboard /></ProtectedRoute>} />
