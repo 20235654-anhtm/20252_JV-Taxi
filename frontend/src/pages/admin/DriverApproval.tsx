@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
-import { CheckCircle, MoreVertical, X } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { CheckCircle, MoreVertical } from 'lucide-react';
 import { API_BASE_URL } from '../../config/api';
 import { useLanguage } from '../../context/LanguageContext';
 import './DriverApproval.css';
@@ -79,6 +80,7 @@ const TRANSLATIONS = {
 };
 
 const DriverApproval = () => {
+  const navigate = useNavigate();
   const { lang, setLang } = useLanguage();
   const t = TRANSLATIONS[lang];
 
@@ -86,7 +88,6 @@ const DriverApproval = () => {
   const [loading, setLoading] = useState(true);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [activeMenuId, setActiveMenuId] = useState<string | null>(null);
-  const [selectedDriver, setSelectedDriver] = useState<Driver | null>(null);
 
   const showToast = useCallback((message: string) => {
     setToastMessage(message);
@@ -288,7 +289,7 @@ const DriverApproval = () => {
                                 <button
                                   onClick={() => {
                                     setActiveMenuId(null);
-                                    setSelectedDriver(driver);
+                                    navigate(`/admin/driver-detail?userId=${driver.userId}`, { state: { driver } });
                                   }}
                                 >
                                   {t.btnDetails}
@@ -323,7 +324,7 @@ const DriverApproval = () => {
                   <div className="driver-card-footer">
                     <button
                       className="admin-details-btn"
-                      onClick={() => setSelectedDriver(driver)}
+                      onClick={() => navigate(`/admin/driver-detail?userId=${driver.userId}`, { state: { driver } })}
                     >
                       {t.btnDetails}
                     </button>
@@ -334,125 +335,6 @@ const DriverApproval = () => {
           </div>
         )}
       </main>
-
-      {/* Details Modal */}
-      {selectedDriver && (
-        <div className="admin-modal-overlay">
-          <div className="admin-modal-container">
-            <div className="admin-modal-header">
-              <h3>{t.modalTitle}</h3>
-              <button className="admin-modal-close-btn" onClick={() => setSelectedDriver(null)}>
-                <X size={20} />
-              </button>
-            </div>
-
-            <div className="admin-modal-body">
-              {/* Profile Head */}
-              <div className="modal-avatar-section">
-                <div className="driver-avatar-container modal-size">
-                  <img
-                    src={selectedDriver.avatarPicture || "https://placehold.co/100x100?text=Driver"}
-                    alt={selectedDriver.profile.fullName}
-                    className="driver-card-avatar"
-                  />
-                  {getJlptLevel(selectedDriver.japaneseCerInfor) && (
-                    <span className="driver-jlpt-badge">
-                      {getJlptLevel(selectedDriver.japaneseCerInfor)}
-                    </span>
-                  )}
-                </div>
-                <div className="modal-avatar-info">
-                  <h4>{selectedDriver.profile.fullName}</h4>
-                  <span className="status-badge-waiting">{t.statusWaiting}</span>
-                </div>
-              </div>
-
-              {/* Grid details */}
-              <div className="modal-details-grid">
-                <div className="modal-detail-item">
-                  <span className="modal-detail-label">{t.phoneLabel}</span>
-                  <span className="modal-detail-value">{selectedDriver.profile.phone}</span>
-                </div>
-                <div className="modal-detail-item">
-                  <span className="modal-detail-label">{t.emailLabel}</span>
-                  <span className="modal-detail-value">{selectedDriver.profile.email}</span>
-                </div>
-                <div className="modal-detail-item">
-                  <span className="modal-detail-label">{t.typeLabel}</span>
-                  <span className="modal-detail-value">{selectedDriver.vehicleType}</span>
-                </div>
-                <div className="modal-detail-item">
-                  <span className="modal-detail-label">{t.vehicleLabel}</span>
-                  <span className="modal-detail-value">
-                    {(() => {
-                      try {
-                        const v = JSON.parse(selectedDriver.vehicleInfor);
-                        return `${v.model} (${v.year})`;
-                      } catch {
-                        return selectedDriver.vehicleInfor;
-                      }
-                    })()}
-                  </span>
-                </div>
-                <div className="modal-detail-item">
-                  <span className="modal-detail-label">{t.plateLabel}</span>
-                  <span className="modal-detail-value text-highlight">
-                    {(() => {
-                      try {
-                        const v = JSON.parse(selectedDriver.vehicleInfor);
-                        return v.plate;
-                      } catch {
-                        return 'N/A';
-                      }
-                    })()}
-                  </span>
-                </div>
-                <div className="modal-detail-item">
-                  <span className="modal-detail-label">{t.jlptLabel}</span>
-                  <span className="modal-detail-value">{selectedDriver.japaneseCerInfor || 'N/A'}</span>
-                </div>
-                <div className="modal-detail-item full-width">
-                  <span className="modal-detail-label">{t.licenseLabel}</span>
-                  <span className="modal-detail-value">{selectedDriver.drivingLicenseInfor || 'N/A'}</span>
-                </div>
-              </div>
-
-              {/* Attachments */}
-              {selectedDriver.avatarPicture && (
-                <div className="modal-attachment-section">
-                  <span className="modal-detail-label">添付書類 (Tài liệu đính kèm)</span>
-                  <div className="modal-attachment-preview">
-                    <img
-                      src={selectedDriver.avatarPicture}
-                      alt="License Attachment"
-                      className="modal-license-image"
-                    />
-                  </div>
-                </div>
-              )}
-            </div>
-
-            <div className="admin-modal-footer">
-              <button
-                className="admin-modal-approve-btn"
-                onClick={() => {
-                  handleApprove(selectedDriver.userId, selectedDriver.profile.fullName);
-                  setSelectedDriver(null);
-                }}
-              >
-                {t.modalApprove}
-              </button>
-              <button
-                className="admin-modal-cancel-btn"
-                onClick={() => setSelectedDriver(null)}
-              >
-                {t.modalClose}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
       {/* Toast Notification */}
       {toastMessage && (
         <div className="admin-toast">

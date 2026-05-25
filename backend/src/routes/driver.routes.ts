@@ -355,6 +355,32 @@ router.put('/admin/approve/:userId', async (req: Request, res: Response) => {
 });
 
 /**
+ * API: PUT /api/drivers/admin/reject/:userId
+ * Rejects driver application by deleting their driver profile
+ */
+router.put('/admin/reject/:userId', async (req: Request, res: Response) => {
+  try {
+    const { userId } = req.params;
+
+    const deleted = await prisma.driverProfile.delete({
+      where: { userId: userId as string },
+    });
+
+    res.status(200).json({
+      success: true,
+      message: 'Driver rejected successfully.',
+      data: deleted,
+    });
+  } catch (error) {
+    console.error('Error rejecting driver:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error while rejecting driver.',
+    });
+  }
+});
+
+/**
  * API: PUT /api/drivers/status
  * Updates driver's online/offline status and current GPS location.
  * Requires driver authentication.
