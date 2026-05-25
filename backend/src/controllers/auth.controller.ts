@@ -49,11 +49,13 @@ const uploadToSupabase = async (file: Express.Multer.File, folder: string): Prom
 
 export const login = async (req: Request, res: Response) => {
   try {
-    const { identifier, password } = req.body;
+    let { identifier, password } = req.body;
 
     if (!identifier || !password) {
       return res.status(400).json({ message: 'メールアドレスまたは電話番号とパスワードを入力してください。' });
     }
+    
+    identifier = identifier.trim().toLowerCase();
 
     const profile = await prisma.profile.findFirst({
       where: {
@@ -186,11 +188,14 @@ export const getMe = async (req: any, res: Response) => {
 
 export const register = async (req: Request, res: Response) => {
   try {
-    const { email, phone, password, fullName, role } = req.body;
+    let { email, phone, password, fullName, role } = req.body;
 
     if (!password || (!email && !phone)) {
       return res.status(400).json({ message: 'すべての必須フィールドを入力してください。' });
     }
+
+    if (email) email = email.trim().toLowerCase();
+    if (phone) phone = phone.trim();
 
     // Kiểm tra tồn tại
     const existingUser = await prisma.profile.findFirst({
@@ -350,7 +355,10 @@ export const register = async (req: Request, res: Response) => {
 export const updateProfile = async (req: any, res: Response) => {
   try {
     const userId = req.user.userId;
-    const { fullName, phone, email, vehicleType, model, plate, year, japaneseCerInfor, drivingLicenseInfor, identityCard } = req.body;
+    let { fullName, phone, email, vehicleType, model, plate, year, japaneseCerInfor, drivingLicenseInfor, identityCard } = req.body;
+    
+    if (email) email = email.trim().toLowerCase();
+    if (phone) phone = phone.trim();
     
     // Check if profile exists
     const profile = await prisma.profile.findUnique({
@@ -514,6 +522,72 @@ export const updatePaymentMethod = async (req: any, res: Response) => {
     return res.status(200).json({ message: 'カードを登録しました' });
   } catch (error) {
     console.error('Update payment method error:', error);
+    return res.status(500).json({ message: 'サーバーエラーが発生しました。' });
+  }
+};
+
+export const checkEmail = async (req: Request, res: Response) => {
+  try {
+    let { email } = req.body;
+    if (!email) {
+      return res.status(400).json({ message: 'メールアドレスを入力してください。' });
+    }
+    email = email.trim().toLowerCase();
+
+    const profile = await prisma.profile.findFirst({
+      where: { email }
+    });
+
+    if (!profile) {
+      return res.status(404).json({ message: 'アカウントが見つかりません。' });
+    }
+
+    return res.status(200).json({ message: 'アカウントが見つかりました。' });
+  } catch (error) {
+    console.error('Check email error:', error);
+    return res.status(500).json({ message: 'サーバーエラーが発生しました。' });
+  }
+};
+
+export const resetPassword = async (req: Request, res: Response) => {
+  try {
+    let { email, newPassword } = req.body;
+    if (!email || !newPassword) {
+      return res.status(400).json({ message: 'メールアドレスと新しいパスワードを入力してください。' });
+    }
+    
+    email = email.trim().toLowerCase();
+
+    const profile = await prisma.profile.findFirst({
+      where: { email }
+    });
+
+    if (!profile) {
+      return res.status(404).json({ message: 'アカウントが見つかりません。' });
+    }
+
+    // Hash the new password
+    const passwordHash = await bcrypt.hash(newPassword, 10);
+
+    // Update in Prisma Profile
+    await prisma.profile.update({
+      where: { id: profile.id },
+      data: { passwordHash }
+    });
+
+    // Update in Supabase Auth if service role key exists
+    if (process.env.SUPABASE_SERVICE_ROLE_KEY) {
+      const { error } = await supabaseAdmin.auth.admin.updateUserById(profile.id, {
+        password: newPassword
+      });
+      if (error) {
+        console.error('Supabase password update error:', error);
+      }
+    }
+
+    return res.status(200).json({ message: 'パスワードが更新されました。' });
+  } catch (error) {
+    console.error('Reset password error:', error);
     return res.status(500).json({ message: 'サーバーエラーが発生しました。' });
   }
 };

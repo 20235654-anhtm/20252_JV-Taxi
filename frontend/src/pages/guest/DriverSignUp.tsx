@@ -431,10 +431,17 @@ export default function DriverSignUp() {
 
   const isInvalid = (field: string) => {
     if (errors[field]) return true;
-    const val = field === 'email' ? form.email : form.phone;
-    if (val !== "") {
-      if (field === 'email') return !emailRegex.test(val);
-      if (field === 'phone') return !phoneRegex.test(val);
+    if (field === 'pass') {
+      const val = form.pass;
+      if (val !== "") {
+        return val.length < 8;
+      }
+    } else {
+      const val = field === 'email' ? form.email : form.phone;
+      if (val !== "") {
+        if (field === 'email') return !emailRegex.test(val);
+        if (field === 'phone') return !phoneRegex.test(val);
+      }
     }
     return false;
   };
@@ -524,7 +531,7 @@ export default function DriverSignUp() {
             <PasswordField t={t} value={form.pass} onChange={(v) => {
               setForm({ ...form, pass: v });
               if (v.length >= 8) setErrors((prev) => ({ ...prev, pass: false }));
-            }} error={errors.pass} errorText={!form.pass ? t.errorRequired : t.errorPass} showPass={showPass} onTogglePass={() => setShowPass(!showPass)} />
+            }} error={isInvalid('pass')} errorText={!form.pass ? t.errorRequired : t.errorPass} showPass={showPass} onTogglePass={() => setShowPass(!showPass)} />
           </div>
 
           {/* Vehicle Section */}

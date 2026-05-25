@@ -8,6 +8,10 @@ import SignIn from '../pages/guest/SignIn';
 import SignUpSelection from '../pages/guest/SignUpSelection';
 import PassengerSignUp from '../pages/guest/PassengerSignUp';
 import DriverSignUp from '../pages/guest/DriverSignUp';
+import ForgotPassword from '../pages/guest/ForgotPassword';
+import ForgotPasswordReset from '../pages/guest/ForgotPasswordReset';
+import ForgotPasswordSuccess from '../pages/guest/ForgotPasswordSuccess';
+import ErrorAccountNotFound from '../pages/guest/ErrorAccountNotFound';
 
 // Passenger Pages
 import PassengerHome from '../pages/passenger/PassengerHome';
@@ -95,6 +99,10 @@ const AppRoutes = () => {
       <Route path="/signup" element={<GuestRoute><SignUpSelection /></GuestRoute>} />
       <Route path="/signup/passenger" element={<GuestRoute><PassengerSignUp /></GuestRoute>} />
       <Route path="/signup/driver" element={<GuestRoute><DriverSignUp /></GuestRoute>} />
+      <Route path="/forgot-password" element={<GuestRoute><ForgotPassword /></GuestRoute>} />
+      <Route path="/forgot-password/reset" element={<GuestRoute><ForgotPasswordReset /></GuestRoute>} />
+      <Route path="/forgot-password/success" element={<GuestRoute><ForgotPasswordSuccess /></GuestRoute>} />
+      <Route path="/forgot-password/error" element={<GuestRoute><ErrorAccountNotFound /></GuestRoute>} />
 
       {/* ======================= PASSENGER FLOW (AUTHENTICATED) ======================= */}
       <Route path="/passenger" element={<ProtectedRoute allowedRole="CUSTOMER"><PassengerHome /></ProtectedRoute>} />

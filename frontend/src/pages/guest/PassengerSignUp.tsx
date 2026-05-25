@@ -94,10 +94,17 @@ export default function PassengerSignUp() {
 
   const isInvalid = (field: string) => {
     if (errors[field]) return true;
-    const val = field === 'email' ? form.email : form.phone;
-    if (val !== "") {
-      if (field === 'email') return !emailRegex.test(val);
-      if (field === 'phone') return !phoneRegex.test(val);
+    if (field === 'pass') {
+      const val = form.pass;
+      if (val !== "") {
+        return val.length < 8;
+      }
+    } else {
+      const val = field === 'email' ? form.email : form.phone;
+      if (val !== "") {
+        if (field === 'email') return !emailRegex.test(val);
+        if (field === 'phone') return !phoneRegex.test(val);
+      }
     }
     return false;
   };
@@ -235,7 +242,7 @@ export default function PassengerSignUp() {
             <div className="flex justify-between items-center px-[4px]">
               <label className="font-bold text-[14px] text-[#171d17] uppercase">{t.passLabel}</label>
             </div>
-            <div className={`bg-[#eff6ec] relative rounded-[24px] flex items-center p-[16px] gap-[12px] border ${errors.pass ? "border-red-500" : "border-transparent"}`}>
+            <div className={`bg-[#eff6ec] relative rounded-[24px] flex items-center p-[16px] gap-[12px] border ${isInvalid('pass') ? "border-red-500" : "border-transparent"}`}>
               <div className="size-[16px] shrink-0">
                 <svg className="block size-full" fill="none" viewBox="0 0 16 21">
                   <path d={svgPaths.p12930f00} fill="#6D7A6E" />
@@ -255,7 +262,7 @@ export default function PassengerSignUp() {
                 {showPass ? <Eye size={20} /> : <EyeOff size={20} />}
               </button>
             </div>
-            {errors.pass && <span className="text-red-500 text-xs font-medium pl-4">{!form.pass ? t.errorRequired : t.errorPass}</span>}
+            {isInvalid('pass') && <span className="text-red-500 text-xs font-medium pl-4">{!form.pass ? t.errorRequired : t.errorPass}</span>}
           </div>
 
           {/* Agreement Checkbox */}
