@@ -1,5 +1,5 @@
 import React from 'react';
-import type { ReviewsCardProps } from '../../types/DriverReviewDetail';
+import type { ReviewsCardProps } from '../../types/DriverDetail';
 import IconStar from '../../assets/IconStar.svg';
 
 export const ReviewsCard: React.FC<ReviewsCardProps> = ({

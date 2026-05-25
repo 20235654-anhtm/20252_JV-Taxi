@@ -1,5 +1,5 @@
 import React from 'react';
-import type { ProfileCardProps } from '../../types/DriverReviewDetail';
+import type { ProfileCardProps } from '../../types/DriverDetail';
 
 import IconMail from '../../assets/IconMail.svg';
 import IconCall2 from '../../assets/IconCall2.svg';
@@ -18,10 +18,10 @@ export const ProfileCard: React.FC<ProfileCardProps> = ({
       {/* Avatar Section */}
       <div className="relative mb-[24px] w-[160px] h-[160px]">
         <div className="w-full h-full relative transform rotate-3 bg-[#2b6469] shadow-[0px_8px_10px_-6px_rgba(0,0,0,0.10),0px_20px_25px_-5px_rgba(0,0,0,0.10)] overflow-hidden rounded-[32px]">
-          <img 
-            className="absolute left-[-4px] top-[5px] w-[168px] h-[168px] transform -rotate-3 object-cover" 
-            src={avatarUrl} 
-            alt="Avatar" 
+          <img
+            className="absolute left-[-4px] top-[5px] w-[168px] h-[168px] transform -rotate-3 object-cover"
+            src={avatarUrl}
+            alt="Avatar"
           />
         </div>
         {/* Tick Badge */}
@@ -31,11 +31,11 @@ export const ProfileCard: React.FC<ProfileCardProps> = ({
           </div>
         )}
       </div>
-      
+
       {/* Name & Subname */}
       <div className="text-center text-[#171D17] text-[24px] font-[800] leading-[32px] break-words w-auto px-4">{name}</div>
       <div className="text-center text-[#3D4A3F] text-[10.40px] font-normal leading-[15.60px] break-words mt-[4px]">{subName}</div>
-      
+
       {/* Contact Info */}
       <div className="w-[294px] border-t border-[rgba(188,202,188,0.15)] mt-[9px] pt-[24px] flex flex-col gap-[12px]">
         <div className="flex justify-start items-center gap-[12px]">

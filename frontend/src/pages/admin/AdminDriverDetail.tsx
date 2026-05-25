@@ -3,10 +3,10 @@ import { useNavigate } from 'react-router-dom';
 import { Header } from '../../components/layout/Header';
 import { Button } from '../../components/ui/Button';
 
-import { ProfileCard } from '../../components/DriverReviewDetail/ProfileCard';
-import { CarDetailsCard } from '../../components/DriverReviewDetail/CarDetailsCard';
-import { DocumentCard } from '../../components/DriverReviewDetail/DocumentCard';
-import { ReviewsCard } from '../../components/DriverReviewDetail/ReviewsCard';
+import { ProfileCard } from '../../components/DriverDetail/ProfileCard';
+import { CarDetailsCard } from '../../components/DriverDetail/CarDetailsCard';
+import { DocumentCard } from '../../components/DriverDetail/DocumentCard';
+import { ReviewsCard } from '../../components/DriverDetail/ReviewsCard';
 
 const mockProfileData = {
   name: "Kenji Yamamoto",
@@ -71,7 +71,7 @@ const mockReviewsData = {
   ]
 };
 
-export default function DriverReviewDetail() {
+export default function AdminDriverDetail() {
   const navigate = useNavigate();
 
   return (

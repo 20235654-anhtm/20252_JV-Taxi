@@ -35,7 +35,7 @@ import ChatwithPassenger from '../pages/driver/ChatwithPassenger';
 import CallPassenger from '../pages/driver/CallPassenger';
 import DriverInTrip from '../pages/driver/DriverInTrip';
 import DriverApproval from '../pages/admin/DriverApproval';
-import DriverReviewDetail from '../pages/admin/DriverReviewDetail';
+import AdminDriverDetail from '../pages/admin/AdminDriverDetail';
 
 // ── Auth Guards ──
 
@@ -126,7 +126,7 @@ const AppRoutes = () => {
 
       {/* ======================= ADMIN FLOW ======================= */}
       <Route path="/admin" element={<DriverApproval />} />
-      <Route path="/admin/driver-review" element={<DriverReviewDetail />} />
+      <Route path="/admin/driver-detail" element={<AdminDriverDetail />} />
     </Routes>
   );
 };

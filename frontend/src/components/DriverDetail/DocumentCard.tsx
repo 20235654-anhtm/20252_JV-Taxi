@@ -1,5 +1,5 @@
 import React from 'react';
-import type { DocumentCardProps } from '../../types/DriverReviewDetail';
+import type { DocumentCardProps } from '../../types/DriverDetail';
 import IconGreenTick from '../../assets/IconGreenTick.svg';
 
 export const DocumentCard: React.FC<DocumentCardProps> = ({
@@ -22,10 +22,10 @@ export const DocumentCard: React.FC<DocumentCardProps> = ({
         </div>
       </div>
       <div className="w-full h-[192px] max-w-[340px] relative bg-[#EFF6EC] rounded-[20px] flex justify-center items-center">
-        <img 
-          className="w-full h-full relative opacity-90 rounded-[20px] object-cover" 
-          src={documentImage} 
-          alt={title} 
+        <img
+          className="w-full h-full relative opacity-90 rounded-[20px] object-cover"
+          src={documentImage}
+          alt={title}
         />
       </div>
       <div className="w-full pt-[15px] pb-[16px] px-[16px] flex justify-start items-start gap-[16px]">
