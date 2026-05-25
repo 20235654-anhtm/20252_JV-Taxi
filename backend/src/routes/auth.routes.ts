@@ -1,7 +1,7 @@
 import express from 'express';
 import multer from 'multer';
 import fs from 'fs';
-import { login, register, getMe, updateProfile, updatePaymentMethod } from '../controllers/auth.controller';
+import { login, register, getMe, updateProfile, updatePaymentMethod, checkEmail, resetPassword } from '../controllers/auth.controller';
 import { authMiddleware } from '../middleware/auth.middleware';
 
 const router = express.Router();
@@ -29,5 +29,7 @@ router.post('/register', upload.any(), register);
 router.get('/me', authMiddleware as any, getMe);
 router.put('/profile/update', authMiddleware as any, upload.any(), updateProfile);
 router.put('/profile/payment-method', authMiddleware as any, express.json(), updatePaymentMethod);
+router.post('/check-email', express.json(), checkEmail);
+router.post('/reset-password', express.json(), resetPassword);
 
 export default router;

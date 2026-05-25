@@ -32,7 +32,7 @@ export const useRecentDestinations = (userId: string | undefined) => {
             id: `recent-${index}`,
             name: item.endAddress, // Vì đây là lịch sử địa chỉ, ta dùng địa chỉ làm tên luôn
             address: item.endAddress,
-            coords: null // Lịch sử cũ chưa lưu tọa độ, để null để hệ thống tự tìm tọa độ khi click
+            coords: item.latitude && item.longitude ? { lat: Number(item.latitude), lng: Number(item.longitude) } : null
           }));
           
           setRecentDestinations(formattedData);

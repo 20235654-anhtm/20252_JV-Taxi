@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { Header } from '../../components/layout/Header';
 import { useBooking } from '../../contexts/BookingContext';
 import './SelectDriver.css';
@@ -21,6 +21,19 @@ interface Driver {
 /** Search status types */
 type SearchStatus = 'searching' | 'found' | 'timeout' | 'error' | 'no_gps';
 
+/** Helper to format JSON vehicle info string to a readable string */
+const formatVehicleInfo = (info: string) => {
+  try {
+    const parsed = JSON.parse(info);
+    const model = parsed.model || '';
+    const secondary = parsed.color || parsed.plate || '';
+    if (model && secondary) return `${model} • ${secondary}`;
+    return model || info;
+  } catch (e) {
+    return info;
+  }
+};
+
 /** Search timeout (5 minutes = 300,000ms) */
 // const SEARCH_TIMEOUT_MS = 5 * 60 * 1000;
 const SEARCH_TIMEOUT_MS = 5 * 1000;
@@ -35,6 +48,8 @@ const API_BASE = `${API_BASE_URL}/api/drivers`;
 
 const SelectDriver = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+  const passedFare = location.state?.fare;
   const { pickup } = useBooking();
   const [drivers, setDrivers] = useState<Driver[]>([]);
   const [searchStatus, setSearchStatus] = useState<SearchStatus>('searching');
@@ -211,7 +226,7 @@ const SelectDriver = () => {
   const handleSelectDriver = (driver: Driver) => {
     console.log('Driver selected:', driver.name);
     // Navigate to details
-    navigate('/passenger/driver-detail', { state: { driver } });
+    navigate('/passenger/driver-detail', { state: { driver, fare: passedFare } });
   };
 
   return (
@@ -286,13 +301,13 @@ const SelectDriver = () => {
                         />
                         <div className="sd-rating-badge">
                           <span className="sd-rating-star">★</span>
-                          {driver.rating}
+                          {driver.rating && !isNaN(Number(driver.rating)) ? Number(driver.rating).toFixed(1) : driver.rating}
                         </div>
                       </div>
 
                       <div className="sd-driver-details">
                         <h3 className="sd-driver-name">{driver.name}</h3>
-                        <p className="sd-car-model">{driver.car}</p>
+                        <p className="sd-car-model">{formatVehicleInfo(driver.car)}</p>
                         <div className="sd-tags">
                           <span className="sd-tag">{driver.distance}</span>
                           <span className="sd-tag">{driver.time}</span>
@@ -301,7 +316,7 @@ const SelectDriver = () => {
                     </div>
 
                     <div className="sd-price-info">
-                      <p className="sd-price">₫{driver.price}</p>
+                      <p className="sd-price">₫{passedFare ? passedFare.toLocaleString() : driver.price}</p>
                       <p className="sd-price-label">合計予想金額</p>
                     </div>
                   </div>

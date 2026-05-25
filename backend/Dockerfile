@@ -1,5 +1,5 @@
 # Sử dụng Node.js Alpine image làm base
-FROM node:20-alpine
+FROM node:22-alpine
 
 # Thiết lập thư mục làm việc
 WORKDIR /usr/src/app

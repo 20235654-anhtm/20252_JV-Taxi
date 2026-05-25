@@ -12,6 +12,9 @@ export interface BottomSheetProps {
   snapPoints?: number[];
   className?: string;
   zIndex?: number;
+  hasBackdrop?: boolean;
+  initialSnapIndex?: number;
+  contentClassName?: string;
 }
 
 export const BottomSheet: React.FC<BottomSheetProps> = ({
@@ -25,9 +28,12 @@ export const BottomSheet: React.FC<BottomSheetProps> = ({
   snapPoints = [40, 70, 90], // Default snap points in vh
   className = '',
   zIndex,
+  hasBackdrop = true,
+  initialSnapIndex = 1,
+  contentClassName,
 }) => {
   const sheetRef = useRef<HTMLDivElement>(null);
-  const [currentSnapIndex, setCurrentSnapIndex] = useState(1); // Start at middle snap point
+  const [currentSnapIndex, setCurrentSnapIndex] = useState(initialSnapIndex);
   const [isDragging, setIsDragging] = useState(false);
   const [startY, setStartY] = useState(0);
   const [currentY, setCurrentY] = useState(0);
@@ -124,32 +130,34 @@ export const BottomSheet: React.FC<BottomSheetProps> = ({
 
   return (
     <div
-      className={`fixed inset-0 flex items-end justify-center ${!zIndex ? 'z-[--z-modal]' : ''}`}
+      className={`fixed inset-0 flex items-end justify-center ${!zIndex ? 'z-[--z-modal]' : ''} ${!hasBackdrop ? 'pointer-events-none' : ''}`}
       style={zIndex ? { zIndex } : {}}
-      onClick={handleBackdropClick}
+      onClick={hasBackdrop ? handleBackdropClick : undefined}
     >
       {/* Backdrop */}
-      <div className="absolute inset-0 bg-black/40 backdrop-blur-sm animate-in fade-in duration-200" />
+      {hasBackdrop && (
+        <div className="absolute inset-0 bg-black/40 backdrop-blur-sm animate-in fade-in duration-200" />
+      )}
 
       {/* Sheet */}
       <div
         ref={sheetRef}
         className={`
-          relative w-full max-w-[672px] bg-white
+          relative w-full max-w-[672px] bg-white pointer-events-auto
           rounded-tl-[32px] rounded-tr-[32px]
           shadow-[--shadow-sheet]
           ${isDragging ? '' : 'transition-all duration-300'}
           ${className}
         `}
         style={{
-          height: `${currentHeight}vh`,
+          height: currentHeight > 100 ? `${currentHeight}px` : `${currentHeight}vh`,
           transform: isDragging ? `translateY(${Math.max(0, dragOffset)}px)` : 'translateY(0)',
         }}
       >
         {/* Handle - Draggable */}
         {showHandle && (
           <div
-            className="flex justify-center pt-4 pb-3 cursor-grab active:cursor-grabbing"
+            className="flex justify-center pt-4 pb-7 cursor-grab active:cursor-grabbing"
             onTouchStart={handleDragStart}
             onMouseDown={handleDragStart}
           >

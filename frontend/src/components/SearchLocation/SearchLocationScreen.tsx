@@ -9,7 +9,7 @@ import { useWatchLocation } from '../../hooks/useWatchLocation';
 import { Button } from '../ui/Button';
 import { ArrowRight } from 'lucide-react';
 import { AuthRequiredSheet } from '../features/AuthRequiredSheet';
-import { reverseGeocode, useLocationSuggestions } from '../../hooks/useLocationSuggestions';
+import { reverseGeocode, useLocationSuggestions, geocodeAddress } from '../../hooks/useLocationSuggestions';
 import { useBooking } from '../../contexts/BookingContext';
 import { useRecentDestinations } from '../../hooks/useRecentDestinations';
 import './SearchLocation.css';
@@ -96,12 +96,30 @@ const SearchLocationScreen: React.FC<SearchLocationScreenProps> = ({
     }
   };
 
-  const handleDestinationSelect = (item: HistoryItem) => {
-    setDestination({
-      address: item.name,
-      coords: item.coords || null
-    });
-    setErrorMessage(null); // Xóa lỗi khi chọn hợp lệ
+  const handleDestinationSelect = async (item: HistoryItem) => {
+    if (item.coords) {
+      setDestination({
+        address: item.name,
+        coords: item.coords
+      });
+      setErrorMessage(null);
+    } else {
+      setDestination({
+        address: item.name,
+        coords: null
+      });
+      setErrorMessage(null);
+
+      const resolvedCoords = await geocodeAddress(item.name);
+      if (resolvedCoords) {
+        setDestination({
+          address: item.name,
+          coords: resolvedCoords
+        });
+      } else {
+        setErrorMessage('目的地の位置情報を取得できませんでした。');
+      }
+    }
   };
 
   const handleNext = () => {

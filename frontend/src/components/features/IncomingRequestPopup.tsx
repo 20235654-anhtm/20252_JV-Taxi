@@ -43,6 +43,24 @@ const IncomingRequestPopup = ({
     return () => clearInterval(timer);
   }, [timeLeft, onDecline]);
 
+  const getTranslatedPaymentMethod = (method: string) => {
+    if (!method) return '現金';
+    const normalized = method.toLowerCase().trim();
+    if (normalized === 'cash' || normalized === 'tiền mặt' || normalized === 'tien mat') {
+      return '現金';
+    }
+    if (
+      normalized === 'card' ||
+      normalized === 'thẻ' ||
+      normalized === 'the' ||
+      normalized === 'クレジットカード' ||
+      normalized === 'creditcard'
+    ) {
+      return 'カード';
+    }
+    return method;
+  };
+
   return (
     <div className="irp-overlay">
       <Card className="irp-container" rounded="2xl" padding="none">
@@ -105,9 +123,9 @@ const IncomingRequestPopup = ({
               <Clock size={16} />
               <span>所要時間 : {request.duration}</span>
             </div>
-            <div className="irp-meta-item">
+             <div className="irp-meta-item">
               <CreditCard size={16} />
-              <span>{request.paymentMethod}</span>
+              <span>{getTranslatedPaymentMethod(request.paymentMethod)}</span>
             </div>
           </div>
         </Card>

@@ -1,9 +1,11 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, Navigate } from 'react-router-dom';
 import { CarFront, User, Search } from 'lucide-react';
 import { Header } from '../../components/layout/Header';
 import { MapView } from '../../components/features/MapView';
 import { useBooking } from '../../contexts/BookingContext';
+import { API_BASE_URL } from '../../config/api';
+import { showToast } from '../../components/ui/Toast';
 import './BookingOptions.css';
 
 const CarIcon = ({ size = 24, color = 'currentColor' }) => (
@@ -27,8 +29,66 @@ const BookingOptions = () => {
   const navigate = useNavigate();
   const { pickup: pickupData, destination: destData } = useBooking();
   const [selectedOption, setSelectedOption] = useState<'auto' | 'designated'>('auto');
+  const [isLoading, setIsLoading] = useState(false);
+  const [nearbyDrivers, setNearbyDrivers] = useState<any[]>([]);
+  const [fareAmount, setFareAmount] = useState<number | null>(null);
 
   // Bảo vệ an toàn
+  const hasCoords = !!(pickupData?.coords && destData?.coords);
+
+  useEffect(() => {
+    const coords = pickupData?.coords;
+    if (!coords) return;
+    const fetchNearby = async () => {
+      try {
+        const token = sessionStorage.getItem('authToken') || localStorage.getItem('authToken');
+        const response = await fetch(
+          `${API_BASE_URL}/api/drivers/nearby?lng=${coords.lng}&lat=${coords.lat}&radius=3000`,
+          {
+            headers: token ? { 'Authorization': `Bearer ${token}` } : {},
+          }
+        );
+        const data = await response.json();
+        if (data.success && data.data) {
+          setNearbyDrivers(data.data);
+        }
+      } catch (error) {
+        console.error('Error fetching nearby drivers', error);
+      }
+    };
+    fetchNearby();
+  }, [hasCoords, pickupData?.coords?.lng, pickupData?.coords?.lat]);
+
+  useEffect(() => {
+    const pCoords = pickupData?.coords;
+    const dCoords = destData?.coords;
+    if (!pCoords || !dCoords) return;
+    const fetchFare = async () => {
+      try {
+        const response = await fetch(`${API_BASE_URL}/api/fare/estimate`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            startLng: pCoords.lng,
+            startLat: pCoords.lat,
+            endLng: dCoords.lng,
+            endLat: dCoords.lat,
+            vehicleType: 'CAR_4_SEATER',
+          }),
+        });
+        const data = await response.json();
+        if (data.success && data.data) {
+          setFareAmount(data.data.fare.totalFare);
+        }
+      } catch (error) {
+        console.error('Error fetching fare estimation', error);
+      }
+    };
+    fetchFare();
+  }, [hasCoords, pickupData?.coords?.lng, pickupData?.coords?.lat, destData?.coords?.lng, destData?.coords?.lat]);
+
   if (!pickupData?.coords || !destData?.coords) {
     return <Navigate to="/passenger/search-location" replace />;
   }
@@ -36,12 +96,40 @@ const BookingOptions = () => {
   const pickup = pickupData.coords; 
   const destination = destData.coords;
 
-  const handleNext = () => {
+  const handleNext = async () => {
     if (selectedOption === 'designated') {
-      navigate('/passenger/select-driver');
+      navigate('/passenger/select-driver', {
+        state: {
+          fare: fareAmount !== null ? fareAmount + 15000 : '...'
+        }
+      });
     } else {
       // Chế độ tự động
-      navigate('/passenger/booking-confirmation', { state: { mode: 'auto' } });
+      setIsLoading(true);
+      try {
+        const token = sessionStorage.getItem('authToken') || localStorage.getItem('authToken');
+        const response = await fetch(`${API_BASE_URL}/api/drivers/nearby?lng=${pickup.lng}&lat=${pickup.lat}`, {
+          headers: token ? { 'Authorization': `Bearer ${token}` } : {}
+        });
+        const data = await response.json();
+        if (data.success && data.data && data.data.length > 0) {
+          const nearestDriver = data.data[0];
+          navigate('/passenger/booking-confirmation', { 
+            state: { 
+              mode: 'auto', 
+              driver: nearestDriver,
+              fare: fareAmount !== null ? fareAmount : '...'
+            } 
+          });
+        } else {
+          showToast('周辺にドライバーが見つかりませんでした。', 'error');
+        }
+      } catch (error) {
+        console.error('Error finding nearest driver', error);
+        showToast('エラーが発生しました。', 'error');
+      } finally {
+        setIsLoading(false);
+      }
     }
   };
 
@@ -84,13 +172,19 @@ const BookingOptions = () => {
                 <p>お急ぎ便・システム割当</p>
               </div>
               <div className="bo-price">
-                <span className="bo-amount bo-green">135,000</span>
+                <span className="bo-amount bo-green">
+                  {fareAmount !== null ? fareAmount.toLocaleString() : '...'}
+                </span>
                 <span className="bo-unit">VND</span>
               </div>
             </div>
             <div className="bo-badges">
               <span className="bo-badge-fast">最速</span>
-              <span className="bo-time">⏱ 2分</span>
+              <span className="bo-time">
+                ⏱ {nearbyDrivers.length > 0 
+                  ? (nearbyDrivers[0].time ? nearbyDrivers[0].time.replace(' min', '分') : '...') 
+                  : '...'}
+              </span>
             </div>
           </div>
         </div>
@@ -110,23 +204,36 @@ const BookingOptions = () => {
                 <p>近くのドライバーを自分で選ぶ</p>
               </div>
               <div className="bo-price">
-                <span className="bo-amount" style={{ color: '#7A5B1E' }} >150,000</span>
+                <span className="bo-amount" style={{ color: '#7A5B1E' }} >
+                  {fareAmount !== null ? (fareAmount + 15000).toLocaleString() : '...'}
+                </span>
                 <span className="bo-unit">VND</span>
               </div>
             </div>
             <div className="bo-badges">
               <div className="bo-avatars">
-                <div className="bo-avt"></div>
-                <div className="bo-avt"></div>
-                <div className="bo-avt-count">+8</div>
+                {nearbyDrivers.slice(0, 2).map((driver, index) => (
+                  <div 
+                    key={driver.id || index} 
+                    className="bo-avt" 
+                    style={driver.avatar ? { 
+                      backgroundImage: `url(${driver.avatar})`,
+                      backgroundSize: 'cover',
+                      backgroundPosition: 'center'
+                    } : {}}
+                  />
+                ))}
+                {nearbyDrivers.length > 2 && (
+                  <div className="bo-avt-count">+{nearbyDrivers.length - 2}</div>
+                )}
               </div>
               <span className="bo-distance">3km圏内</span>
             </div>
           </div>
         </div>
 
-        <button className="bo-confirm-btn" onClick={handleNext}>
-          次へ進む <span>→</span>
+        <button className="bo-confirm-btn" onClick={handleNext} disabled={isLoading}>
+          {isLoading ? '検索中...' : '次へ進む'} <span>→</span>
         </button>
       </div>
     </div>

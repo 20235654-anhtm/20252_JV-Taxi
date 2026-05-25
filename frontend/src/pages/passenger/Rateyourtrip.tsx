@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { Star } from 'lucide-react';
 import { Header } from '../../components/layout/Header';
 import { Button } from '../../components/ui/Button';
@@ -16,9 +16,64 @@ const API_BASE_URL = `${API_HOST}/api`;
 
 const Rateyourtrip: React.FC = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const [rating, setRating] = useState<number>(0); // Initial rating 0
   const [comment, setComment] = useState<string>('');
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
+  const [realDriver, setRealDriver] = useState<any>(null);
+  const [rideDetails, setRideDetails] = useState<any>(null);
+
+  // Nhận thông tin tài xế và chuyến đi từ Route state
+  const rideId = location.state?.rideId || '';
+  const driver = location.state?.driver || {
+    name: '...',
+    avatar: '',
+    rating: '...',
+    car: '...',
+    licensePlate: '...'
+  };
+
+  useEffect(() => {
+    const fetchRideDetails = async () => {
+      if (!rideId) return;
+      try {
+        const token = sessionStorage.getItem('authToken') || localStorage.getItem('authToken');
+        const response = await fetch(`${API_BASE_URL}/rides/${rideId}`, {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+        const res = await response.json();
+        if (res.success && res.data) {
+          setRideDetails(res.data);
+        }
+      } catch (err) {
+        console.error('Error fetching ride details for rating screen:', err);
+      }
+    };
+    fetchRideDetails();
+  }, [rideId]);
+
+  useEffect(() => {
+    const fetchDriverDetails = async () => {
+      const id = driver?.userId || driver?.id;
+      if (!id || id === 'mock-driver-id') return;
+
+      try {
+        const response = await fetch(`${API_BASE_URL}/drivers/${id}`);
+        if (response.ok) {
+          const result = await response.json();
+          if (result.success && result.data) {
+            setRealDriver(result.data);
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching driver details for rating screen:', error);
+      }
+    };
+
+    fetchDriverDetails();
+  }, [driver]);
 
   const handleRating = (index: number) => {
     setRating(index + 1);
@@ -36,16 +91,23 @@ const Rateyourtrip: React.FC = () => {
     setIsSubmitting(true);
     
     try {
+      const userStr = sessionStorage.getItem('user') || localStorage.getItem('user') || '{}';
+      const user = JSON.parse(userStr);
+      const token = sessionStorage.getItem('authToken') || localStorage.getItem('authToken');
+
       // Gọi trực tiếp API
       const response = await fetch(`${API_BASE_URL}/reviews`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': token ? `Bearer ${token}` : ''
         },
         body: JSON.stringify({
           rating,
           comment,
-          // Có thể thêm driverId hoặc bookingId từ context nếu cần
+          driverId: driver?.userId || driver?.id || undefined,
+          rideId: rideId || undefined,
+          reviewerId: user?.id || undefined
         }),
       });
 
@@ -57,7 +119,7 @@ const Rateyourtrip: React.FC = () => {
       navigate('/passenger');
     } catch (error) {
       console.error('Failed to submit rating:', error);
-      showToast('評価の送信に失敗しました。もう一度お試しください。', 'error');
+      showToast('評価 of 送信 to 失敗. Vui lòng thử lại.', 'error');
     } finally {
       setIsSubmitting(false);
     }
@@ -88,7 +150,7 @@ const Rateyourtrip: React.FC = () => {
           <Card padding="sm" rounded="lg">
             <div className="driver-info-content">
               <Avatar 
-                src="https://api.dicebear.com/7.x/avataaars/svg?seed=driver" 
+                src={realDriver?.driverProfile?.avatarPicture || driver?.avatar || ""} 
                 className="!w-[64px] !h-[64px]"
                 borderColor="transparent"
               />
@@ -96,10 +158,10 @@ const Rateyourtrip: React.FC = () => {
                 <Text variant="label" weight="bold" className="!text-[12px] !tracking-[1.2px] !text-[#006D37] mb-1">
                   担当ドライバー
                 </Text>
-                <Heading level={2} className="!text-[18px] mb-1">Nguyen Tan</Heading>
+                <Heading level={2} className="!text-[18px] mb-1">{realDriver?.fullName || driver?.name || "..."}</Heading>
                 <div className="driver-rating">
                   <Star size={14} fill="currentColor" />
-                  <span>4.9</span>
+                  <span>{realDriver?.driverProfile?.averageRating ? String(Number(realDriver.driverProfile.averageRating).toFixed(1)) : (driver?.rating || "...")}</span>
                 </div>
               </div>
             </div>
@@ -112,14 +174,44 @@ const Rateyourtrip: React.FC = () => {
                 <Text variant="label" weight="bold" className="!text-[12px] !tracking-[1.2px] !text-[#006D37] mb-1">
                   合計料金
                 </Text>
-                <Heading level={1} className="!text-[24px] !font-extrabold !font-['Plus_Jakarta_Sans']">₫145,000</Heading>
+                <Heading level={1} className="!text-[24px] !font-extrabold !font-['Plus_Jakarta_Sans']">
+                  {rideDetails ? `₫${Number(rideDetails.matchFee).toLocaleString()}` : '...'}
+                </Heading>
               </div>
               <div className="car-details">
                 <Text variant="label" weight="bold" color="secondary" className="!text-[12px] !tracking-[1.2px] !font-['Plus_Jakarta_Sans'] mb-1">
-                  TOYOTA CAMRY
+                  {(() => {
+                    try {
+                      const car = realDriver?.driverProfile?.parsedVehicleInfor?.model || driver?.car;
+                      if (typeof car === 'string' && car.startsWith('{')) {
+                        const carObj = JSON.parse(car);
+                        return carObj.model || '...';
+                      }
+                      if (typeof car === 'object' && car !== null) {
+                        return (car as any).model || '...';
+                      }
+                      return car || '...';
+                    } catch (e) {
+                      return '...';
+                    }
+                  })()}
                 </Text>
                 <Text variant="body" weight="medium" color="secondary" className="!text-[14px] !font-['Plus_Jakarta_Sans']">
-                  51H-123.45
+                  {(() => {
+                    try {
+                      const car = realDriver?.driverProfile?.parsedVehicleInfor?.plate || driver?.car;
+                      if (typeof car === 'string' && car.startsWith('{')) {
+                        const carObj = JSON.parse(car);
+                        return carObj.plate || '...';
+                      }
+                      if (typeof car === 'object' && car !== null) {
+                        return (car as any).plate || '...';
+                      }
+                      return realDriver?.driverProfile?.parsedVehicleInfor?.plate || driver?.licensePlate || '...';
+                    } catch (e) {
+                      return '...';
+                    }
+                  })()}
                 </Text>
               </div>
             </div>

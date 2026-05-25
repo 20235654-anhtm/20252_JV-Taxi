@@ -8,6 +8,10 @@ import SignIn from '../pages/guest/SignIn';
 import SignUpSelection from '../pages/guest/SignUpSelection';
 import PassengerSignUp from '../pages/guest/PassengerSignUp';
 import DriverSignUp from '../pages/guest/DriverSignUp';
+import ForgotPassword from '../pages/guest/ForgotPassword';
+import ForgotPasswordReset from '../pages/guest/ForgotPasswordReset';
+import ForgotPasswordSuccess from '../pages/guest/ForgotPasswordSuccess';
+import ErrorAccountNotFound from '../pages/guest/ErrorAccountNotFound';
 
 // Passenger Pages
 import PassengerHome from '../pages/passenger/PassengerHome';
@@ -19,6 +23,7 @@ import PassengerProfile from '../pages/passenger/Profile';
 import PassengerProfileEdit from '../pages/passenger/ProfileEdit';
 import AddCard from '../pages/passenger/AddCard';
 import WaitingDriver from '../pages/passenger/WaitingDriver';
+import WatingDriverPickup from '../pages/passenger/WatingDriverPickup';
 import BookingConfirmation from '../pages/passenger/BookingConfirmationWrapper';
 import Rateyourtrip from '../pages/passenger/Rateyourtrip';
 import ChatwithDriver from '../pages/passenger/ChatwithDriver';
@@ -29,9 +34,9 @@ import InTrip from '../pages/passenger/InTrip';
 import DriverDashboard from '../pages/driver/DriverDashboard';
 import DriverProfile from '../pages/driver/DriverProfile';
 import DriverProfileEdit from '../pages/driver/ProfileEdit';
-import DriverCallTest from '../pages/driver/DriverCallTest';
 import ChatwithPassenger from '../pages/driver/ChatwithPassenger';
 import CallPassenger from '../pages/driver/CallPassenger';
+import DriverInTrip from '../pages/driver/DriverInTrip';
 import DriverApproval from '../pages/admin/DriverApproval';
 
 // ── Auth Guards ──
@@ -94,6 +99,10 @@ const AppRoutes = () => {
       <Route path="/signup" element={<GuestRoute><SignUpSelection /></GuestRoute>} />
       <Route path="/signup/passenger" element={<GuestRoute><PassengerSignUp /></GuestRoute>} />
       <Route path="/signup/driver" element={<GuestRoute><DriverSignUp /></GuestRoute>} />
+      <Route path="/forgot-password" element={<GuestRoute><ForgotPassword /></GuestRoute>} />
+      <Route path="/forgot-password/reset" element={<GuestRoute><ForgotPasswordReset /></GuestRoute>} />
+      <Route path="/forgot-password/success" element={<GuestRoute><ForgotPasswordSuccess /></GuestRoute>} />
+      <Route path="/forgot-password/error" element={<GuestRoute><ErrorAccountNotFound /></GuestRoute>} />
 
       {/* ======================= PASSENGER FLOW (AUTHENTICATED) ======================= */}
       <Route path="/passenger" element={<ProtectedRoute allowedRole="CUSTOMER"><PassengerHome /></ProtectedRoute>} />
@@ -106,6 +115,7 @@ const AppRoutes = () => {
       <Route path="/passenger/profile/edit" element={<ProtectedRoute allowedRole="CUSTOMER"><PassengerProfileEdit /></ProtectedRoute>} />
       <Route path="/passenger/add-card" element={<ProtectedRoute allowedRole="CUSTOMER"><AddCard /></ProtectedRoute>} />
       <Route path="/passenger/waiting-driver" element={<ProtectedRoute allowedRole="CUSTOMER"><WaitingDriver /></ProtectedRoute>} />
+      <Route path="/passenger/waiting-driver-pickup" element={<ProtectedRoute allowedRole="CUSTOMER"><WatingDriverPickup /></ProtectedRoute>} />
       <Route path="/passenger/chat" element={<ProtectedRoute allowedRole="CUSTOMER"><ChatwithDriver /></ProtectedRoute>} />
       <Route path="/passenger/call-driver" element={<ProtectedRoute allowedRole="CUSTOMER"><CallDriver /></ProtectedRoute>} />
       <Route path="/passenger/in-trip" element={<ProtectedRoute allowedRole="CUSTOMER"><InTrip /></ProtectedRoute>} />
@@ -115,9 +125,9 @@ const AppRoutes = () => {
       <Route path="/driver" element={<ProtectedRoute allowedRole="DRIVER"><DriverDashboard /></ProtectedRoute>} />
       <Route path="/driver/profile" element={<ProtectedRoute allowedRole="DRIVER"><DriverProfile /></ProtectedRoute>} />
       <Route path="/driver/profile/edit" element={<ProtectedRoute allowedRole="DRIVER"><DriverProfileEdit /></ProtectedRoute>} />
-      <Route path="/driver/call-test" element={<ProtectedRoute allowedRole="DRIVER"><DriverCallTest /></ProtectedRoute>} />
       <Route path="/driver/chat" element={<ProtectedRoute allowedRole="DRIVER"><ChatwithPassenger /></ProtectedRoute>} />
       <Route path="/driver/call-passenger" element={<ProtectedRoute allowedRole="DRIVER"><CallPassenger /></ProtectedRoute>} />
+      <Route path="/driver/in-trip" element={<ProtectedRoute allowedRole="DRIVER"><DriverInTrip /></ProtectedRoute>} />
 
       {/* ======================= ADMIN FLOW ======================= */}
       <Route path="/admin" element={<DriverApproval />} />

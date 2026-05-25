@@ -1,10 +1,13 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { ChevronLeft, Phone, Languages, Send, CheckCheck } from 'lucide-react';
 import { Avatar } from '../../components/ui/Avatar';
 import { Heading } from '../../components/ui/Heading';
-import './ChatwithDriver.css';
+import { socketService } from '../../services/socketService';
+import { API_BASE_URL } from '../../config/api';
 import { translateText } from '../../services/translationService';
+import { showToast } from '../../components/ui/Toast';
+import './ChatwithDriver.css';
 
 interface Message {
   id: string;
@@ -17,32 +20,117 @@ interface Message {
 
 const ChatwithDriver: React.FC = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+  const storedDriverStr = sessionStorage.getItem('active_driver');
+  const driver = location.state?.driver || (storedDriverStr ? JSON.parse(storedDriverStr) : {
+    name: 'Tài xế',
+    avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=driver'
+  });
+  const rideId = location.state?.rideId || sessionStorage.getItem('active_ride_id');
+  const userStr = sessionStorage.getItem('user') || localStorage.getItem('user') || '{}';
+  const user = JSON.parse(userStr);
+  const userId = user.id;
+
   const [inputText, setInputText] = useState('');
   const [isTranslated, setIsTranslated] = useState(false);
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      id: '1',
-      sender: 'driver',
-      text: 'こんにちは！お迎えに向かっています。オペラハウス付近で少し渋滞しています。',
-      translatedText: 'Xin chào! Tôi đang trên đường đến đón bạn. Gần Nhà hát Lớn đang hơi kẹt xe một chút.',
-      time: '14:02'
-    },
-    {
-      id: '2',
-      sender: 'passenger',
-      text: 'お知らせありがとうございます。メインエントランスで待っています。',
-      translatedText: 'Cảm ơn bạn đã thông báo. Tôi đang đợi ở cổng chính.',
-      time: '14:05',
-      status: 'read'
-    },
-    {
-      id: '3',
-      sender: 'driver',
-      text: '到着しました。白いトヨタ・カムリ、ナンバー 51G-12345 です。',
-      translatedText: 'Tôi đã đến nơi. Xe Toyota Camry màu trắng, biển số 51G-12345.',
-      time: '14:08'
+  const [messages, setMessages] = useState<Message[]>([]);
+
+  const isTranslatedRef = React.useRef(isTranslated);
+  React.useEffect(() => {
+    isTranslatedRef.current = isTranslated;
+  }, [isTranslated]);
+
+  const messagesRef = React.useRef(messages);
+  React.useEffect(() => {
+    messagesRef.current = messages;
+  }, [messages]);
+
+  React.useEffect(() => {
+    if (!rideId) {
+      showToast('Không tìm thấy thông tin chuyến đi. Vui lòng quay lại màn hình chính.', 'error');
+      navigate('/passenger');
+      return;
     }
-  ]);
+
+    // Fetch message history
+    const fetchMessages = async () => {
+      try {
+        const token = sessionStorage.getItem('authToken') || localStorage.getItem('authToken');
+        const res = await fetch(`${API_BASE_URL}/api/messages/${rideId}`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const data = await res.json();
+        if (data.success) {
+          const loadedMessages = data.data.map((m: any) => ({
+            id: m.id,
+            sender: m.senderId === userId ? 'passenger' : 'driver',
+            text: m.text,
+            time: new Date(m.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+            status: 'read'
+          }));
+          setMessages(loadedMessages);
+
+          // Auto-translate already fetched messages if translation is already active
+          if (isTranslatedRef.current) {
+            loadedMessages.forEach((msg: any) => {
+              translateText(msg.text).then(translated => {
+                setMessages(prev => prev.map(m => m.id === msg.id ? { ...m, translatedText: translated } : m));
+              });
+            });
+          }
+        }
+      } catch (err) {
+        console.error('Failed to fetch messages', err);
+      }
+    };
+    fetchMessages();
+
+    // Ensure socket is connected
+    socketService.connect(userId);
+
+    // Join room
+    socketService.joinChat(rideId);
+
+    // Listen for incoming messages
+    socketService.onReceiveMessage((msg) => {
+      // Avoid duplicate if we just sent it
+      if (msg.senderId === userId) return;
+
+      const incoming: Message = {
+        id: msg.id,
+        sender: 'driver',
+        text: msg.text,
+        time: new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        status: 'delivered'
+      };
+      
+      setMessages(prev => [...prev, incoming]);
+
+      // Auto-translate if enabled
+      if (isTranslatedRef.current) {
+        translateText(msg.text).then(translated => {
+          setMessages(prev => prev.map(m => m.id === msg.id ? { ...m, translatedText: translated } : m));
+        });
+      }
+    });
+
+    return () => {
+      socketService.offReceiveMessage();
+    };
+  }, [rideId, userId]);
+
+  // Effect to re-translate existing messages when toggle is turned on
+  React.useEffect(() => {
+    if (isTranslated) {
+      messagesRef.current.forEach(msg => {
+        if (!msg.translatedText) {
+          translateText(msg.text).then(translated => {
+            setMessages(prev => prev.map(m => m.id === msg.id ? { ...m, translatedText: translated } : m));
+          });
+        }
+      });
+    }
+  }, [isTranslated]);
 
   const handleSend = async () => {
     const textToTranslate = inputText.trim();
@@ -65,6 +153,15 @@ const ChatwithDriver: React.FC = () => {
     setMessages(prev => [...prev, newMessage]);
     setInputText('');
 
+    // Send via socket
+    if (rideId) {
+      socketService.sendMessage({
+        rideId,
+        senderId: userId,
+        text: textToTranslate
+      });
+    }
+
     try {
       const translated = await translateText(textToTranslate);
       setMessages(prev =>
@@ -79,7 +176,12 @@ const ChatwithDriver: React.FC = () => {
   };
 
   const handleBack = () => {
-    navigate('/passenger/in-trip');
+    navigate('/passenger/in-trip', {
+      state: {
+        rideId,
+        driver
+      }
+    });
   };
 
   return (
@@ -95,17 +197,17 @@ const ChatwithDriver: React.FC = () => {
             <div className="flex items-center gap-3">
               <div className="relative">
                 <Avatar 
-                  src="https://api.dicebear.com/7.x/avataaars/svg?seed=driver" 
+                  src={driver.avatar} 
                   borderColor="transparent"
                 />
                 <div className="absolute bottom-0 right-0 w-[12px] h-[12px] bg-[#27AE60] border-2 border-[#F4FBF1] rounded-full"></div>
               </div>
-              <Heading level={2} className="!text-[16px] !font-bold !text-[#064E3B]">Nguyen Tan</Heading>
+              <Heading level={2} className="!text-[16px] !font-bold !text-[#064E3B]">{driver.name}</Heading>
             </div>
           </div>
 
           <div className="header-actions">
-            <button className="action-icon-btn" onClick={() => navigate('/passenger/call-driver')}>
+            <button className="action-icon-btn" onClick={() => navigate('/passenger/call-driver', { state: location.state })}>
               <Phone size={18} fill="currentColor" />
             </button>
             <button 

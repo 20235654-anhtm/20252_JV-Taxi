@@ -21,6 +21,7 @@ const DAILY_API_URL = 'https://api.daily.co/v1';
 export const initiateCall = async (req: Request, res: Response) => {
     const { callerId, targetUserId } = req.body;
 
+    console.log(`[WebRTC-Debug] initiateCall requested - callerId: ${callerId}, targetUserId: ${targetUserId}`);
     try {
         // 1. Query thông tin người gọi (driver) từ DB
         const callerProfile = await prisma.profile.findUnique({
@@ -36,8 +37,9 @@ export const initiateCall = async (req: Request, res: Response) => {
         //    → privacy: 'private' = bắt buộc có token mới join được (STUN/TURN bảo mật)
         //    → max_participants: 2 = chỉ driver + passenger
         // Dùng chung 1 phòng duy nhất cho toàn bộ hệ thống (tiết kiệm room và dễ test)
-        const roomName = `global-test-room`;
+        const roomName = `call-${callerId.substring(0, 8)}-${targetUserId.substring(0, 8)}-${Date.now()}`;
         let roomUrl = '';
+        console.log(`[WebRTC-Debug] Daily RoomName generated: ${roomName}`);
 
         const roomResponse = await fetch(`${DAILY_API_URL}/rooms`, {
             method: 'POST',
@@ -72,6 +74,7 @@ export const initiateCall = async (req: Request, res: Response) => {
             const roomData = await roomResponse.json();
             roomUrl = roomData.url;
         }
+        console.log(`[WebRTC-Debug] Daily Room URL: ${roomUrl}`);
 
         // 3. Tạo token cho driver (Signaling auth)
         const tokenResponse = await fetch(`${DAILY_API_URL}/meeting-tokens`, {
@@ -95,24 +98,11 @@ export const initiateCall = async (req: Request, res: Response) => {
         }
 
         const tokenData = await tokenResponse.json();
+        console.log(`[WebRTC-Debug] Driver Token generated successfully: ${tokenData.token.substring(0, 20)}...`);
 
-        // 4. Gửi socket 'incoming-call' đến đúng passenger
-        //    → Tra map userId → socketId → gửi event chỉ đến socket đó
+        // 4. Kiểm tra target user online status
         const targetSocketId = userSocketMap.get(targetUserId);
-        if (targetSocketId) {
-            io.to(targetSocketId).emit('incoming-call', {
-                roomName,
-                roomUrl: roomUrl,
-                callerId,
-                callerName: callerProfile.fullName,
-                callerPhone: callerProfile.phone,
-                callerAvatar: callerProfile.driverProfile?.avatarPicture || null,
-                callerVehicle: callerProfile.driverProfile?.vehicleInfor || null,
-            });
-            console.log(`📞 Cuộc gọi từ ${callerProfile.fullName} → gửi đến userId=${targetUserId}`);
-        } else {
-            console.log(`⚠️ Passenger ${targetUserId} không online (không tìm thấy socketId)`);
-        }
+        console.log(`[WebRTC-Debug] Checked target user online: targetUserId=${targetUserId}, online=${!!targetSocketId}`);
 
         // 5. Trả về roomName + token cho driver để join phòng
         res.json({
@@ -120,6 +110,12 @@ export const initiateCall = async (req: Request, res: Response) => {
             roomUrl: roomUrl,
             token: tokenData.token,
             targetOnline: !!targetSocketId, // Cho driver biết passenger có online không
+            callerInfo: {
+                name: callerProfile.fullName,
+                phone: callerProfile.phone,
+                avatar: callerProfile.driverProfile?.avatarPicture || callerProfile.avatar || null,
+                vehicle: callerProfile.driverProfile?.vehicleInfor || null,
+            }
         });
 
     } catch (error: any) {
@@ -138,6 +134,7 @@ export const initiateCall = async (req: Request, res: Response) => {
 // ============================================================
 export const acceptCall = async (req: Request, res: Response) => {
     const { roomName, userId } = req.body;
+    console.log(`[WebRTC-Debug] acceptCall requested - roomName: ${roomName}, userId: ${userId}`);
 
     try {
         // Query tên passenger để hiện trong phòng
@@ -167,6 +164,7 @@ export const acceptCall = async (req: Request, res: Response) => {
         }
 
         const tokenData = await tokenResponse.json();
+        console.log(`[WebRTC-Debug] Passenger Token generated successfully: ${tokenData.token.substring(0, 20)}...`);
 
         res.json({ token: tokenData.token });
 

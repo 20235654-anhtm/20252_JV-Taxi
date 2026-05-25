@@ -16,19 +16,16 @@ export const getRecentDestinations = async (
       });
     }
 
-    const rides = await db.ride.findMany({
-      where: {
-        passengerId: passengerId,
-        status: RideStatus.COMPLETED
-      },
-      orderBy: {
-        createdAt: 'desc'
-      },
-      select: {
-        endAddress: true,
-        createdAt: true
-      }
-    });
+    const rides = await db.$queryRaw<any[]>`
+      SELECT 
+        "end_address" AS "endAddress",
+        ST_Y("end_location"::geometry) AS "latitude",
+        ST_X("end_location"::geometry) AS "longitude",
+        "created_at" AS "createdAt"
+      FROM "rides"
+      WHERE "passenger_id" = ${passengerId}::uuid AND "status" = 'COMPLETED'
+      ORDER BY "created_at" DESC
+    `;
 
     // remove duplicate destinations
     const uniqueDestinations = rides.filter(

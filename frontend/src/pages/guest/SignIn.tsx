@@ -328,7 +328,7 @@ export default function SignIn() {
 
                   <div className="relative shrink-0 w-full">
                     <div className="flex flex-row items-center justify-center">
-                      <button className="flex flex-col font-['Plus_Jakarta_Sans:Bold','Noto_Sans_JP:Bold',sans-serif] font-bold h-[16px] justify-center leading-[0] text-[#006d37] text-[12px]">
+                      <button onClick={() => navigate("/forgot-password")} className="flex flex-col font-['Plus_Jakarta_Sans:Bold','Noto_Sans_JP:Bold',sans-serif] font-bold h-[16px] justify-center leading-[0] text-[#006d37] text-[12px] hover:underline">
                         <p className="leading-[16px]">{t.forgotPass}</p>
                       </button>
                     </div>

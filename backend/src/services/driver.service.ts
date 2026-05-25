@@ -95,41 +95,4 @@ export const getAllDrivers = async (): Promise<NearbyDriverResult[]> => {
     console.error("Error fetching all drivers:", error);
     throw new Error("Could not fetch driver list");
   }
-};
-
-/**
- * Fetch nearby drivers using mock data (for development/testing without DB)
- */
-export const getNearbyDriversMock = async (): Promise<any[]> => {
-  const mockDrivers = [
-    {
-      user_id: "mock-1",
-      full_name: "Nguyen Tan",
-      vehicle_type: "Sedan",
-      vehicle_infor: "TOYOTA CAMRY • ホワイト",
-      distance: 1200,
-      average_rating: 4.9,
-      avatar_picture: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=160&h=160&fit=crop&crop=face"
-    },
-    {
-      user_id: "mock-2",
-      full_name: "Tran Minh",
-      vehicle_type: "SUV",
-      vehicle_infor: "HONDA CR-V • ブラック",
-      distance: 800,
-      average_rating: 4.8,
-      avatar_picture: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=160&h=160&fit=crop&crop=face"
-    },
-    {
-      user_id: "mock-3",
-      full_name: "Le Hang",
-      vehicle_type: "SUV",
-      vehicle_infor: "VINFAST VF8 • ブルー",
-      distance: 2500,
-      average_rating: 5.0,
-      avatar_picture: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=160&h=160&fit=crop&crop=face"
-    }
-  ];
-
-  return mockDrivers;
-};
+};

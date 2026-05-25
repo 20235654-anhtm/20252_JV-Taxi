@@ -7,6 +7,8 @@ import {
 } from "lucide-react";
 import { Header } from "../../components/layout/Header";
 import { BottomNavBar, type NavTab } from "../../components/layout/BottomNavBar";
+import { API_BASE_URL } from "../../config/api";
+import { socketService } from "../../services/socketService";
 import "./Profile.css";
 
 export default function DriverProfile() {
@@ -21,11 +23,30 @@ export default function DriverProfile() {
     }
   }, []);
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    try {
+      const token = sessionStorage.getItem('authToken') || localStorage.getItem('authToken');
+      if (token && user?.role === 'DRIVER') {
+        await fetch(`${API_BASE_URL}/api/drivers/status`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify({ isOnline: false })
+        });
+      }
+    } catch (e) {
+      console.error('Error setting driver offline during logout', e);
+    }
     sessionStorage.removeItem('authToken');
     sessionStorage.removeItem('user');
     localStorage.removeItem('authToken');
     localStorage.removeItem('user');
+    
+    // Disconnect socket explicitly
+    socketService.disconnect();
+    
     navigate('/login');
   };
 
