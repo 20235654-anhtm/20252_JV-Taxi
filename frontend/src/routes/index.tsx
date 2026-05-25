@@ -30,7 +30,6 @@ import InTrip from '../pages/passenger/InTrip';
 import DriverDashboard from '../pages/driver/DriverDashboard';
 import DriverProfile from '../pages/driver/DriverProfile';
 import DriverProfileEdit from '../pages/driver/ProfileEdit';
-import DriverCallTest from '../pages/driver/DriverCallTest';
 import ChatwithPassenger from '../pages/driver/ChatwithPassenger';
 import CallPassenger from '../pages/driver/CallPassenger';
 import DriverInTrip from '../pages/driver/DriverInTrip';
@@ -118,7 +117,6 @@ const AppRoutes = () => {
       <Route path="/driver" element={<ProtectedRoute allowedRole="DRIVER"><DriverDashboard /></ProtectedRoute>} />
       <Route path="/driver/profile" element={<ProtectedRoute allowedRole="DRIVER"><DriverProfile /></ProtectedRoute>} />
       <Route path="/driver/profile/edit" element={<ProtectedRoute allowedRole="DRIVER"><DriverProfileEdit /></ProtectedRoute>} />
-      <Route path="/driver/call-test" element={<ProtectedRoute allowedRole="DRIVER"><DriverCallTest /></ProtectedRoute>} />
       <Route path="/driver/chat" element={<ProtectedRoute allowedRole="DRIVER"><ChatwithPassenger /></ProtectedRoute>} />
       <Route path="/driver/call-passenger" element={<ProtectedRoute allowedRole="DRIVER"><CallPassenger /></ProtectedRoute>} />
       <Route path="/driver/in-trip" element={<ProtectedRoute allowedRole="DRIVER"><DriverInTrip /></ProtectedRoute>} />

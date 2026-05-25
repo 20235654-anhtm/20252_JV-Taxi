@@ -18,6 +18,7 @@ import { socketService } from '../../services/socketService';
 import { SmartMapRoute } from '../../components/features/SmartMapRoute';
 import { getRouteWithDuration } from '../../hooks/useLocationSuggestions';
 import { distanceBetween } from '../../utils/routeUtils';
+import { API_BASE_URL } from '../../config/api';
 
 const carIcon = L.divIcon({
   className: 'custom-car-marker',
@@ -57,22 +58,53 @@ export default function InTrip() {
   const rideId = location.state?.rideId || sessionStorage.getItem('active_ride_id') || '';
   const storedDriverStr = sessionStorage.getItem('active_driver');
   const driver = location.state?.driver || (storedDriverStr ? JSON.parse(storedDriverStr) : {
-    name: 'Nguyen Tan',
-    avatar: 'https://i.pravatar.cc/150?img=11',
-    rating: '4.9',
-    car: 'Toyota Camry',
-    licensePlate: '51H-123.45'
+    name: '...',
+    avatar: '',
+    rating: '...',
+    car: '...',
+    licensePlate: '...'
   });
 
-  // Vị trí tài xế (Khởi tạo từ pickup, cập nhật qua socket)
-  const [driverPosition, setDriverPosition] = useState({ 
+  const fallbackDriverPos = { 
     lat: pickupData?.coords?.lat ? pickupData.coords.lat + 0.008 : 21.0150, 
     lng: pickupData?.coords?.lng ? pickupData.coords.lng - 0.005 : 105.8350 
-  });
+  };
+
+  // Vị trí tài xế khởi tạo bằng toạ độ mock để bản đồ vẽ đường ngay lập tức, cập nhật khi fetch thành công hoặc qua socket
+  const [driverPosition, setDriverPosition] = useState<{ lat: number; lng: number }>(fallbackDriverPos);
+  const [rideDetails, setRideDetails] = useState<any>(null);
   
   const [etaMinutes, setEtaMinutes] = useState<number | null>(null);
   const [arrivalTime, setArrivalTime] = useState<string>('--:--');
   const lastFetchedPos = useRef<{ lat: number; lng: number } | null>(null);
+
+  // Fetch actual ride details to get driver location and info
+  useEffect(() => {
+    const fetchRideDetails = async () => {
+      if (!rideId) return;
+      try {
+        const token = sessionStorage.getItem('authToken') || localStorage.getItem('authToken');
+        const response = await fetch(`${API_BASE_URL}/api/rides/${rideId}`, {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+        const res = await response.json();
+        if (res.success && res.data) {
+          setRideDetails(res.data);
+          if (res.data.driver?.driverProfile?.lat && res.data.driver?.driverProfile?.lng) {
+            setDriverPosition({
+              lat: Number(res.data.driver.driverProfile.lat),
+              lng: Number(res.data.driver.driverProfile.lng)
+            });
+          }
+        }
+      } catch (err) {
+        console.error('Error fetching ride details:', err);
+      }
+    };
+    fetchRideDetails();
+  }, [rideId]);
 
   useEffect(() => {
     if (!rideId) {
@@ -113,32 +145,28 @@ export default function InTrip() {
 
   useEffect(() => {
     const fetchEta = async () => {
-      if (!driverPosition || !destData?.coords) return;
+      if (!pickupData?.coords || !destData?.coords) return;
       
+      const pickupPos = { lat: pickupData.coords.lat, lng: pickupData.coords.lng };
       const destinationPos = { lat: destData.coords.lat, lng: destData.coords.lng };
       
-      // Chỉ gọi lại API nếu di chuyển hơn 50m để tránh spam API
-      if (lastFetchedPos.current) {
-        const dist = distanceBetween(driverPosition, lastFetchedPos.current);
-        if (dist < 50) return;
-      }
-      
       try {
-        const { duration } = await getRouteWithDuration(driverPosition, destinationPos);
-        if (duration !== Infinity) {
+        const { duration } = await getRouteWithDuration(pickupPos, destinationPos);
+        if (duration !== Infinity && !isNaN(duration)) {
           const minutes = Math.max(1, Math.ceil(duration / 60));
           setEtaMinutes(minutes);
           
-          // Calculate arrival time
           const now = new Date();
           now.setMinutes(now.getMinutes() + minutes);
           const timeString = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
           setArrivalTime(timeString);
-          
-          lastFetchedPos.current = driverPosition;
+        } else {
+          throw new Error('Invalid OSRM duration');
         }
       } catch (e) {
-        console.error(e);
+        console.warn('OSRM error, using default fallback duration for in-trip:', e);
+        setEtaMinutes(null);
+        setArrivalTime('--:--');
       }
     };
     
@@ -208,8 +236,8 @@ export default function InTrip() {
                   <div style={{width: 165.91, height: 16, justifyContent: 'center', display: 'flex', flexDirection: 'column', color: '#3D4A3F', fontSize: 12, fontWeight: '400', textTransform: 'uppercase', lineHeight: '16px', letterSpacing: 1.20, wordWrap: 'break-word'}}>到着予定</div>
                 </div>
                 <div style={{alignSelf: 'stretch', height: 40, position: 'relative'}}>
-                  <div style={{width: 20.03, height: 40, left: 0, top: 0, position: 'absolute', justifyContent: 'center', display: 'flex', flexDirection: 'column', color: '#006D37', fontSize: 36, fontWeight: '800', lineHeight: '40px', wordWrap: 'break-word'}}>{etaMinutes !== null ? etaMinutes : '-'}</div>
-                  <div style={{width: 38, height: 28, left: 27, top: 10, position: 'absolute', justifyContent: 'center', display: 'flex', flexDirection: 'column', color: '#006D37', fontSize: 24, fontWeight: '800', lineHeight: '28px', wordWrap: 'break-word'}}>分</div>
+                  <div style={{width: 60, height: 40, left: 0, top: 0, position: 'absolute', justifyContent: 'center', display: 'flex', flexDirection: 'column', color: '#006D37', fontSize: 36, fontWeight: '800', lineHeight: '40px', wordWrap: 'break-word'}}>{etaMinutes !== null && !isNaN(etaMinutes) ? etaMinutes : '...'}</div>
+                  <div style={{width: 38, height: 28, left: (etaMinutes !== null && !isNaN(etaMinutes)) ? (String(etaMinutes).length * 18 + 5) : 41, top: 10, position: 'absolute', justifyContent: 'center', display: 'flex', flexDirection: 'column', color: '#006D37', fontSize: 24, fontWeight: '800', lineHeight: '28px', wordWrap: 'break-word'}}>分</div>
                 </div>
               </div>
               <div style={{paddingLeft: 16, paddingRight: 16, paddingTop: 8, paddingBottom: 8, background: 'rgba(0, 109, 55, 0.10)', borderRadius: 9999, justifyContent: 'flex-start', alignItems: 'center', gap: 8, display: 'flex'}}>
@@ -222,14 +250,14 @@ export default function InTrip() {
               </div>
             </div>
             <div style={{alignSelf: 'stretch', height: 231, paddingBottom: 32, paddingLeft: 32, paddingRight: 32, flexDirection: 'column', justifyContent: 'flex-start', alignItems: 'flex-start', gap: 20, display: 'flex'}}>
-              <div style={{width: 304, justifyContent: 'space-between', alignItems: 'center', display: 'inline-flex'}}>
+              <div style={{width: '100%', justifyContent: 'space-between', alignItems: 'center', display: 'inline-flex'}}>
                 <div style={{width: 188, justifyContent: 'flex-start', alignItems: 'center', gap: 10, display: 'flex'}}>
                   <div style={{position: 'relative', flexDirection: 'column', justifyContent: 'flex-start', alignItems: 'flex-start', display: 'inline-flex'}}>
                     <div style={{width: 64, height: 64, background: 'rgba(255, 255, 255, 0)', boxShadow: '0px 2px 4px -2px rgba(0, 0, 0, 0.10), 0px 4px 6px -1px rgba(0, 0, 0, 0.10)', overflow: 'hidden', borderRadius: 16, flexDirection: 'column', justifyContent: 'center', alignItems: 'flex-start', display: 'flex'}}>
                       <img style={{alignSelf: 'stretch', flex: '1 1 0', position: 'relative', objectFit: 'cover'}} src={driver.avatar} alt={driver.name} />
                     </div>
                     <div style={{paddingLeft: 8, paddingRight: 8, paddingTop: 2, paddingBottom: 2, left: 29.77, top: 53, position: 'absolute', background: '#FEA520', boxShadow: '0px 1px 2px rgba(0, 0, 0, 0.05)', borderRadius: 8, justifyContent: 'flex-start', alignItems: 'center', gap: 3.99, display: 'inline-flex'}}>
-                      <div style={{width: 13.91, height: 15, justifyContent: 'center', display: 'flex', flexDirection: 'column', color: '#694000', fontSize: 8, fontWeight: '900', lineHeight: '15px', wordWrap: 'break-word'}}>{driver.rating}</div>
+                      <div style={{justifyContent: 'center', display: 'flex', flexDirection: 'column', color: '#694000', fontSize: 8, fontWeight: '900', lineHeight: '15px', whiteSpace: 'nowrap'}}>{driver.rating && driver.rating !== '...' && !isNaN(Number(driver.rating)) ? Number(driver.rating).toFixed(1) : driver.rating}</div>
                       <div style={{flexDirection: 'column', justifyContent: 'flex-start', alignItems: 'flex-start', display: 'inline-flex'}}>
                         <span style={{fontSize: 8, color: '#694000', lineHeight: '15px'}}>★</span>
                       </div>
@@ -254,7 +282,7 @@ export default function InTrip() {
                           } catch (e) {
                             return driver.car;
                           }
-                        })() || 'Toyota Camry • 51H-123.45'}
+                        })() || '...'}
                       </div>
                     </div>
                     <div style={{alignSelf: 'stretch', flexDirection: 'column', justifyContent: 'flex-start', alignItems: 'flex-start', display: 'flex'}}>
@@ -262,7 +290,7 @@ export default function InTrip() {
                     </div>
                   </div>
                 </div>
-                <div style={{justifyContent: 'flex-start', alignItems: 'flex-start', gap: 8, display: 'flex', alignSelf: 'flex-end', marginTop: 16}}>
+                <div style={{justifyContent: 'flex-end', alignItems: 'center', gap: 8, display: 'flex', alignSelf: 'flex-end', marginTop: 16}}>
                   <div className="cursor-pointer" onClick={handleChat} style={{width: 48, height: 48, background: '#E9F0E6', borderRadius: 24, justifyContent: 'center', alignItems: 'center', display: 'flex'}}>
                     <div style={{flexDirection: 'column', justifyContent: 'flex-start', alignItems: 'center', display: 'inline-flex'}}>
                       <img src={IconMess} alt="Chat" style={{width: 20, height: 20, objectFit: 'contain'}} />

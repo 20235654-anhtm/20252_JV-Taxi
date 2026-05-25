@@ -23,6 +23,7 @@ const ChatwithPassenger: React.FC = () => {
   const location = useLocation();
   const rideId = location.state?.rideId || sessionStorage.getItem('active_ride_id');
   const passenger = {
+    passengerId: location.state?.passengerId || sessionStorage.getItem('active_passenger_id') || '',
     passengerName: location.state?.passengerName || sessionStorage.getItem('active_passenger_name') || 'Hành khách',
     passengerAvatar: location.state?.passengerAvatar || sessionStorage.getItem('active_passenger_avatar') || 'https://api.dicebear.com/7.x/avataaars/svg?seed=passenger'
   };
@@ -178,6 +179,7 @@ const ChatwithPassenger: React.FC = () => {
     navigate('/driver/in-trip', {
       state: {
         rideId,
+        passengerId: passenger.passengerId,
         passengerName: passenger.passengerName,
         passengerAvatar: passenger.passengerAvatar
       }
@@ -207,7 +209,7 @@ const ChatwithPassenger: React.FC = () => {
           </div>
 
           <div className="header-actions">
-            <button className="action-icon-btn" onClick={() => navigate('/driver/call-passenger', { state: location.state })}>
+            <button className="action-icon-btn" onClick={() => navigate('/driver/call-passenger', { state: { ...location.state, passengerId: passenger.passengerId } })}>
               <Phone size={18} fill="currentColor" />
             </button>
             <button 

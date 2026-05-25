@@ -1,6 +1,7 @@
 import { useCallback, useState, useRef, useEffect } from 'react';
 import { useDaily, useDailyEvent } from '@daily-co/daily-react';
 import { callService } from '../services/callService';
+import { socketService } from '../services/socketService';
 
 // ============ Các trạng thái cuộc gọi ============
 export type CallStatus =
@@ -47,24 +48,42 @@ export function useCallManager() {
     //    → Daily tự dùng STUN/TURN để thiết lập kết nối
     // 3. Set status 'ringing' → chờ passenger join
     const startCall = useCallback(async (callerId: string, targetUserId: string) => {
-        if (!daily) return;
+        console.log(`[WebRTC-Debug] startCall: callerId=${callerId}, targetUserId=${targetUserId}`);
+        if (!daily) {
+            console.error('[WebRTC-Debug] startCall failed: daily object is null');
+            return;
+        }
         setCallStatus('connecting');
         try {
             // Gọi backend → tạo room + gửi socket thông báo
             const data = await callService.initiateCall(callerId, targetUserId);
+            console.log('[WebRTC-Debug] initiateCall API response:', data);
             if (data.error) throw new Error(data.error);
 
             // Join phòng Daily → WebRTC bắt đầu
+            console.log('[WebRTC-Debug] Join Daily room with url:', data.roomUrl);
             await daily.join({
                 url: data.roomUrl,
                 token: data.token,
-                videoSource: false,  // TẮT VIDEO → audio only
-                audioSource: true,   // BẬT MIC
+            });
+            console.log('[WebRTC-Debug] Driver daily.join completed successfully.');
+
+            // Khi join phòng thành công, người gọi mới chủ động gửi socket báo cuộc gọi đến
+            console.log('[WebRTC-Debug] Sending incoming call notification via socket to targetUserId:', targetUserId);
+            socketService.sendIncomingCall({
+                targetUserId,
+                roomName: data.roomName,
+                roomUrl: data.roomUrl,
+                callerId,
+                callerName: data.callerInfo?.name || 'Driver',
+                callerPhone: data.callerInfo?.phone || '',
+                callerAvatar: data.callerInfo?.avatar || null,
+                callerVehicle: data.callerInfo?.vehicle || null,
             });
 
             setCallStatus('ringing'); // Chờ passenger vào
         } catch (err) {
-            console.error('startCall error:', err);
+            console.error('[WebRTC-Debug] startCall error:', err);
             setCallStatus('error');
         }
     }, [daily]);
@@ -75,22 +94,25 @@ export function useCallManager() {
     // 1. Gọi API backend → lấy token
     // 2. daily.join() → join phòng đã có driver chờ sẵn
     const acceptCall = useCallback(async (roomName: string, roomUrl: string, userId: string) => {
-        if (!daily) return;
+        console.log(`[WebRTC-Debug] acceptCall: roomName=${roomName}, roomUrl=${roomUrl}, userId=${userId}`);
+        if (!daily) {
+            console.error('[WebRTC-Debug] acceptCall failed: daily object is null');
+            return;
+        }
         setCallStatus('connecting');
         try {
             const data = await callService.acceptCall(roomName, userId);
+            console.log('[WebRTC-Debug] acceptCall API response:', data);
             if (data.error) throw new Error(data.error);
 
+            console.log('[WebRTC-Debug] Passenger join Daily room with url:', roomUrl);
             await daily.join({
                 url: roomUrl,
                 token: data.token,
-                videoSource: false,
-                audioSource: true,
             });
-
-            setCallStatus('in-call');
+            console.log('[WebRTC-Debug] Passenger daily.join completed successfully.');
         } catch (err) {
-            console.error('acceptCall error:', err);
+            console.error('[WebRTC-Debug] acceptCall error:', err);
             setCallStatus('error');
         }
     }, [daily]);
@@ -99,9 +121,20 @@ export function useCallManager() {
     // endCall — Kết thúc cuộc gọi
     // ============================================================
     const endCall = useCallback(async () => {
-        if (!daily) return;
-        await daily.leave();    // Ngắt kết nối WebRTC
-        daily.destroy();        // Giải phóng tài nguyên (mic, network)
+        console.log('[WebRTC-Debug] endCall invoked');
+        if (!daily) {
+            console.log('[WebRTC-Debug] endCall: daily object is null, nothing to end');
+            return;
+        }
+        try {
+            console.log('[WebRTC-Debug] leaving daily call...');
+            await daily.leave();    // Ngắt kết nối WebRTC
+            console.log('[WebRTC-Debug] destroying daily call...');
+            daily.destroy();        // Giải phóng tài nguyên (mic, network)
+            console.log('[WebRTC-Debug] Daily call ended and destroyed.');
+        } catch (e) {
+            console.error('[WebRTC-Debug] Error leaving/destroying daily:', e);
+        }
         setCallStatus('ended');
         setIsMuted(false);
         setNetworkQuality('good');
@@ -121,13 +154,21 @@ export function useCallManager() {
     // EVENTS — Lắng nghe sự kiện từ Daily (Xử lý mạng kém)
     // ============================================================
 
-    // Khi người kia join phòng → chuyển sang 'in-call'
-    useDailyEvent('participant-joined', () => {
-        setCallStatus('in-call');
+    // Khi người kia (remote participant) join phòng → chuyển sang 'in-call'
+    useDailyEvent('participant-joined', (ev: any) => {
+        console.log('[WebRTC-Debug] Daily Event: participant-joined', ev);
+        const isLocal = ev?.participant?.local;
+        if (ev?.participant && !isLocal) {
+            console.log('[WebRTC-Debug] Remote participant joined. Setting callStatus to in-call');
+            setCallStatus('in-call');
+        } else {
+            console.log('[WebRTC-Debug] Local participant joined. Keeping current status.');
+        }
     });
 
     // Khi người kia rời phòng → cuộc gọi kết thúc
-    useDailyEvent('participant-left', () => {
+    useDailyEvent('participant-left', (ev: any) => {
+        console.log('[WebRTC-Debug] Daily Event: participant-left', ev);
         setCallStatus('ended');
     });
 
@@ -135,17 +176,25 @@ export function useCallManager() {
     // event.event = 'interrupted' → mạng đứt
     // event.event = 'connected'   → mạng khôi phục
     useDailyEvent('network-connection', (ev: any) => {
+        console.log('[WebRTC-Debug] Daily Event: network-connection', ev);
         if (ev?.event === 'interrupted') {
-            setCallStatus('reconnecting');
+            setCallStatus(prev => {
+                if (prev === 'in-call') return 'reconnecting';
+                return prev;
+            });
         }
         if (ev?.event === 'connected') {
-            setCallStatus('in-call');
+            setCallStatus(prev => {
+                if (prev === 'reconnecting') return 'in-call';
+                return prev;
+            });
         }
     });
 
     // XỬ LÝ MẠNG KÉM: Chất lượng mạng thay đổi
     // threshold = 'good' | 'low' | 'very-low'
     useDailyEvent('network-quality-change', (ev: any) => {
+        console.log('[WebRTC-Debug] Daily Event: network-quality-change', ev);
         const threshold = ev?.threshold;
         if (threshold === 'very-low') setNetworkQuality('very-low');
         else if (threshold === 'low') setNetworkQuality('low');
@@ -153,7 +202,8 @@ export function useCallManager() {
     });
 
     // Lỗi nghiêm trọng
-    useDailyEvent('error', () => {
+    useDailyEvent('error', (ev: any) => {
+        console.error('[WebRTC-Debug] Daily Event: error', ev);
         setCallStatus('error');
     });
 

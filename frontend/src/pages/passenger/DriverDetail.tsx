@@ -40,6 +40,7 @@ const DriverDetail = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const initialDriver = location.state?.driver as DriverSummary | undefined;
+  const passedFare = location.state?.fare;
   const [driver, setDriver] = useState<DriverDetailData | undefined>(initialDriver);
   const [loading, setLoading] = useState<boolean>(!!initialDriver);
   const [error, setError] = useState<string | undefined>();
@@ -119,7 +120,7 @@ const DriverDetail = () => {
 
   const handleSelectDriver = () => {
     // Chuyển sang màn hình thanh toán
-    navigate('/passenger/booking-confirmation', { state: { driver, mode: 'designated' } });
+    navigate('/passenger/booking-confirmation', { state: { driver, mode: 'designated', fare: passedFare } });
   };
 
   return (
@@ -147,7 +148,7 @@ const DriverDetail = () => {
 
           <div className="dd-badges-row">
             <div className="dd-badge dd-badge-rating">
-              <span style={{ color: '#006D37' }}>★</span> {driver.rating}
+              <span style={{ color: '#006D37' }}>★</span> {driver.rating && !isNaN(Number(driver.rating)) ? Number(driver.rating).toFixed(1) : driver.rating}
             </div>
             <div className="dd-badge dd-badge-lang">
               <span>文<sub>A</sub></span> JLPT N2

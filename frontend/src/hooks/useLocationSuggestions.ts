@@ -126,7 +126,7 @@ export const getRouteCoordinates = async (start: LatLng, end: LatLng): Promise<[
 /**
  * Hàm lấy tọa độ đường đi ngắn nhất (Routing) kèm theo thời gian (duration)
  */
-export const getRouteWithDuration = async (start: LatLng, end: LatLng): Promise<{ coords: [number, number][]; duration: number }> => {
+export const getRouteWithDuration = async (start: LatLng, end: LatLng): Promise<{ coords: [number, number][]; duration: number; distance: number }> => {
   try {
     const response = await fetch(
       `https://router.project-osrm.org/route/v1/driving/${start.lng},${start.lat};${end.lng},${end.lat}?overview=full&geometries=geojson`
@@ -136,6 +136,7 @@ export const getRouteWithDuration = async (start: LatLng, end: LatLng): Promise<
     if (data.code === 'Ok' && data.routes.length > 0) {
       const routeCoords = data.routes[0].geometry.coordinates.map((coord: [number, number]) => [coord[1], coord[0]] as [number, number]);
       const duration = data.routes[0].duration; // Thời gian đi (giây)
+      const distance = data.routes[0].distance; // Khoảng cách đi (mét)
       
       const coords: [number, number][] = [
         [start.lat, start.lng],
@@ -143,12 +144,12 @@ export const getRouteWithDuration = async (start: LatLng, end: LatLng): Promise<
         [end.lat, end.lng]
       ];
       
-      return { coords, duration };
+      return { coords, duration, distance };
     }
-    return { coords: [], duration: Infinity };
+    return { coords: [], duration: Infinity, distance: Infinity };
   } catch (error) {
     console.error('Routing error:', error);
-    return { coords: [], duration: Infinity };
+    return { coords: [], duration: Infinity, distance: Infinity };
   }
 };
 

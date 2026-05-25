@@ -4,6 +4,7 @@ import { authMiddleware, AuthRequest } from '../middleware/auth.middleware';
 import { rideService } from '../services/ride.service';
 import { io, userSocketMap } from '../index';
 import { refundPayment } from '../controllers/payment.controller';
+import { fareService } from '../services/fare.service';
 
 const router = Router();
 
@@ -66,7 +67,7 @@ router.post('/create', authMiddleware as any, async (req: AuthRequest, res: Resp
       where: { id: passengerId }
     });
 
-    let distanceStr = distance || '1.2 km';
+    let distanceStr = distance || '...';
     if (driverId) {
       try {
         const drivers = await prisma.$queryRaw<any[]>`
@@ -83,19 +84,38 @@ router.post('/create', authMiddleware as any, async (req: AuthRequest, res: Resp
       }
     }
 
+    let durationStr = '...';
+    try {
+      const routeData = await fareService.getRouteFromOSRM(
+        Number(startLng || 105.8542),
+        Number(startLat || 21.0285),
+        Number(endLng || 105.8542),
+        Number(endLat || 21.0285)
+      );
+      const totalMinutes = Math.round(routeData.durationInSeconds / 60);
+      durationStr = `約${totalMinutes}分`;
+    } catch (e) {
+      console.error('Error calculating duration ETA:', e);
+    }
+
     // Notify Driver via Socket.io
     if (driverId) {
       const driverSocketId = userSocketMap.get(driverId);
       if (driverSocketId) {
         io.to(driverSocketId).emit('incoming-booking', {
           rideId: ride.id,
-          passengerName: passenger?.fullName || 'Hành khách',
-          passengerAvatar: passenger?.avatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=160&h=160&fit=crop',
+          passengerId: passenger?.id || ride.passengerId,
+          passengerName: passenger?.fullName || '...',
+          passengerAvatar: passenger?.avatar || '...',
           pickupLocation: ride.start_address,
           destinationLocation: ride.end_address,
+          startLat: Number(startLat || 21.0285),
+          startLng: Number(startLng || 105.8542),
+          endLat: Number(endLat || 21.0125),
+          endLng: Number(endLng || 105.8425),
           distanceToPickup: distanceStr,
           estimatedFare: `${Math.round(Number(ride.match_fee) / 1000)}k VND`,
-          duration: '約25分',
+          duration: durationStr,
           paymentMethod: paymentType === 'CARD' ? 'Thẻ' : 'Tiền mặt'
         });
         console.log(`📡 Booking notification sent to Driver: ${driverId} via socket ${driverSocketId}`);
@@ -155,20 +175,20 @@ router.post('/accept', authMiddleware as any, async (req: AuthRequest, res: Resp
           rideId,
           driver: {
             id: driverId,
-            name: driverProfile?.fullName || 'Tài xế',
-            avatar: driverProfile?.driverProfile?.avatarPicture || 'https://placehold.co/100x100?text=Driver',
-            rating: driverProfile?.driverProfile?.averageRating ? String(driverProfile.driverProfile.averageRating) : '5.0',
+            name: driverProfile?.fullName || '...',
+            avatar: driverProfile?.driverProfile?.avatarPicture || '...',
+            rating: driverProfile?.driverProfile?.averageRating ? String(driverProfile.driverProfile.averageRating) : '...',
             car: (() => {
               const info = driverProfile?.driverProfile?.vehicleInfor;
-              if (!info) return 'Toyota Vios';
+              if (!info) return '...';
               try {
-                return JSON.parse(info).model || 'Toyota Vios';
+                return JSON.parse(info).model || '...';
               } catch (e) {
                 const parts = info.split(' • ');
                 return parts[0] || info;
               }
             })(),
-            vehicleType: driverProfile?.driverProfile?.vehicleType || 'Sedan',
+            vehicleType: driverProfile?.driverProfile?.vehicleType || '...',
           }
         });
         console.log(`📡 Booking accept sent to Passenger: ${ride.passengerId}`);
@@ -286,6 +306,80 @@ router.post('/cancel', authMiddleware as any, async (req: AuthRequest, res: Resp
       success: false,
       message: 'Server error while cancelling ride.'
     });
+  }
+});
+
+/**
+ * GET /api/rides/:id
+ * Get details of a specific ride by its ID (includes payment details)
+ */
+router.get('/:id', authMiddleware as any, async (req: AuthRequest, res: Response) => {
+  try {
+    const id = req.params.id as string;
+    const ride = await prisma.ride.findUnique({
+      where: { id },
+      include: {
+        payment: true,
+        driver: {
+          include: {
+            driverProfile: true
+          }
+        },
+        passenger: true
+      }
+    }) as any;
+
+    if (!ride) {
+      res.status(404).json({ success: false, message: 'Ride not found' });
+      return;
+    }
+
+    // Fetch ride start and end coordinates from PostGIS
+    try {
+      const rideCoords = await prisma.$queryRaw<any[]>`
+        SELECT 
+          ST_X(start_location::geometry) as start_lng,
+          ST_Y(start_location::geometry) as start_lat,
+          ST_X(end_location::geometry) as end_lng,
+          ST_Y(end_location::geometry) as end_lat
+        FROM "rides"
+        WHERE "id" = ${id}::uuid
+      `;
+      if (rideCoords && rideCoords.length > 0) {
+        ride.startLat = rideCoords[0].start_lat;
+        ride.startLng = rideCoords[0].start_lng;
+        ride.endLat = rideCoords[0].end_lat;
+        ride.endLng = rideCoords[0].end_lng;
+      }
+    } catch (err) {
+      console.error('Error fetching ride start/end location coordinates:', err);
+    }
+
+    if (ride.driverId && ride.driver && ride.driver.driverProfile) {
+      try {
+        const coords = await prisma.$queryRaw<any[]>`
+          SELECT 
+            ST_X(current_location::geometry) as lng,
+            ST_Y(current_location::geometry) as lat
+          FROM "driver_profiles"
+          WHERE "user_id" = ${ride.driverId}::uuid
+        `;
+        if (coords && coords.length > 0) {
+          ride.driver.driverProfile.lat = coords[0].lat;
+          ride.driver.driverProfile.lng = coords[0].lng;
+        }
+      } catch (err) {
+        console.error('Error fetching driver current location coordinates:', err);
+      }
+    }
+
+    res.status(200).json({
+      success: true,
+      data: ride
+    });
+  } catch (error) {
+    console.error('Error fetching ride details:', error);
+    res.status(500).json({ success: false, message: 'Server error while fetching ride details.' });
   }
 });
 

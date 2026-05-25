@@ -34,7 +34,7 @@ const WaitingDriver = () => {
   const pickup = pickupData?.coords || { lat: 21.0285, lng: 105.8542 };
 
   const getCarDisplayName = (carInfo: string | any) => {
-    if (!carInfo) return 'Toyota Camry';
+    if (!carInfo) return '...';
     if (typeof carInfo === 'string') {
       try {
         const parsed = JSON.parse(carInfo);
@@ -43,7 +43,7 @@ const WaitingDriver = () => {
         return carInfo;
       }
     }
-    return carInfo.model ? `${carInfo.model} • ${carInfo.plate || ''}` : 'Toyota Camry';
+    return carInfo.model ? `${carInfo.model} • ${carInfo.plate || ''}` : '...';
   };
 
   useEffect(() => {
@@ -207,7 +207,7 @@ const WaitingDriver = () => {
                     <h3 className="wd-driver-name">{driver.name}</h3>
                     <p className="wd-driver-car">{getCarModel(driver.car)} • {driver.vehicleType}</p>
                   </div>
-                  <div className="wd-driver-rating">★ {driver.rating}</div>
+                  <div className="wd-driver-rating">★ {driver.rating && driver.rating !== '...' && !isNaN(Number(driver.rating)) ? Number(driver.rating).toFixed(1) : driver.rating}</div>
                 </div>
 
                 <div className="wd-button-group">

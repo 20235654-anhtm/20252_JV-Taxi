@@ -27,7 +27,7 @@ const BookingConfirmation = () => {
   const passedDriver = location.state?.driver;
   
   const getCarDisplayName = (carInfo: string | any) => {
-    if (!carInfo) return 'Toyota Camry';
+    if (!carInfo) return '...';
     if (typeof carInfo === 'string') {
       try {
         const parsed = JSON.parse(carInfo);
@@ -36,14 +36,14 @@ const BookingConfirmation = () => {
         return carInfo;
       }
     }
-    return carInfo.model ? `${carInfo.model} • ${carInfo.plate || ''}` : 'Toyota Camry';
+    return carInfo.model ? `${carInfo.model} • ${carInfo.plate || ''}` : '...';
   };
 
   const driver = passedDriver || {
-    name: 'Nguyen Tan',
-    avatar: 'https://randomuser.me/api/portraits/men/32.jpg',
-    rating: '4.9',
-    car: 'Toyota Camry'
+    name: '...',
+    avatar: '',
+    rating: '...',
+    car: '...'
   };
   
   const [paymentMethod, setPaymentMethod] = useState<'cash' | 'card'>('card');
@@ -85,6 +85,10 @@ const BookingConfirmation = () => {
   const pickup = pickupData.coords;
   const destination = destData.coords;
 
+  const passedFare = location.state?.fare;
+  const fareAmount = passedFare !== undefined ? passedFare : '...';
+  const displayFare = typeof fareAmount === 'number' ? fareAmount.toLocaleString() : fareAmount;
+
   const handleConfirm = async () => {
     if (paymentMethod === 'card') {
       setShowCardModal(true);
@@ -93,7 +97,7 @@ const BookingConfirmation = () => {
 
     setIsProcessing(true);
     try {
-      const result = await paymentService.processPayment(145000, 'cash');
+      const result = await paymentService.processPayment(typeof fareAmount === 'number' ? fareAmount : 0, 'cash');
       if (result.success) {
         // Create Ride in database
         const token = sessionStorage.getItem('authToken') || localStorage.getItem('authToken');
@@ -105,13 +109,13 @@ const BookingConfirmation = () => {
           },
           body: JSON.stringify({
             driverId: driver.id,
-            startAddress: pickupData.address || 'ハノイ工科大学',
-            endAddress: destData.address || 'ロイヤルシティ',
+            startAddress: pickupData.address || '...',
+            endAddress: destData.address || '...',
             startLng: pickup.lng,
             startLat: pickup.lat,
             endLng: destination.lng,
             endLat: destination.lat,
-            matchFee: 145000,
+            matchFee: typeof fareAmount === 'number' ? fareAmount : 0,
             matchType: location.state?.mode || 'designated',
             vehicleTypeRequested: driver.vehicleType || 'Sedan',
             paymentType: 'CASH',
@@ -166,13 +170,13 @@ const BookingConfirmation = () => {
         },
         body: JSON.stringify({
           driverId: driver.id,
-          startAddress: pickupData.address || 'ハノイ工科大学',
-          endAddress: destData.address || 'ロイヤルシティ',
+          startAddress: pickupData.address || '...',
+          endAddress: destData.address || '...',
           startLng: pickup.lng,
           startLat: pickup.lat,
           endLng: destination.lng,
           endLat: destination.lat,
-          matchFee: 145000,
+          matchFee: typeof fareAmount === 'number' ? fareAmount : 0,
           matchType: location.state?.mode || 'designated',
           vehicleTypeRequested: driver.vehicleType || 'Sedan',
           paymentType: 'CARD',
@@ -240,7 +244,7 @@ const BookingConfirmation = () => {
             </div>
             <div className="bc-route-text">
               <span className="bc-route-label">出発地</span>
-              <span className="bc-route-name">{pickupData.address || 'ハノイ工科大学'}</span>
+              <span className="bc-route-name">{pickupData.address || '...'}</span>
             </div>
           </div>
           <div className="bc-route-item">
@@ -249,7 +253,7 @@ const BookingConfirmation = () => {
             </div>
             <div className="bc-route-text">
               <span className="bc-route-label">目的地</span>
-              <span className="bc-route-name">{destData.address || 'ロイヤルシティ'}</span>
+              <span className="bc-route-name">{destData.address || '...'}</span>
             </div>
           </div>
         </div>
@@ -258,7 +262,7 @@ const BookingConfirmation = () => {
           <div className="bc-driver-card">
             <div className="bc-driver-avatar-wrapper">
               <img src={driver.avatar} alt={driver.name} className="bc-driver-avatar" />
-              <div className="bc-driver-rating">{driver.rating} ★</div>
+              <div className="bc-driver-rating">{driver.rating && driver.rating !== '...' && !isNaN(Number(driver.rating)) ? Number(driver.rating).toFixed(1) : driver.rating} ★</div>
             </div>
             <div className="bc-driver-details">
               <div className="bc-driver-name">{driver.name}</div>
@@ -268,7 +272,7 @@ const BookingConfirmation = () => {
           
           <div className="bc-fare-card">
             <div className="bc-fare-label">運賃</div>
-            <div className="bc-fare-amount">145,000 <span className="bc-fare-currency">VND</span></div>
+            <div className="bc-fare-amount">{displayFare} <span className="bc-fare-currency">VND</span></div>
           </div>
         </div>
       </div>
@@ -378,7 +382,7 @@ const BookingConfirmation = () => {
             
             <div className="bc-receipt-card">
               <div className="bc-receipt-label">合計支払額</div>
-              <div className="bc-receipt-amount">145,000 VND</div>
+              <div className="bc-receipt-amount">{displayFare} VND</div>
               <div className="bc-receipt-details">
                 <span>決済ID: {paymentDetails.id}</span>
                 {paymentDetails.card && <span>{paymentDetails.card}</span>}
@@ -390,14 +394,14 @@ const BookingConfirmation = () => {
                 <div className="bc-receipt-icon"><MapPin size={18} color="#006D37" /></div>
                 <div className="bc-receipt-text">
                   <div className="bc-receipt-route-label">乗車場所</div>
-                  <div className="bc-receipt-route-name">{pickupData.address || 'ハノイ工科大学'}</div>
+                  <div className="bc-receipt-route-name">{pickupData.address || '...'}</div>
                 </div>
               </div>
               <div className="bc-receipt-route-item">
                 <div className="bc-receipt-icon bg-red-100"><Flag size={18} color="#C62828" /></div>
                 <div className="bc-receipt-text">
                   <div className="bc-receipt-route-label">目的地</div>
-                  <div className="bc-receipt-route-name">{destData.address || 'ロイヤルシティ'}</div>
+                  <div className="bc-receipt-route-name">{destData.address || '...'}</div>
                 </div>
               </div>
             </div>

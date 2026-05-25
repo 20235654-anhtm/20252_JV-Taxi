@@ -21,17 +21,38 @@ const Rateyourtrip: React.FC = () => {
   const [comment, setComment] = useState<string>('');
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [realDriver, setRealDriver] = useState<any>(null);
+  const [rideDetails, setRideDetails] = useState<any>(null);
 
   // Nhận thông tin tài xế và chuyến đi từ Route state
   const rideId = location.state?.rideId || '';
   const driver = location.state?.driver || {
-    name: 'Nguyen Tan',
-    avatar: 'https://i.pravatar.cc/150?img=11',
-    rating: '4.9',
-    car: 'Toyota Camry',
-    licensePlate: '51H-123.45'
+    name: '...',
+    avatar: '',
+    rating: '...',
+    car: '...',
+    licensePlate: '...'
   };
-  const fare = location.state?.fare || '₫145,000';
+
+  useEffect(() => {
+    const fetchRideDetails = async () => {
+      if (!rideId) return;
+      try {
+        const token = sessionStorage.getItem('authToken') || localStorage.getItem('authToken');
+        const response = await fetch(`${API_BASE_URL}/rides/${rideId}`, {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+        const res = await response.json();
+        if (res.success && res.data) {
+          setRideDetails(res.data);
+        }
+      } catch (err) {
+        console.error('Error fetching ride details for rating screen:', err);
+      }
+    };
+    fetchRideDetails();
+  }, [rideId]);
 
   useEffect(() => {
     const fetchDriverDetails = async () => {
@@ -129,7 +150,7 @@ const Rateyourtrip: React.FC = () => {
           <Card padding="sm" rounded="lg">
             <div className="driver-info-content">
               <Avatar 
-                src={realDriver?.driverProfile?.avatarPicture || driver?.avatar || "https://api.dicebear.com/7.x/avataaars/svg?seed=driver"} 
+                src={realDriver?.driverProfile?.avatarPicture || driver?.avatar || ""} 
                 className="!w-[64px] !h-[64px]"
                 borderColor="transparent"
               />
@@ -137,10 +158,10 @@ const Rateyourtrip: React.FC = () => {
                 <Text variant="label" weight="bold" className="!text-[12px] !tracking-[1.2px] !text-[#006D37] mb-1">
                   担当ドライバー
                 </Text>
-                <Heading level={2} className="!text-[18px] mb-1">{realDriver?.fullName || driver?.name || "Nguyen Tan"}</Heading>
+                <Heading level={2} className="!text-[18px] mb-1">{realDriver?.fullName || driver?.name || "..."}</Heading>
                 <div className="driver-rating">
                   <Star size={14} fill="currentColor" />
-                  <span>{realDriver?.driverProfile?.averageRating ? String(Number(realDriver.driverProfile.averageRating).toFixed(1)) : (driver?.rating || "4.9")}</span>
+                  <span>{realDriver?.driverProfile?.averageRating ? String(Number(realDriver.driverProfile.averageRating).toFixed(1)) : (driver?.rating || "...")}</span>
                 </div>
               </div>
             </div>
@@ -153,7 +174,9 @@ const Rateyourtrip: React.FC = () => {
                 <Text variant="label" weight="bold" className="!text-[12px] !tracking-[1.2px] !text-[#006D37] mb-1">
                   合計料金
                 </Text>
-                <Heading level={1} className="!text-[24px] !font-extrabold !font-['Plus_Jakarta_Sans']">{fare}</Heading>
+                <Heading level={1} className="!text-[24px] !font-extrabold !font-['Plus_Jakarta_Sans']">
+                  {rideDetails ? `₫${Number(rideDetails.matchFee).toLocaleString()}` : '...'}
+                </Heading>
               </div>
               <div className="car-details">
                 <Text variant="label" weight="bold" color="secondary" className="!text-[12px] !tracking-[1.2px] !font-['Plus_Jakarta_Sans'] mb-1">
@@ -162,14 +185,14 @@ const Rateyourtrip: React.FC = () => {
                       const car = realDriver?.driverProfile?.parsedVehicleInfor?.model || driver?.car;
                       if (typeof car === 'string' && car.startsWith('{')) {
                         const carObj = JSON.parse(car);
-                        return carObj.model || 'Toyota Camry';
+                        return carObj.model || '...';
                       }
                       if (typeof car === 'object' && car !== null) {
-                        return (car as any).model || 'Toyota Camry';
+                        return (car as any).model || '...';
                       }
-                      return car || 'Toyota Camry';
+                      return car || '...';
                     } catch (e) {
-                      return 'Toyota Camry';
+                      return '...';
                     }
                   })()}
                 </Text>
@@ -179,14 +202,14 @@ const Rateyourtrip: React.FC = () => {
                       const car = realDriver?.driverProfile?.parsedVehicleInfor?.plate || driver?.car;
                       if (typeof car === 'string' && car.startsWith('{')) {
                         const carObj = JSON.parse(car);
-                        return carObj.plate || '51H-123.45';
+                        return carObj.plate || '...';
                       }
                       if (typeof car === 'object' && car !== null) {
-                        return (car as any).plate || '51H-123.45';
+                        return (car as any).plate || '...';
                       }
-                      return realDriver?.driverProfile?.parsedVehicleInfor?.plate || driver?.licensePlate || '51H-123.45';
+                      return realDriver?.driverProfile?.parsedVehicleInfor?.plate || driver?.licensePlate || '...';
                     } catch (e) {
-                      return '51H-123.45';
+                      return '...';
                     }
                   })()}
                 </Text>

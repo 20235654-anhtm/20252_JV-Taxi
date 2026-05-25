@@ -26,16 +26,8 @@ export const paymentService = {
   },
 
   processPayment: async (amount: number, method: 'cash' | 'card'): Promise<PaymentResult> => {
-    // This is still used for cash or as a fallback
     if (method === 'cash') {
-      return new Promise((resolve) => {
-        setTimeout(() => {
-          resolve({
-            success: true,
-            transactionId: `CSH-${Math.floor(Math.random() * 10000)}`
-          });
-        }, 1000);
-      });
+      return { success: true };
     }
     
     // Card payments are now handled by Stripe in the component
