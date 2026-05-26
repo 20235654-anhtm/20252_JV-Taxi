@@ -216,7 +216,7 @@ const DriverManagement: React.FC = () => {
       isApproved: driver.rawProfile?.driverProfile?.isApproved || false
     };
 
-    navigate('/admin/driver-approve/driver-detail', { state: { driver: rawDriver } });
+    navigate('/admin/driver-management/driver-detail', { state: { driver: rawDriver } });
   };
 
   return (

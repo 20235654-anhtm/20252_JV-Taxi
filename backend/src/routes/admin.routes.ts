@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { authMiddleware } from '../middleware/auth.middleware';
 import { adminMiddleware } from '../middleware/admin.middleware';
-import { getUsers, blockUser, unblockUser, getPendingDrivers, approveDriver, rejectDriver } from '../controllers/admin.controller';
+import { getUsers, blockUser, unblockUser, getPendingDrivers, approveDriver, rejectDriver, getDashboardStats } from '../controllers/admin.controller';
 
 const router = Router();
 
@@ -15,6 +15,13 @@ router.use(adminMiddleware as any);
  * @access  Private (Admin)
  */
 router.get('/users', getUsers as any);
+
+/**
+ * @route   GET /api/admin/dashboard/stats
+ * @desc    Lấy dữ liệu thống kê tổng quan (Dashboard Stats)
+ * @access  Private (Admin)
+ */
+router.get('/dashboard/stats', getDashboardStats as any);
 
 /**
  * @route   POST /api/admin/users/:id/block

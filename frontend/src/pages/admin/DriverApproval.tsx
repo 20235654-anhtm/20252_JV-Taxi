@@ -292,7 +292,7 @@ const DriverApproval = () => {
                   <div className="driver-card-footer">
                     <button
                       className="admin-details-btn"
-                      onClick={() => navigate('/admin/driver-approve/driver-detail', { state: { driver } })}
+                      onClick={() => navigate('/admin/driver-approve/driver-review-detail', { state: { driver } })}
                     >
                       {t.btnDetails}
                     </button>

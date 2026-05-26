@@ -237,7 +237,15 @@ router.get('/:id', async (req: Request, res: Response) => {
     const profile = await prisma.profile.findUnique({
       where: { id },
       include: {
-        driverProfile: true
+        driverProfile: true,
+        reviewsReceived: {
+          include: {
+            reviewer: true
+          },
+          orderBy: {
+            createdAt: 'desc'
+          }
+        }
       }
     }) as any;
 
@@ -266,6 +274,9 @@ router.get('/:id', async (req: Request, res: Response) => {
         fullName: profile.fullName,
         email: profile.email,
         phone: profile.phone,
+        status: profile.status,
+        avatar: profile.avatar,
+        reviews: profile.reviewsReceived || [],
         driverProfile: {
           ...profile.driverProfile,
           parsedVehicleInfor

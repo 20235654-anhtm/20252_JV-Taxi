@@ -112,6 +112,10 @@ export const login = async (req: Request, res: Response) => {
       return res.status(401).json({ message: 'メールアドレス/電話番号、またはパスワードが正しくありません。' });
     }
 
+    if (profile.isBlock) {
+      return res.status(403).json({ isBlocked: true, message: 'アカウントがロックされています。' });
+    }
+
     const token = jwt.sign(
       { userId: profile.id, role: profile.role },
       JWT_SECRET,

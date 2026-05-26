@@ -19,10 +19,10 @@ export const Heading: React.FC<HeadingProps> = ({
   const Tag = `h${level}` as React.ElementType;
 
   const levelClasses = {
-    1: "font-['Plus_Jakarta_Sans:ExtraBold','Noto_Sans_JP:Black',sans-serif] font-extrabold text-[24px] leading-[32px] tracking-[-0.6px]",
-    2: "font-['Plus_Jakarta_Sans:Bold','Noto_Sans_JP:Bold',sans-serif] font-bold text-[18px] leading-[28px] tracking-[-0.45px]",
-    3: "font-['Plus_Jakarta_Sans:Bold','Noto_Sans_JP:Bold',sans-serif] font-bold text-[16px] leading-[24px]",
-    4: "font-['Plus_Jakarta_Sans:Bold','Noto_Sans_JP:Bold',sans-serif] font-bold text-[14px] leading-[20px]",
+    1: "font-extrabold text-[24px] leading-[32px] tracking-[-0.6px]",
+    2: "font-bold text-[18px] leading-[28px] tracking-[-0.45px]",
+    3: "font-bold text-[16px] leading-[24px]",
+    4: "font-bold text-[14px] leading-[20px]",
   };
 
   const classes = `text-[#171d17] ${levelClasses[level]} ${className}`.trim();

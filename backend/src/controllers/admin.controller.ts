@@ -159,10 +159,13 @@ export const blockUser = async (req: any, res: Response) => {
 
     // Tiến hành khóa tài khoản
     await prisma.$transaction(async (tx) => {
-      // 1. Cập nhật status của Profile thành BANNED
+      // 1. Cập nhật status của Profile thành BANNED và isBlock thành true
       await tx.profile.update({
         where: { id: targetUserId },
-        data: { status: 'BANNED' }
+        data: { 
+          status: 'BANNED',
+          isBlock: true
+        }
       });
 
       // 2. Nếu là Tài xế (DRIVER), tắt trạng thái online và busy
@@ -234,10 +237,13 @@ export const unblockUser = async (req: any, res: Response) => {
       });
     }
 
-    // Cập nhật trạng thái Profile thành ACTIVE
+    // Cập nhật trạng thái Profile thành ACTIVE và isBlock thành false
     await prisma.profile.update({
       where: { id: targetUserId },
-      data: { status: 'ACTIVE' }
+      data: { 
+        status: 'ACTIVE',
+        isBlock: false
+      }
     });
 
     return res.status(200).json({
@@ -434,6 +440,166 @@ export const rejectDriver = async (req: Request, res: Response) => {
     return res.status(500).json({
       success: false,
       message: 'Đã xảy ra lỗi hệ thống khi từ chối phê duyệt tài xế.',
+      error: error.message
+    });
+  }
+};
+
+/**
+ * Lấy dữ liệu thống kê tổng quan (Dashboard Stats)
+ * GET /api/admin/dashboard/stats
+ */
+export const getDashboardStats = async (req: Request, res: Response) => {
+  try {
+    const now = new Date();
+    const thisMonthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+    const lastMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+
+    // 1. Thống kê tài xế (Drivers Stats)
+    const totalDrivers = await prisma.profile.count({
+      where: { role: 'DRIVER' }
+    });
+
+    const activeDrivers = await prisma.profile.count({
+      where: {
+        role: 'DRIVER',
+        driverProfile: {
+          isOnline: true
+        }
+      }
+    });
+
+    const offlineDrivers = totalDrivers - activeDrivers;
+
+    // 2. Thống kê khách hàng (Customers Stats)
+    const totalCustomers = await prisma.profile.count({
+      where: { role: 'CUSTOMER' }
+    });
+
+    const thisMonthCustomers = await prisma.profile.count({
+      where: { 
+        role: 'CUSTOMER',
+        createdAt: { gte: thisMonthStart }
+      }
+    });
+
+    const lastMonthCustomers = await prisma.profile.count({
+      where: {
+        role: 'CUSTOMER',
+        createdAt: {
+          gte: lastMonthStart,
+          lt: thisMonthStart
+        }
+      }
+    });
+
+    let customerGrowth = 0;
+    if (lastMonthCustomers > 0) {
+      customerGrowth = Math.round(((thisMonthCustomers / lastMonthCustomers) * 100) - 100);
+    } else if (thisMonthCustomers > 0) {
+      customerGrowth = 100;
+    }
+
+    // 3. Đơn chờ duyệt (Pending Approvals)
+    const pendingApprovals = await prisma.profile.count({
+      where: {
+        role: 'DRIVER',
+        driverProfile: {
+          OR: [
+            { isApproved: false },
+            { isApproved: null }
+          ]
+        }
+      }
+    });
+
+    // 4. Doanh thu tuần và biểu đồ 7 ngày qua
+    const jpWeekdays = ['日', '月', '火', '水', '木', '金', '土'];
+    const chartData = [];
+    
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date(now.getFullYear(), now.getMonth(), now.getDate() - i);
+      const dayOfWeek = d.getDay();
+      const dayLabel = jpWeekdays[dayOfWeek];
+      
+      const startOfDay = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+      startOfDay.setHours(0, 0, 0, 0);
+      const endOfDay = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+      endOfDay.setHours(23, 59, 59, 999);
+      
+      const rides = await prisma.ride.findMany({
+        where: {
+          status: 'COMPLETED',
+          createdAt: {
+            gte: startOfDay,
+            lte: endOfDay
+          }
+        },
+        include: { payment: true }
+      });
+      
+      const revenue = rides.reduce((sum, r) => sum + (r.payment ? Number(r.payment.totalAmount) : 0), 0);
+      
+      chartData.push({
+        dayLabel,
+        revenue,
+        isCurrentDay: i === 0
+      });
+    }
+
+    const weeklyRevenue = chartData.reduce((sum, day) => sum + day.revenue, 0);
+
+    // 5. Tính tỷ lệ hoàn thành mục tiêu (Target completion rate)
+    const thisMonthRides = await prisma.ride.findMany({
+      where: {
+        status: 'COMPLETED',
+        createdAt: { gte: thisMonthStart }
+      },
+      include: { payment: true }
+    });
+    
+    const lastMonthRides = await prisma.ride.findMany({
+      where: {
+        status: 'COMPLETED',
+        createdAt: {
+          gte: lastMonthStart,
+          lt: thisMonthStart
+        }
+      },
+      include: { payment: true }
+    });
+    
+    const thisMonthRevenue = thisMonthRides.reduce((sum, r) => sum + (r.payment ? Number(r.payment.totalAmount) : 0), 0);
+    const lastMonthRevenue = lastMonthRides.reduce((sum, r) => sum + (r.payment ? Number(r.payment.totalAmount) : 0), 0);
+    
+    let targetCompletion = 0;
+    const targetRevenue = lastMonthRevenue * 1.1;
+    if (targetRevenue > 0) {
+      targetCompletion = Math.round((thisMonthRevenue / targetRevenue) * 100);
+    } else if (thisMonthRevenue > 0) {
+      targetCompletion = 100;
+    }
+
+    return res.status(200).json({
+      success: true,
+      data: {
+        totalDrivers,
+        activeDrivers,
+        offlineDrivers,
+        totalCustomers,
+        customerGrowth,
+        pendingApprovals,
+        weeklyRevenue,
+        targetCompletion,
+        chartData
+      }
+    });
+
+  } catch (error: any) {
+    console.error('Lỗi khi lấy dữ liệu tổng quan:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Đã xảy ra lỗi hệ thống khi lấy dữ liệu tổng quan.',
       error: error.message
     });
   }

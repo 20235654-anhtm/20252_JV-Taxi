@@ -253,6 +253,10 @@ export default function SignIn() {
 
       const data = await response.json();
       if (!response.ok) {
+        if (response.status === 403 || data.isBlocked) {
+          navigate('/blocked');
+          return;
+        }
         throw new Error(data.message || t.errorAuth);
       }
 

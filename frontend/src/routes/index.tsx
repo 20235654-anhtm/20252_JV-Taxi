@@ -1,7 +1,7 @@
 import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 
-// Guest Pages
+// Guest Guest Pages
 import GuestHome from '../pages/guest/GuestHome';
 import GuestSearchLocation from '../pages/guest/GuestSearchLocation';
 import SignIn from '../pages/guest/SignIn';
@@ -12,6 +12,8 @@ import ForgotPassword from '../pages/guest/ForgotPassword';
 import ForgotPasswordReset from '../pages/guest/ForgotPasswordReset';
 import ForgotPasswordSuccess from '../pages/guest/ForgotPasswordSuccess';
 import ErrorAccountNotFound from '../pages/guest/ErrorAccountNotFound';
+import BlockedAccount from '../pages/guest/BlockedAccount';
+import SupportContact from '../pages/guest/SupportContact';
 
 // Passenger Pages
 import PassengerHome from '../pages/passenger/PassengerHome';
@@ -43,6 +45,7 @@ import AdminDriverReviewDetail from '../pages/admin/DriverReviewDetail';
 import DriverApprovalList from '../pages/admin/DriverApprovalList';
 import AdminDashboard from '../pages/admin/AdminDashboard';
 import DriverManagement from '../pages/admin/DriverManagement';
+import AdminDriverDetail from '../pages/admin/AdminDriverDetail';
 
 // ── Auth Guards ──
 
@@ -112,6 +115,8 @@ const AppRoutes = () => {
       <Route path="/forgot-password/reset" element={<GuestRoute><ForgotPasswordReset /></GuestRoute>} />
       <Route path="/forgot-password/success" element={<GuestRoute><ForgotPasswordSuccess /></GuestRoute>} />
       <Route path="/forgot-password/error" element={<GuestRoute><ErrorAccountNotFound /></GuestRoute>} />
+      <Route path="/blocked" element={<BlockedAccount />} />
+      <Route path="/support" element={<SupportContact />} />
 
       {/* ======================= PASSENGER FLOW (AUTHENTICATED) ======================= */}
       <Route path="/passenger" element={<ProtectedRoute allowedRole="CUSTOMER"><PassengerHome /></ProtectedRoute>} />
@@ -140,13 +145,15 @@ const AppRoutes = () => {
       <Route path="/driver/in-trip" element={<ProtectedRoute allowedRole="DRIVER"><DriverInTrip /></ProtectedRoute>} />
 
       {/* ======================= ADMIN FLOW ======================= */}
+      <Route path="/admin" element={<ProtectedRoute allowedRole="ADMIN"><Navigate to="/admin/dashboard" replace /></ProtectedRoute>} />
       <Route path="/admin/driver-approve" element={<ProtectedRoute allowedRole="ADMIN"><DriverApproval /></ProtectedRoute>} />
       <Route path="/admin/driver/approval" element={<ProtectedRoute allowedRole="ADMIN"><DriverApproval /></ProtectedRoute>} />
       <Route path="/admin/dashboard" element={<ProtectedRoute allowedRole="ADMIN"><AdminDashboard /></ProtectedRoute>} />
       <Route path="/admin/passenger-management" element={<ProtectedRoute allowedRole="ADMIN"><PassengerManagement /></ProtectedRoute>} />
       <Route path="/admin/driver-management" element={<ProtectedRoute allowedRole="ADMIN"><DriverManagement /></ProtectedRoute>} />
       <Route path="/admin/driver-approval-list" element={<ProtectedRoute allowedRole="ADMIN"><DriverApproval /></ProtectedRoute>} />
-      <Route path="/admin/driver-approve/driver-detail" element={<AdminDriverReviewDetail />} />
+      <Route path="/admin/driver-approve/driver-review-detail" element={<ProtectedRoute allowedRole="ADMIN"><AdminDriverReviewDetail /></ProtectedRoute>} />
+      <Route path="/admin/driver-management/driver-detail" element={<ProtectedRoute allowedRole="ADMIN"><AdminDriverDetail /></ProtectedRoute>} />
     </Routes>
   );
 };

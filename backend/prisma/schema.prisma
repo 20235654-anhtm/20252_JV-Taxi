@@ -46,6 +46,7 @@ model Profile {
   status     ProfileStatus @default(ACTIVE)
   createdAt  DateTime @default(now()) @map("created_at")
   lastActive DateTime? @map("last_active")
+  isBlock    Boolean  @default(false) @map("is_block")
 
   driverProfile   DriverProfile?
   paymentMethods  PaymentMethod[]
