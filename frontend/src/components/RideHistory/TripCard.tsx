@@ -1,10 +1,12 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import type { TripData } from '../../types/RideHistory';
 import IconBrownLocation from '../../assets/IconBrownLocation.svg';
 import IconNext from '../../assets/IconNext.svg';
 import IconFab from '../../assets/IconFab.svg';
 
 export const TripCard: React.FC<TripData> = ({
+  id,
   driverName,
   driverAvatar,
   price,
@@ -16,6 +18,7 @@ export const TripCard: React.FC<TripData> = ({
   date,
   time,
 }) => {
+  const navigate = useNavigate();
   return (
     <div className="w-full p-[24px] bg-white rounded-[24px] flex flex-col justify-start items-start gap-[24px]">
       {/* Header */}
@@ -69,7 +72,10 @@ export const TripCard: React.FC<TripData> = ({
       </div>
 
       {/* Footer */}
-      <div className="w-full h-[67px] pt-[24px] pb-[12px] px-[16px] bg-[rgba(233,240,230,0.30)] rounded-[24px] flex justify-between items-center cursor-pointer hover:bg-[rgba(233,240,230,0.60)] transition-colors">
+      <div 
+        className="w-full h-[67px] pt-[24px] pb-[12px] px-[16px] bg-[rgba(233,240,230,0.30)] rounded-[24px] flex justify-between items-center cursor-pointer hover:bg-[rgba(233,240,230,0.60)] transition-colors"
+        onClick={() => navigate(`/passenger/history/${id}`)}
+      >
         
         {/* Left Section (Date & Time) */}
         <div className="w-[209px] flex justify-start items-center gap-[21px]">

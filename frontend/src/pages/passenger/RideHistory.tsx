@@ -6,7 +6,7 @@ import type { TripData } from '../../types/RideHistory';
 import IconCalendar from '../../assets/IconCalendar.svg';
 import './Profile.css';
 
-const ALL_MOCK_TRIPS: TripData[] = [
+export const ALL_MOCK_TRIPS: TripData[] = [
   {
     id: "trip-1",
     driverName: "Nguyen Van Anh",

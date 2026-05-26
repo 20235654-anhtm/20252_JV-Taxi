@@ -20,13 +20,20 @@ interface LatLng {
 // ─────────────────────────────────────────────────────────────
 // Logic tạo Icon
 // ─────────────────────────────────────────────────────────────
-function createLocationIcon(showLabel: boolean, labelText?: string, type: 'pickup' | 'destination' = 'pickup'): L.DivIcon {
+function createLocationIcon(
+  showLabel: boolean, 
+  labelText?: string, 
+  type: 'pickup' | 'destination' = 'pickup',
+  customColor?: string,
+  customPulseColor?: string,
+  isOutline: boolean = false
+): L.DivIcon {
   const displayLabel = labelText || (type === 'pickup' ? "ここから乗る" : "目的地");
   
-  // Màu sắc chuẩn (Tất cả chuyển sang Xanh chủ đạo)
+  // Màu sắc chuẩn
   const greenColor = '#0f4c3a';
-  const mainColor = greenColor; 
-  const pulseColor = 'rgba(15, 76, 58, 0.45)'; // Tăng độ đậm từ 0.2 lên 0.45
+  const mainColor = customColor || greenColor; 
+  const pulseColor = customPulseColor || 'rgba(15, 76, 58, 0.45)';
 
   // Kiểm tra xem có phải là label "Hiện tại" đặc biệt không
   const isCurrentLoc = labelText === '現在地';
@@ -36,9 +43,9 @@ function createLocationIcon(showLabel: boolean, labelText?: string, type: 'picku
   const badgeText = isCurrentLoc ? greenColor : 'white';
   const badgeBorder = isCurrentLoc ? `1px solid ${greenColor}` : 'none';
 
-  // Logic màu sắc cho Dot (Đảo ngược nếu là Hiện tại)
-  const ringColor = isCurrentLoc ? greenColor : 'white';
-  const innerDotColor = isCurrentLoc ? 'white' : mainColor;
+  // Logic màu sắc cho Dot (Đảo ngược nếu là Hiện tại hoặc outline)
+  const ringColor = isCurrentLoc || isOutline ? mainColor : 'white';
+  const innerDotColor = isCurrentLoc || isOutline ? 'white' : mainColor;
 
   const anchorX = ICON_W / 2;
   const anchorY = showLabel 
@@ -142,18 +149,24 @@ interface LocationMarkerProps {
   showPickupLabel?: boolean;
   label?: string;
   type?: 'pickup' | 'destination';
+  color?: string;
+  pulseColor?: string;
+  isOutline?: boolean;
 }
 
 export function LocationMarker({ 
   position, 
   showPickupLabel = false, 
   label, 
-  type = 'pickup' 
+  type = 'pickup',
+  color,
+  pulseColor,
+  isOutline = false
 }: LocationMarkerProps) {
   
   const icon = useMemo(() => 
-    createLocationIcon(showPickupLabel || !!label, label, type), 
-    [showPickupLabel, label, type]
+    createLocationIcon(showPickupLabel || !!label, label, type, color, pulseColor, isOutline), 
+    [showPickupLabel, label, type, color, pulseColor, isOutline]
   );
 
   return (
