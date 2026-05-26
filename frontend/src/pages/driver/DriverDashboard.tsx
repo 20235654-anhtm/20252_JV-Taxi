@@ -13,6 +13,11 @@ import { showToast } from '../../components/ui/Toast';
 import { getCache, setCache, CACHE_KEYS } from '../../services/cacheService';
 import './DriverDashboard.css';
 
+const formatCurrency = (value: number) => {
+  if (value === undefined || value === null) return '0';
+  return value.toLocaleString('vi-VN');
+};
+
 const DriverDashboard = () => {
   const navigate = useNavigate();
   const { position, error } = useGeolocation();
@@ -247,7 +252,6 @@ const DriverDashboard = () => {
       setShowPopup(false);
     }
   };
-
 
   const weeklyDataWithHighlight = revenueData.weeklyData.map((d: any, index: number) => ({
     day: d.label,

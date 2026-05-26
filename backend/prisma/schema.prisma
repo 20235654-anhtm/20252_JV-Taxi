@@ -69,6 +69,7 @@ model DriverProfile {
   vehicleInfor         String   @map("vehicle_infor") @db.Text
   identityCard         String?  @map("identity_card") @db.VarChar(50)
   avatarPicture        String?  @map("avatar_picture") @db.VarChar(500)
+  rejectionReason      String?  @map("rejection_reason") @db.Text
   
   // PostGIS Geography type is not fully supported by Prisma yet, using Unsupported
   currentLocation      Unsupported("geography(POINT, 4326)")? @map("current_location")
