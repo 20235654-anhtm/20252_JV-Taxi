@@ -33,6 +33,7 @@ import InTrip from '../pages/passenger/InTrip';
 // Driver Pages
 import DriverDashboard from '../pages/driver/DriverDashboard';
 import TripHistory from '../pages/driver/TripHistory';
+import TripSummaryDetail from '../pages/driver/TripSummaryDetail';
 import DriverProfile from '../pages/driver/DriverProfile';
 import DriverProfileEdit from '../pages/driver/ProfileEdit';
 import ChatwithPassenger from '../pages/driver/ChatwithPassenger';
@@ -125,6 +126,7 @@ const AppRoutes = () => {
       {/* ======================= DRIVER FLOW (AUTHENTICATED) ======================= */}
       <Route path="/driver" element={<DriverDashboard />} />
       <Route path="/driver/history" element={<TripHistory />} />
+      <Route path="/driver/history/:id" element={<TripSummaryDetail />} />
       <Route path="/driver/profile" element={<DriverProfile />} />
       <Route path="/driver/profile/edit" element={<DriverProfileEdit />} />
       <Route path="/driver/chat" element={<ChatwithPassenger />} />

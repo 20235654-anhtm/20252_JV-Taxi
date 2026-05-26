@@ -2,13 +2,13 @@ import React from 'react';
 import type { TripCardProps } from '../../types/TripHistory';
 import IconGreenCar from '../../assets/IconGreenCar.svg';
 
-const TripCard: React.FC<TripCardProps> = ({ trip }) => {
+const TripCard: React.FC<TripCardProps> = ({ trip, onClick }) => {
   const formatCurrency = (val: number) => {
     return new Intl.NumberFormat('en-US').format(val);
   };
 
   return (
-    <div style={{alignSelf: 'stretch', padding: 20, background: '#EFF6EC', borderRadius: 24, flexDirection: 'column', justifyContent: 'flex-start', alignItems: 'flex-start', gap: 16, display: 'flex', width: '100%'}}>
+    <div onClick={onClick} style={{alignSelf: 'stretch', padding: 20, background: '#EFF6EC', borderRadius: 24, flexDirection: 'column', justifyContent: 'flex-start', alignItems: 'flex-start', gap: 16, display: 'flex', width: '100%', cursor: onClick ? 'pointer' : 'default'}}>
       <div style={{alignSelf: 'stretch', justifyContent: 'space-between', alignItems: 'flex-start', display: 'flex'}}>
         <div style={{justifyContent: 'flex-start', alignItems: 'center', gap: 12, display: 'flex'}}>
           <div style={{width: 48, height: 48, background: 'rgba(97, 222, 138, 0.30)', borderRadius: 16, justifyContent: 'center', alignItems: 'center', display: 'flex'}}>

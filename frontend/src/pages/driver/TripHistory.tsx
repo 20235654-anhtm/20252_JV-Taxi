@@ -6,7 +6,7 @@ import SummaryCard from '../../components/TripHistory/SummaryCard';
 import FilterSection from '../../components/TripHistory/FilterSection';
 import TripCard from '../../components/TripHistory/TripCard';
 import type { Trip, Summary, FilterType } from '../../types/TripHistory';
-import { getCache, CACHE_KEYS } from '../../services/cacheService';
+import { getCache, setCache, CACHE_KEYS } from '../../services/cacheService';
 
 // MOCK DATA
 const mockSummary: Summary = {
@@ -27,7 +27,12 @@ const mockTrips: Trip[] = [
 const TripHistory = () => {
   const navigate = useNavigate();
   const [driverData, setDriverData] = useState<any>(() => getCache(CACHE_KEYS.DRIVER_PROFILE) || null);
-  const [filter, setFilter] = useState<FilterType>('today');
+  
+  // Khởi tạo state từ cache nếu có
+  const cachedState = React.useMemo(() => getCache<any>(CACHE_KEYS.TRIP_HISTORY_STATE), []);
+  const [filter, setFilter] = useState<FilterType>(cachedState?.filter || 'today');
+  const [page, setPage] = useState<number>(cachedState?.page || 1);
+  const itemsPerPage = 3;
   
   const parseDate = (dateStr: string) => {
     const match = dateStr.match(/(\d+)年(\d+)月(\d+)日/);
@@ -66,17 +71,31 @@ const TripHistory = () => {
     });
   }, [filter]);
 
-  const [displayedTrips, setDisplayedTrips] = useState<Trip[]>([]);
-  const [page, setPage] = useState(1);
+  const displayedTrips = React.useMemo(() => {
+    return filteredTrips.slice(0, page * itemsPerPage);
+  }, [filteredTrips, page]);
+
   const [loading, setLoading] = useState(false);
-  const itemsPerPage = 3;
   const hasMore = displayedTrips.length < filteredTrips.length;
   const observer = useRef<IntersectionObserver | null>(null);
 
+  // Khi đổi filter, reset page về 1 (chỉ reset nếu do user click đổi, không reset lúc mới mount nếu đang có cache)
   useEffect(() => {
-    setDisplayedTrips(filteredTrips.slice(0, itemsPerPage));
+    if (cachedState && cachedState.filter === filter && cachedState.page === page) {
+      return; // Không reset nếu đang ở trạng thái khôi phục từ cache
+    }
     setPage(1);
-  }, [filteredTrips]);
+  }, [filter]);
+
+  // Phục hồi scroll position
+  useEffect(() => {
+    if (cachedState && cachedState.scrollY > 0) {
+      // Đợi DOM render xong thẻ thì cuộn tới vị trí cũ
+      requestAnimationFrame(() => {
+        window.scrollTo(0, cachedState.scrollY);
+      });
+    }
+  }, [cachedState]);
 
   const loadMore = useCallback(() => {
     if (!hasMore || loading) return;
@@ -84,13 +103,20 @@ const TripHistory = () => {
     
     // Giả lập thời gian gọi API (delay 1s) để thấy hiệu ứng tải thêm thẻ
     setTimeout(() => {
-      const nextPage = page + 1;
-      const newTrips = filteredTrips.slice(0, nextPage * itemsPerPage);
-      setDisplayedTrips(newTrips);
-      setPage(nextPage);
+      setPage(p => p + 1);
       setLoading(false);
     }, 1000);
-  }, [page, hasMore, loading, filteredTrips]);
+  }, [hasMore, loading]);
+
+  const handleTripClick = (id: string) => {
+    // Lưu trạng thái trước khi nhảy sang trang detail
+    setCache(CACHE_KEYS.TRIP_HISTORY_STATE, {
+      filter,
+      page,
+      scrollY: window.scrollY
+    });
+    navigate(`/driver/history/${id}`);
+  };
 
   const lastTripElementRef = useCallback((node: HTMLDivElement) => {
     if (loading) return; // Nếu đang loading thì không tạo observer mới
@@ -132,11 +158,20 @@ const TripHistory = () => {
             if (displayedTrips.length === index + 1) {
               return (
                 <div ref={lastTripElementRef} key={trip.id}>
-                  <TripCard trip={trip} />
+                  <TripCard 
+                    trip={trip} 
+                    onClick={() => handleTripClick(trip.id)}
+                  />
                 </div>
               );
             } else {
-              return <TripCard key={trip.id} trip={trip} />;
+              return (
+                <TripCard 
+                  key={trip.id} 
+                  trip={trip} 
+                  onClick={() => handleTripClick(trip.id)}
+                />
+              );
             }
           })}
         </div>

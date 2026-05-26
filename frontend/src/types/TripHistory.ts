@@ -20,9 +20,16 @@ export interface SummaryCardProps {
 
 export interface TripCardProps {
   trip: Trip;
+  onClick?: () => void;
 }
 
 export type FilterType = 'today' | 'week';
+
+export interface TripHistoryState {
+  filter: FilterType;
+  page: number;
+  scrollY: number;
+}
 
 export interface FilterSectionProps {
   activeFilter: FilterType;
