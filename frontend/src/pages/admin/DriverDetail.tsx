@@ -220,14 +220,14 @@ const DriverDetail = () => {
         showToast(`✅ ${t.approveSuccess}`);
         setIsApproved(true);
         setTimeout(() => {
-          navigate('/admin');
+          navigate('/admin/driver-approve');
         }, 1500);
       } else {
         // Mock success if BE is offline
         showToast(`✅ ${t.approveSuccess} (Mock)`);
         setIsApproved(true);
         setTimeout(() => {
-          navigate('/admin');
+          navigate('/admin/driver-approve');
         }, 1500);
       }
     } catch (error) {
@@ -235,7 +235,7 @@ const DriverDetail = () => {
       showToast(`✅ ${t.approveSuccess} (Mock)`);
       setIsApproved(true);
       setTimeout(() => {
-        navigate('/admin');
+        navigate('/admin/driver-approve');
       }, 1500);
     } finally {
       setSubmitting(false);
@@ -253,20 +253,20 @@ const DriverDetail = () => {
       if (data.success) {
         showToast(`✅ ${t.rejectSuccess}`);
         setTimeout(() => {
-          navigate('/admin');
+          navigate('/admin/driver-approve');
         }, 1500);
       } else {
         // Mock success if BE is offline
         showToast(`✅ ${t.rejectSuccess} (Mock)`);
         setTimeout(() => {
-          navigate('/admin');
+          navigate('/admin/driver-approve');
         }, 1500);
       }
     } catch (error) {
       // Mock success if BE is offline
       showToast(`✅ ${t.rejectSuccess} (Mock)`);
       setTimeout(() => {
-        navigate('/admin');
+        navigate('/admin/driver-approve');
       }, 1500);
     } finally {
       setSubmitting(false);
@@ -322,7 +322,7 @@ const DriverDetail = () => {
       {/* Top Header */}
       <header className="detail-header">
         <div className="header-left">
-          <button className="header-back-btn" onClick={() => navigate('/admin')}>
+          <button className="header-back-btn" onClick={() => navigate('/admin/driver-approve')}>
             <ArrowLeft size={20} />
           </button>
           <span className="header-title">{t.headerTitle}</span>

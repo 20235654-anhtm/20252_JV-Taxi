@@ -265,39 +265,6 @@ const DriverApproval = () => {
                     <div className="driver-card-meta">
                       <div className="driver-card-name-row">
                         <h3 className="driver-card-name">{driver.profile.fullName}</h3>
-
-                        {/* More menu */}
-                        <div className="driver-menu-wrapper">
-                          <button
-                            className="driver-menu-trigger-btn"
-                            onClick={() => setActiveMenuId(activeMenuId === driver.userId ? null : driver.userId)}
-                          >
-                            <MoreVertical size={18} />
-                          </button>
-                          {activeMenuId === driver.userId && (
-                            <>
-                              <div className="driver-menu-backdrop" onClick={() => setActiveMenuId(null)} />
-                              <div className="driver-menu-dropdown">
-                                <button
-                                  onClick={() => {
-                                    setActiveMenuId(null);
-                                    handleApprove(driver.userId, driver.profile.fullName);
-                                  }}
-                                >
-                                  {t.modalApprove}
-                                </button>
-                                <button
-                                  onClick={() => {
-                                    setActiveMenuId(null);
-                                    navigate(`/admin/driver-detail?userId=${driver.userId}`, { state: { driver } });
-                                  }}
-                                >
-                                  {t.btnDetails}
-                                </button>
-                              </div>
-                            </>
-                          )}
-                        </div>
                       </div>
 
                       <p className="driver-card-date">{formatApplyDate(undefined, lang)}</p>
@@ -324,7 +291,7 @@ const DriverApproval = () => {
                   <div className="driver-card-footer">
                     <button
                       className="admin-details-btn"
-                      onClick={() => navigate(`/admin/driver-detail?userId=${driver.userId}`, { state: { driver } })}
+                      onClick={() => navigate('/admin/driver-approve/driver-detail', { state: { driver } })}
                     >
                       {t.btnDetails}
                     </button>

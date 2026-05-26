@@ -131,8 +131,8 @@ const AppRoutes = () => {
       <Route path="/driver/in-trip" element={<ProtectedRoute allowedRole="DRIVER"><DriverInTrip /></ProtectedRoute>} />
 
       {/* ======================= ADMIN FLOW ======================= */}
-      <Route path="/admin" element={<DriverApproval />} />
-      <Route path="/admin/driver-detail" element={<AdminDriverDetail />} />
+      <Route path="/admin/driver-approve" element={<DriverApproval />} />
+      <Route path="/admin/driver-approve/driver-detail" element={<AdminDriverDetail />} />
     </Routes>
   );
 };
