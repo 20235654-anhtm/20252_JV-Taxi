@@ -52,14 +52,14 @@ const PassengerManagement: React.FC = () => {
         });
         if (response.status === 403) {
           setUnauthorized(true);
-          setErrorMessage('Bạn không có quyền truy cập trang này (Admin required).');
+          setErrorMessage('このページへのアクセス権限がありません (管理者権限が必要です)。');
           setLoading(false);
           return;
         }
 
         const data = await response.json();
         if (!response.ok) {
-          throw new Error(data.message || 'Lỗi khi lấy dữ liệu người dùng');
+          throw new Error(data.message || 'ユーザーデータの取得に失敗しました');
         }
 
         if (data.success && data.data) {
@@ -263,7 +263,7 @@ const PassengerManagement: React.FC = () => {
         {/* Danh sách thẻ hành khách đã qua bộ lọc */}
         <div className="passenger-cards-list">
           {loading ? (
-            <div style={{ textAlign: 'center', padding: '20px', color: '#666' }}>Đang tải dữ liệu...</div>
+            <div style={{ textAlign: 'center', padding: '20px', color: '#666' }}>データを読み込み中...</div>
           ) : filteredPassengers.length > 0 ? (
             filteredPassengers.map((passenger) => (
               <Card key={passenger.id} className="passenger-card-item">
@@ -355,7 +355,7 @@ const PassengerManagement: React.FC = () => {
 
         <button
           type="button"
-          onClick={() => navigate('/admin/driver-approval-list')}
+          onClick={() => navigate('/admin/driver-approve')}
           className={`admin-bottom-nav-button ${activeNavTab === 'approval' ? 'active' : ''}`}
           aria-label="承認"
         >
