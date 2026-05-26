@@ -48,6 +48,7 @@ export const getUsers = async (req: Request, res: Response) => {
         fullName: true,
         role: true,
         status: true,
+        avatar: true,
         createdAt: true,
         driverProfile: {
           select: {
@@ -58,6 +59,16 @@ export const getUsers = async (req: Request, res: Response) => {
             isBusy: true,
             averageRating: true
           }
+        },
+        ridesAsPassenger: {
+          where: { status: 'COMPLETED' },
+          select: {
+            payment: {
+              select: {
+                totalAmount: true
+              }
+            }
+          }
         }
       },
       orderBy: { createdAt: 'desc' },
@@ -65,9 +76,30 @@ export const getUsers = async (req: Request, res: Response) => {
       take: limit
     });
 
+    const usersWithStats = users.map((user: any) => {
+      const completedRidesCount = user.ridesAsPassenger?.length || 0;
+      const totalSpent = user.ridesAsPassenger?.reduce((sum: number, ride: any) => {
+        return sum + (ride.payment ? Number(ride.payment.totalAmount) : 0);
+      }, 0) || 0;
+
+      return {
+        id: user.id,
+        email: user.email,
+        phone: user.phone,
+        fullName: user.fullName,
+        role: user.role,
+        status: user.status,
+        avatar: user.avatar,
+        createdAt: user.createdAt,
+        driverProfile: user.driverProfile,
+        completedRides: completedRidesCount,
+        totalSpent: totalSpent
+      };
+    });
+
     return res.status(200).json({
       success: true,
-      data: users,
+      data: usersWithStats,
       pagination: {
         currentPage: page,
         limit,

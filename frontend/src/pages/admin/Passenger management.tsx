@@ -18,6 +18,7 @@ interface Passenger {
   phone: string;
   avatarUrl: string;
   rides: number;
+  totalSpent: number;
   status: 'active' | 'pending' | 'suspended';
   statusText: string;
 }
@@ -32,6 +33,13 @@ const PassengerManagement: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [unauthorized, setUnauthorized] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  const getAvatarUrl = (pic: string | null): string => {
+    if (!pic) return '';
+    if (pic.startsWith('http://') || pic.startsWith('https://') || pic.startsWith('data:')) return pic;
+    const path = pic.startsWith('/') ? pic : `/${pic}`;
+    return `${API_BASE_URL}${path}`;
+  };
 
   useEffect(() => {
     const fetchPassengers = async () => {
@@ -72,8 +80,9 @@ const PassengerManagement: React.FC = () => {
               name: user.fullName || 'Unknown',
               email: user.email || '',
               phone: user.phone || '',
-              avatarUrl: user.avatar || user.driverProfile?.avatarPicture || '',
+              avatarUrl: getAvatarUrl(user.avatar),
               rides: user.completedRides ?? 0,
+              totalSpent: user.totalSpent ?? 0,
               status: status,
               statusText: statusText
             };
@@ -295,16 +304,12 @@ const PassengerManagement: React.FC = () => {
                     <Text className="passenger-stat-value">{passenger.rides}</Text>
                   </div>
 
-                  {/* Cột hiển thị trạng thái (ステータス) */}
+                  {/* Cột hiển thị tổng tiền chi tiêu (累金額計利用) */}
                   <div className="passenger-stat-box">
-                    <Text className="passenger-stat-label">ステータス</Text>
-                    <div className="passenger-status-wrapper">
-                      {/* Dấu chấm tròn biểu thị màu trạng thái */}
-                      <span className={`passenger-status-dot passenger-dot-${passenger.status}`} />
-                      <Text className={`passenger-status-text passenger-status-${passenger.status}`}>
-                        {passenger.statusText}
-                      </Text>
-                    </div>
+                    <Text className="passenger-stat-label">累金額計利用</Text>
+                    <Text className="passenger-stat-value">
+                      {new Intl.NumberFormat('ja-JP').format(passenger.totalSpent)} <span className="text-xs">VND</span>
+                    </Text>
                   </div>
 
                 </div>
