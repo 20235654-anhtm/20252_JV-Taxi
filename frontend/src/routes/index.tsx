@@ -18,7 +18,7 @@ import PassengerHome from '../pages/passenger/PassengerHome';
 import SearchLocation from '../pages/passenger/SearchLocation';
 import BookingOptions from '../pages/passenger/BookingOptions';
 import SelectDriver from '../pages/passenger/SelectDriver';
-import DriverDetail from '../pages/passenger/DriverDetail';
+import DriverReviewDetail from '../pages/passenger/DriverReviewDetail';
 import PassengerProfile from '../pages/passenger/Profile';
 import PassengerProfileEdit from '../pages/passenger/ProfileEdit';
 import AddCard from '../pages/passenger/AddCard';
@@ -39,7 +39,7 @@ import ChatwithPassenger from '../pages/driver/ChatwithPassenger';
 import CallPassenger from '../pages/driver/CallPassenger';
 import DriverInTrip from '../pages/driver/DriverInTrip';
 import DriverApproval from '../pages/admin/DriverApproval';
-import AdminDriverDetail from '../pages/admin/DriverDetail';
+import AdminDriverReviewDetail from '../pages/admin/DriverReviewDetail';
 import DriverApprovalList from '../pages/admin/DriverApprovalList';
 import AdminDashboard from '../pages/admin/AdminDashboard';
 import DriverManagement from '../pages/admin/DriverManagement';
@@ -118,7 +118,7 @@ const AppRoutes = () => {
       <Route path="/passenger/search-location" element={<ProtectedRoute allowedRole="CUSTOMER"><SearchLocation /></ProtectedRoute>} />
       <Route path="/passenger/booking-options" element={<ProtectedRoute allowedRole="CUSTOMER"><BookingOptions /></ProtectedRoute>} />
       <Route path="/passenger/select-driver" element={<ProtectedRoute allowedRole="CUSTOMER"><SelectDriver /></ProtectedRoute>} />
-      <Route path="/passenger/driver-detail" element={<ProtectedRoute allowedRole="CUSTOMER"><DriverDetail /></ProtectedRoute>} />
+      <Route path="/passenger/driver-review-detail" element={<ProtectedRoute allowedRole="CUSTOMER"><DriverReviewDetail /></ProtectedRoute>} />
       <Route path="/passenger/booking-confirmation" element={<ProtectedRoute allowedRole="CUSTOMER"><BookingConfirmation /></ProtectedRoute>} />
       <Route path="/passenger/profile" element={<ProtectedRoute allowedRole="CUSTOMER"><PassengerProfile /></ProtectedRoute>} />
       <Route path="/passenger/profile/edit" element={<ProtectedRoute allowedRole="CUSTOMER"><PassengerProfileEdit /></ProtectedRoute>} />
@@ -146,7 +146,7 @@ const AppRoutes = () => {
       <Route path="/admin/passenger-management" element={<ProtectedRoute allowedRole="ADMIN"><PassengerManagement /></ProtectedRoute>} />
       <Route path="/admin/driver-management" element={<ProtectedRoute allowedRole="ADMIN"><DriverManagement /></ProtectedRoute>} />
       <Route path="/admin/driver-approval-list" element={<ProtectedRoute allowedRole="ADMIN"><DriverApproval /></ProtectedRoute>} />
-      <Route path="/admin/driver-approve/driver-detail" element={<AdminDriverDetail />} />
+      <Route path="/admin/driver-approve/driver-detail" element={<AdminDriverReviewDetail />} />
     </Routes>
   );
 };

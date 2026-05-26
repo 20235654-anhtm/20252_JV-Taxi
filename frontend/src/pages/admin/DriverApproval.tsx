@@ -17,6 +17,7 @@ interface Driver {
     fullName: string;
     email: string;
     phone: string;
+    createdAt?: string;
   };
 }
 
@@ -267,7 +268,7 @@ const DriverApproval = () => {
                         <h3 className="driver-card-name">{driver.profile.fullName}</h3>
                       </div>
 
-                      <p className="driver-card-date">{formatApplyDate(undefined, lang)}</p>
+                      <p className="driver-card-date">{formatApplyDate(driver.profile.createdAt, lang)}</p>
 
                       <div className="driver-card-status">
                         <span className="status-badge-waiting">{t.statusWaiting}</span>

@@ -139,6 +139,12 @@ export const getMe = async (req: any, res: Response) => {
   try {
     const userId = req.user.userId;
 
+    // Update lastActive timestamp in Profile model (active app usage)
+    await prisma.profile.update({
+      where: { id: userId },
+      data: { lastActive: new Date() }
+    });
+
     const profile = await prisma.profile.findUnique({
       where: { id: userId },
       include: {

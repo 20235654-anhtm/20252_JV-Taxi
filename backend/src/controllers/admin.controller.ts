@@ -50,6 +50,7 @@ export const getUsers = async (req: Request, res: Response) => {
         status: true,
         avatar: true,
         createdAt: true,
+        lastActive: true,
         driverProfile: {
           select: {
             vehicleType: true,
@@ -57,7 +58,9 @@ export const getUsers = async (req: Request, res: Response) => {
             isApproved: true,
             isOnline: true,
             isBusy: true,
-            averageRating: true
+            averageRating: true,
+            japaneseCerInfor: true,
+            drivingLicenseInfor: true
           }
         },
         ridesAsPassenger: {
@@ -91,6 +94,7 @@ export const getUsers = async (req: Request, res: Response) => {
         status: user.status,
         avatar: user.avatar,
         createdAt: user.createdAt,
+        lastActive: user.lastActive,
         driverProfile: user.driverProfile,
         completedRides: completedRidesCount,
         totalSpent: totalSpent

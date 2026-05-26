@@ -309,6 +309,7 @@ router.get('/admin/pending', async (req: Request, res: Response) => {
             fullName: true,
             email: true,
             phone: true,
+            createdAt: true,
           }
         }
       }
@@ -405,6 +406,12 @@ router.put('/status', authMiddleware as any, async (req: AuthRequest, res: Respo
     }
     if (lat !== undefined) updateData.lat = Number(lat);
     if (lng !== undefined) updateData.lng = Number(lng);
+
+    // Update lastActive timestamp in Profile model (e.g. on toggling status or logging out)
+    await prisma.profile.update({
+      where: { id: userId },
+      data: { lastActive: new Date() }
+    });
 
     const updated = await driverProfileService.updateDriverProfile(userId, updateData);
 

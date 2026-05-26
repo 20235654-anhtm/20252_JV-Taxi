@@ -3,7 +3,7 @@ import { useNavigate, useLocation, useSearchParams } from 'react-router-dom';
 import { ArrowLeft, User, Mail, Phone, ShieldCheck, Car, Scan, Languages, BadgeCheck } from 'lucide-react';
 import { API_BASE_URL } from '../../config/api';
 import { useLanguage } from '../../context/LanguageContext';
-import './DriverDetail.css';
+import './DriverReviewDetail.css';
 
 const CustomIdCardIcon = ({ size = 20, className = "" }: { size?: number; className?: string }) => (
   <svg
@@ -104,27 +104,7 @@ const TRANSLATIONS = {
   }
 };
 
-// High-fidelity mockup data matching the screenshot exactly
-const MOCK_DRIVER: Driver = {
-  userId: "mock-minh-nguyen-id",
-  vehicleType: "Sedan",
-  vehicleInfor: JSON.stringify({
-    model: "VinFast Lux A2.0",
-    plate: "51H-123.45",
-    year: "2022",
-    class: "premium"
-  }),
-  drivingLicenseInfor: "Kinh nghiệm lái xe: 8 năm",
-  japaneseCerInfor: "JLPT N2",
-  avatarPicture: "/driver_avatar.png",
-  profile: {
-    fullName: "Minh Nguyen",
-    email: "minh.nguyen@example.com",
-    phone: "+84 902 445 112"
-  }
-};
-
-const DriverDetail = () => {
+const DriverReviewDetail = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [searchParams] = useSearchParams();
@@ -133,8 +113,7 @@ const DriverDetail = () => {
 
   const userId = searchParams.get('userId');
   
-  // Set default to MOCK_DRIVER for instant visual display (no BE dependency)
-  const [driver, setDriver] = useState<Driver>(MOCK_DRIVER);
+  const [driver, setDriver] = useState<Driver | null>(null);
   const [isApproved, setIsApproved] = useState<boolean>(false);
   const [loading, setLoading] = useState(true);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
@@ -153,19 +132,17 @@ const DriverDetail = () => {
       // Use navigation state if passed
       if (location.state?.driver && isMounted) {
         setDriver(location.state.driver);
-        setIsApproved(false);
+        setIsApproved(location.state.driver.isApproved || false);
         setLoading(false);
         return;
       }
 
-      // If no userId in URL, show mockup data immediately
       if (!userId) {
-        setDriver(MOCK_DRIVER);
+        setDriver(null);
         setLoading(false);
         return;
       }
 
-      // Try fetching from database, but fallback to mockup data on failure
       try {
         const response = await fetch(`${API_BASE_URL}/api/drivers/${userId}`);
         const data = await response.json();
@@ -188,13 +165,11 @@ const DriverDetail = () => {
           setDriver(normalizedDriver);
           setIsApproved(d.driverProfile?.isApproved || false);
         } else {
-          // If BE fails or driver not found, we keep the mockup driver active
-          console.warn('Driver not found in DB. Falling back to mockup data.');
-          setDriver(MOCK_DRIVER);
+          setDriver(null);
         }
       } catch (error) {
-        console.warn('Backend fetch failed. Using mockup data.');
-        setDriver(MOCK_DRIVER);
+        console.error(error);
+        setDriver(null);
       } finally {
         if (isMounted) {
           setLoading(false);
@@ -209,7 +184,7 @@ const DriverDetail = () => {
   }, [userId, location.state]);
 
   const handleApprove = async () => {
-    if (submitting) return;
+    if (submitting || !driver) return;
     setSubmitting(true);
     try {
       const response = await fetch(`${API_BASE_URL}/api/drivers/admin/approve/${driver.userId}`, {
@@ -223,31 +198,24 @@ const DriverDetail = () => {
           navigate('/admin/driver-approve');
         }, 1500);
       } else {
-        // Mock success if BE is offline
-        showToast(`✅ ${t.approveSuccess} (Mock)`);
-        setIsApproved(true);
-        setTimeout(() => {
-          navigate('/admin/driver-approve');
-        }, 1500);
+        showToast(`❌ ${t.approveFail}`);
       }
     } catch (error) {
-      // Mock success if BE is offline
-      showToast(`✅ ${t.approveSuccess} (Mock)`);
-      setIsApproved(true);
-      setTimeout(() => {
-        navigate('/admin/driver-approve');
-      }, 1500);
+      console.error(error);
+      showToast(`❌ ${t.networkError}`);
     } finally {
       setSubmitting(false);
     }
   };
 
   const handleReject = async () => {
-    if (submitting) return;
+    if (submitting || !driver) return;
     setSubmitting(true);
     try {
       const response = await fetch(`${API_BASE_URL}/api/drivers/admin/reject/${driver.userId}`, {
         method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ reason: '書類不備のため申請を却下しました。' })
       });
       const data = await response.json();
       if (data.success) {
@@ -256,35 +224,14 @@ const DriverDetail = () => {
           navigate('/admin/driver-approve');
         }, 1500);
       } else {
-        // Mock success if BE is offline
-        showToast(`✅ ${t.rejectSuccess} (Mock)`);
-        setTimeout(() => {
-          navigate('/admin/driver-approve');
-        }, 1500);
+        showToast(`❌ ${t.rejectFail}`);
       }
     } catch (error) {
-      // Mock success if BE is offline
-      showToast(`✅ ${t.rejectSuccess} (Mock)`);
-      setTimeout(() => {
-        navigate('/admin/driver-approve');
-      }, 1500);
+      console.error(error);
+      showToast(`❌ ${t.networkError}`);
     } finally {
       setSubmitting(false);
     }
-  };
-
-  // Deterministic mock DOB helper
-  const getMockDob = (name: string) => {
-    if (name === "Minh Nguyen") {
-      return lang === 'JP' ? '1988年3月14日' : '14/03/1988';
-    }
-    const hash = name.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
-    const year = 1978 + (hash % 20); // 1978 to 1997
-    const month = 1 + (hash % 12);
-    const day = 1 + (hash % 28);
-    return lang === 'JP'
-      ? `${year}年${month}月${day}日`
-      : `${day.toString().padStart(2, '0')}/${month.toString().padStart(2, '0')}/${year}`;
   };
 
   if (loading) {
@@ -293,6 +240,25 @@ const DriverDetail = () => {
         <div className="detail-loading">
           <div className="detail-spinner" />
           <p>{t.loading}</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!driver) {
+    return (
+      <div className="driver-review-detail-page">
+        <header className="detail-header">
+          <div className="header-left">
+            <button className="header-back-btn" onClick={() => navigate(-1)}>
+              <ArrowLeft size={20} />
+            </button>
+            <span className="header-title">{t.headerTitle}</span>
+          </div>
+        </header>
+        <div style={{ padding: '60px 20px', textAlign: 'center', color: '#3d4a3f', fontFamily: 'sans-serif' }}>
+          <h3 style={{ fontSize: '18px', fontWeight: 'bold', marginBottom: '8px' }}>運転手情報が見つかりません</h3>
+          <p style={{ fontSize: '13px', color: '#8a8a8a' }}>対象の運転手アカウントが存在しないか、データ取得に失敗しました。</p>
         </div>
       </div>
     );
@@ -314,7 +280,7 @@ const DriverDetail = () => {
     // fallback
   }
 
-  const dob = getMockDob(driver.profile.fullName);
+  const dob = t.notProvided; // No DOB in DB schema
   const jlpt = driver.japaneseCerInfor ? driver.japaneseCerInfor.match(/N[1-5]/i)?.[0]?.toUpperCase() || 'N2' : 'N2';
 
   return (
@@ -489,4 +455,4 @@ const DriverDetail = () => {
   );
 };
 
-export default DriverDetail;
+export default DriverReviewDetail;
