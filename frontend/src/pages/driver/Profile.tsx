@@ -207,6 +207,7 @@ export default function DriverProfile() {
 
       <BottomNavBar
         activeTab="profile"
+        role="driver"
       />
     </div>
   );
