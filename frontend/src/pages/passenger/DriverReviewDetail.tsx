@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Header } from '../../components/layout/Header';
 import { API_BASE_URL } from '../../config/api';
-import './DriverDetail.css';
+import './DriverReviewDetail.css';
 
 interface DriverSummary {
   id: string;
@@ -17,7 +17,7 @@ interface DriverSummary {
   avatar: string;
 }
 
-interface DriverDetailData extends DriverSummary {
+interface DriverReviewDetailData extends DriverSummary {
   email?: string;
   phone?: string;
   vehicleInfor?: string;
@@ -36,12 +36,12 @@ const formatVehicleText = (infoStr: string) => {
   }
 };
 
-const DriverDetail = () => {
+const DriverReviewDetail = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const initialDriver = location.state?.driver as DriverSummary | undefined;
   const passedFare = location.state?.fare;
-  const [driver, setDriver] = useState<DriverDetailData | undefined>(initialDriver);
+  const [driver, setDriver] = useState<DriverReviewDetailData | undefined>(initialDriver);
   const [loading, setLoading] = useState<boolean>(!!initialDriver);
   const [error, setError] = useState<string | undefined>();
   const [realReviews, setRealReviews] = useState<any[]>([]);
@@ -52,7 +52,7 @@ const DriverDetail = () => {
       return;
     }
 
-    const fetchDriverDetail = async () => {
+    const fetchDriverReviewDetail = async () => {
       setLoading(true);
       setError(undefined);
 
@@ -81,14 +81,14 @@ const DriverDetail = () => {
           setRealReviews(reviewData.data);
         }
       } catch (err) {
-        console.error('[DriverDetail] fetch error:', err);
+        console.error('[DriverReviewDetail] fetch error:', err);
         setError('サーバーと通信できませんでした');
       } finally {
         setLoading(false);
       }
     };
 
-    fetchDriverDetail();
+    fetchDriverReviewDetail();
   }, [initialDriver?.id]);
 
   if (loading) {
@@ -221,4 +221,4 @@ const DriverDetail = () => {
   );
 };
 
-export default DriverDetail;
+export default DriverReviewDetail;

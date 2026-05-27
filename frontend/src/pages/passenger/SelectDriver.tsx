@@ -226,7 +226,7 @@ const SelectDriver = () => {
   const handleSelectDriver = (driver: Driver) => {
     console.log('Driver selected:', driver.name);
     // Navigate to details
-    navigate('/passenger/driver-detail', { state: { driver, fare: passedFare } });
+    navigate('/passenger/driver-review-detail', { state: { driver, fare: passedFare } });
   };
 
   return (
