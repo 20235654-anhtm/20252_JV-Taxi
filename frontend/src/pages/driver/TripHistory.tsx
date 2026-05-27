@@ -7,22 +7,7 @@ import FilterSection from '../../components/TripHistory/FilterSection';
 import TripCard from '../../components/TripHistory/TripCard';
 import type { Trip, Summary, FilterType } from '../../types/TripHistory';
 import { getCache, setCache, CACHE_KEYS } from '../../services/cacheService';
-
-// MOCK DATA
-const mockSummary: Summary = {
-  totalRevenue: 1240000,
-  weeklyGrowth: 12,
-  completedTrips: 42
-};
-
-const mockTrips: Trip[] = [
-  { id: '1', date: '2026年5月27日', time: '14:20', pickupLocation: 'サンワ・タワー (1区)', destination: 'タンソンニャット国際空港', price: 145000, status: '支払済' },
-  { id: '2', date: '2026年5月27日', time: '11:05', pickupLocation: 'クレセント・モール (7区)', destination: 'レタントン通り (1区)', price: 82000, status: '支払済' },
-  { id: '3', date: '2026年5月26日', time: '21:45', pickupLocation: 'ランドマーク81 (ビンタン区)', destination: 'ビンホームズ・グランドパーク (9区)', price: 310000, status: '支払済' },
-  { id: '4', date: '2026年5月26日', time: '09:10', pickupLocation: 'ベンタイン市場 (1区)', destination: 'サイゴン大教会 (1区)', price: 45000, status: '支払済' },
-  { id: '5', date: '2026年5月25日', time: '15:30', pickupLocation: 'ビテクスコ・フィナンシャルタワー (1区)', destination: 'チョロン (5区)', price: 120000, status: '支払済' },
-  { id: '6', date: '2026年5月25日', time: '18:00', pickupLocation: 'グエンフエ通り (1区)', destination: 'タオディエン (2区)', price: 155000, status: '支払済' },
-];
+import { API_BASE_URL } from '../../config/api';
 
 const TripHistory = () => {
   const navigate = useNavigate();
@@ -33,79 +18,111 @@ const TripHistory = () => {
   const [filter, setFilter] = useState<FilterType>(cachedState?.filter || 'today');
   const [page, setPage] = useState<number>(cachedState?.page || 1);
   const itemsPerPage = 3;
+
+  const [summary, setSummary] = useState<Summary>({
+    totalRevenue: 0,
+    weeklyGrowth: 0,
+    completedTrips: 0
+  });
+  const [trips, setTrips] = useState<Trip[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [hasMore, setHasMore] = useState(true);
   
-  const parseDate = (dateStr: string) => {
-    const match = dateStr.match(/(\d+)年(\d+)月(\d+)日/);
-    if (!match) return new Date(0);
-    return new Date(parseInt(match[1]), parseInt(match[2]) - 1, parseInt(match[3]));
-  };
-
-  const isToday = (date: Date) => {
-    const today = new Date();
-    return date.getDate() === today.getDate() &&
-      date.getMonth() === today.getMonth() &&
-      date.getFullYear() === today.getFullYear();
-  };
-
-  const isThisWeek = (date: Date) => {
-    const today = new Date();
-    const day = today.getDay();
-    // Monday as start of week
-    const diffToMonday = today.getDate() - day + (day === 0 ? -6 : 1);
-    const startOfWeek = new Date(today.getFullYear(), today.getMonth(), diffToMonday);
-    startOfWeek.setHours(0, 0, 0, 0);
-    
-    const endOfWeek = new Date(startOfWeek);
-    endOfWeek.setDate(endOfWeek.getDate() + 6);
-    endOfWeek.setHours(23, 59, 59, 999);
-    
-    return date >= startOfWeek && date <= endOfWeek;
-  };
-
-  const filteredTrips = React.useMemo(() => {
-    return mockTrips.filter(trip => {
-      const date = parseDate(trip.date);
-      if (filter === 'today') return isToday(date);
-      if (filter === 'week') return isThisWeek(date);
-      return true;
-    });
-  }, [filter]);
-
-  const displayedTrips = React.useMemo(() => {
-    return filteredTrips.slice(0, page * itemsPerPage);
-  }, [filteredTrips, page]);
-
-  const [loading, setLoading] = useState(false);
-  const hasMore = displayedTrips.length < filteredTrips.length;
   const observer = useRef<IntersectionObserver | null>(null);
+  const isFirstMount = useRef(true);
 
-  // Khi đổi filter, reset page về 1 (chỉ reset nếu do user click đổi, không reset lúc mới mount nếu đang có cache)
-  useEffect(() => {
-    if (cachedState && cachedState.filter === filter && cachedState.page === page) {
-      return; // Không reset nếu đang ở trạng thái khôi phục từ cache
+  const fetchData = useCallback(async (pageNum: number, currentFilter: FilterType, customLimit?: number) => {
+    try {
+      setLoading(true);
+      const token = sessionStorage.getItem('authToken') || localStorage.getItem('authToken');
+      if (!token) {
+        setLoading(false);
+        return;
+      }
+      
+      const limitVal = customLimit || itemsPerPage;
+      const response = await fetch(
+        `${API_BASE_URL}/api/rides/driver/history?page=${pageNum}&limit=${limitVal}&filter=${currentFilter}`,
+        {
+          headers: { 'Authorization': `Bearer ${token}` }
+        }
+      );
+      if (!response.ok) throw new Error('Failed to fetch driver history');
+      const resData = await response.json();
+      
+      if (resData.success) {
+        setSummary(resData.summary);
+        
+        const mappedTrips = resData.data.map((ride: any) => {
+          const dateObj = new Date(ride.createdAt);
+          const dateStr = `${dateObj.getFullYear()}年${dateObj.getMonth() + 1}月${dateObj.getDate()}日`;
+          
+          const hours = dateObj.getHours();
+          const minutes = String(dateObj.getMinutes()).padStart(2, '0');
+          const timeStr = `${String(hours).padStart(2, '0')}:${minutes}`;
+          
+          const getLocDetails = (addr: string) => {
+            if (!addr) return '...';
+            const parts = addr.split(',');
+            return parts[0].trim();
+          };
+
+          return {
+            id: ride.id,
+            date: dateStr,
+            time: timeStr,
+            pickupLocation: getLocDetails(ride.startAddress),
+            destination: getLocDetails(ride.endAddress),
+            price: ride.payment?.totalAmount ? Number(ride.payment.totalAmount) : (ride.matchFee ? Number(ride.matchFee) : 0),
+            status: '支払済'
+          };
+        });
+
+        if (pageNum === 1) {
+          setTrips(mappedTrips);
+        } else {
+          setTrips(prev => [...prev, ...mappedTrips]);
+        }
+        
+        setHasMore(resData.pagination.hasMore);
+      }
+    } catch (err) {
+      console.error('Error fetching driver history:', err);
+    } finally {
+      setLoading(false);
     }
+  }, []);
+
+  useEffect(() => {
+    const loadData = async () => {
+      if (isFirstMount.current) {
+        isFirstMount.current = false;
+        if (page > 1) {
+          // Fetch gộp tất cả các trang từ 1 đến page hiện tại
+          await fetchData(1, filter, page * itemsPerPage);
+          if (cachedState?.scrollY > 0) {
+            requestAnimationFrame(() => {
+              window.scrollTo(0, cachedState.scrollY);
+            });
+          }
+          return;
+        }
+      }
+      
+      fetchData(page, filter);
+    };
+
+    loadData();
+  }, [page, filter, fetchData]);
+
+  const handleFilterChange = (newFilter: FilterType) => {
+    setFilter(newFilter);
     setPage(1);
-  }, [filter]);
-
-  // Phục hồi scroll position
-  useEffect(() => {
-    if (cachedState && cachedState.scrollY > 0) {
-      // Đợi DOM render xong thẻ thì cuộn tới vị trí cũ
-      requestAnimationFrame(() => {
-        window.scrollTo(0, cachedState.scrollY);
-      });
-    }
-  }, [cachedState]);
+  };
 
   const loadMore = useCallback(() => {
     if (!hasMore || loading) return;
-    setLoading(true);
-    
-    // Giả lập thời gian gọi API (delay 1s) để thấy hiệu ứng tải thêm thẻ
-    setTimeout(() => {
-      setPage(p => p + 1);
-      setLoading(false);
-    }, 1000);
+    setPage(p => p + 1);
   }, [hasMore, loading]);
 
   const handleTripClick = (id: string) => {
@@ -150,12 +167,12 @@ const TripHistory = () => {
           </div>
         </div>
 
-        <SummaryCard summary={mockSummary} />
-        <FilterSection activeFilter={filter} onFilterChange={setFilter} />
+        <SummaryCard summary={summary} />
+        <FilterSection activeFilter={filter} onFilterChange={handleFilterChange} />
 
         <div className="flex flex-col gap-4">
-          {displayedTrips.map((trip, index) => {
-            if (displayedTrips.length === index + 1) {
+          {trips.map((trip, index) => {
+            if (trips.length === index + 1) {
               return (
                 <div ref={lastTripElementRef} key={trip.id}>
                   <TripCard 
@@ -176,13 +193,19 @@ const TripHistory = () => {
           })}
         </div>
 
-        {!hasMore && (
+        {!loading && trips.length === 0 && (
+          <div className="w-full text-center py-8 text-[#3D4A3F] text-[16px]">
+            乗車履歴がありません。
+          </div>
+        )}
+
+        {!hasMore && trips.length > 0 && (
           <div className="w-full text-center py-4 text-[#3D4A3F] text-[14px] font-bold">
             これ以上の履歴はありません
           </div>
         )}
 
-        {loading && hasMore && (
+        {loading && (
           <div className="w-full flex justify-center py-4">
             <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-[#006D37]"></div>
           </div>

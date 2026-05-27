@@ -1,7 +1,7 @@
 import React from 'react';
 import type { PassengerInfoProps } from '../../types/TripSummaryDetail';
 
-const PassengerInfo: React.FC<PassengerInfoProps> = ({ passenger, timeline }) => {
+const PassengerInfo: React.FC<PassengerInfoProps> = ({ passenger, timeline, onClickMessage }) => {
   return (
     <div style={{alignSelf: 'stretch', padding: 24, background: '#EFF6EC', borderRadius: 40, flexDirection: 'column', justifyContent: 'flex-start', alignItems: 'flex-start', gap: 24, display: 'flex', width: '100%'}}>
       <div style={{alignSelf: 'stretch', justifyContent: 'flex-start', alignItems: 'center', gap: 16, display: 'flex'}}>
@@ -11,7 +11,30 @@ const PassengerInfo: React.FC<PassengerInfoProps> = ({ passenger, timeline }) =>
             <div style={{height: 24, justifyContent: 'center', display: 'flex', flexDirection: 'column', color: '#171D17', fontSize: 16, fontFamily: 'Plus Jakarta Sans', fontWeight: '700', lineHeight: '24px', wordWrap: 'break-word'}}>{passenger.name}</div>
           </div>
         </div>
-        <div style={{width: 37.91, height: 40, background: '#DDE5DB', borderRadius: 9999, justifyContent: 'center', alignItems: 'center', display: 'flex'}}>
+        <div 
+          onClick={onClickMessage}
+          style={{
+            width: 37.91, 
+            height: 40, 
+            background: '#DDE5DB', 
+            borderRadius: 9999, 
+            justifyContent: 'center', 
+            alignItems: 'center', 
+            display: 'flex',
+            cursor: onClickMessage ? 'pointer' : 'default',
+            transition: 'opacity 0.2s',
+          }}
+          onMouseOver={(e) => {
+            if (onClickMessage) {
+              e.currentTarget.style.opacity = '0.8';
+            }
+          }}
+          onMouseOut={(e) => {
+            if (onClickMessage) {
+              e.currentTarget.style.opacity = '1';
+            }
+          }}
+        >
           <div style={{flexDirection: 'column', justifyContent: 'flex-start', alignItems: 'center', display: 'flex'}}>
             <img src="/src/assets/IconEmptyBlackMess.svg" alt="message" style={{width: 16.67, height: 16.67}} />
           </div>

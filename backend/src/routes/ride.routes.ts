@@ -534,4 +534,167 @@ router.post('/complete', authMiddleware as any, async (req: AuthRequest, res: Re
   }
 });
 
+/**
+ * GET /api/rides/driver/history
+ * Fetch the ride history and earnings summary for the authenticated driver.
+ */
+router.get('/driver/history', authMiddleware as any, async (req: AuthRequest, res: Response) => {
+  try {
+    const driverId = req.user?.userId;
+    if (!driverId) {
+      res.status(401).json({ success: false, message: 'Unauthorized' });
+      return;
+    }
+
+    const page = parseInt(req.query.page as string || '1', 10);
+    const limit = parseInt(req.query.limit as string || '10', 10);
+    const filter = req.query.filter as string || 'all';
+    const skip = (page - 1) * limit;
+
+    // Get all completed rides of driver to calculate summary statistics
+    const allCompletedRides = await prisma.ride.findMany({
+      where: {
+        driverId,
+        status: 'COMPLETED'
+      },
+      include: {
+        payment: true
+      }
+    });
+
+    // Calculate summary
+    const totalRevenue = allCompletedRides.reduce((sum, ride) => {
+      const amount = ride.payment?.totalAmount ? Number(ride.payment.totalAmount) : (ride.matchFee ? Number(ride.matchFee) : 0);
+      return sum + amount;
+    }, 0);
+
+    // Calculate weekly growth (comparing this week's revenue to last week's revenue)
+    const today = new Date();
+    const day = today.getDay();
+    const diffToMonday = today.getDate() - day + (day === 0 ? -6 : 1);
+    const startOfThisWeek = new Date(today.getFullYear(), today.getMonth(), diffToMonday);
+    startOfThisWeek.setHours(0, 0, 0, 0);
+
+    const startOfLastWeek = new Date(startOfThisWeek);
+    startOfLastWeek.setDate(startOfLastWeek.getDate() - 7);
+
+    const endOfLastWeek = new Date(startOfThisWeek);
+    endOfLastWeek.setMilliseconds(-1);
+
+    const thisWeekRevenue = allCompletedRides
+      .filter(ride => new Date(ride.createdAt) >= startOfThisWeek)
+      .reduce((sum, ride) => sum + (ride.payment?.totalAmount ? Number(ride.payment.totalAmount) : (ride.matchFee ? Number(ride.matchFee) : 0)), 0);
+
+    const lastWeekRevenue = allCompletedRides
+      .filter(ride => {
+        const d = new Date(ride.createdAt);
+        return d >= startOfLastWeek && d <= endOfLastWeek;
+      })
+      .reduce((sum, ride) => sum + (ride.payment?.totalAmount ? Number(ride.payment.totalAmount) : (ride.matchFee ? Number(ride.matchFee) : 0)), 0);
+
+    let weeklyGrowth = 0;
+    if (lastWeekRevenue > 0) {
+      weeklyGrowth = Math.round(((thisWeekRevenue - lastWeekRevenue) / lastWeekRevenue) * 100);
+    } else if (thisWeekRevenue > 0) {
+      weeklyGrowth = 100;
+    }
+
+    // Apply filters for history list
+    let dateFilter: any = {};
+    if (filter === 'today') {
+      const startOfToday = new Date();
+      startOfToday.setHours(0, 0, 0, 0);
+      dateFilter = {
+        createdAt: {
+          gte: startOfToday
+        }
+      };
+    } else if (filter === 'week') {
+      dateFilter = {
+        createdAt: {
+          gte: startOfThisWeek
+        }
+      };
+    }
+
+    const whereClause = {
+      driverId,
+      status: 'COMPLETED' as const,
+      ...dateFilter
+    };
+
+    // Get rides count
+    const totalRides = await prisma.ride.count({
+      where: whereClause
+    });
+
+    // Get paginated rides
+    const rides = await prisma.ride.findMany({
+      where: whereClause,
+      include: {
+        payment: true,
+        passenger: true
+      },
+      orderBy: { createdAt: 'desc' },
+      skip,
+      take: limit
+    });
+
+    // PostGIS location coordinates
+    const ridesWithCoords = await Promise.all(rides.map(async (ride) => {
+      let startLat = null;
+      let startLng = null;
+      let endLat = null;
+      let endLng = null;
+
+      try {
+        const coords = await prisma.$queryRaw<any[]>`
+          SELECT 
+            ST_X(start_location::geometry) as start_lng,
+            ST_Y(start_location::geometry) as start_lat,
+            ST_X(end_location::geometry) as end_lng,
+            ST_Y(end_location::geometry) as end_lat
+          FROM "rides"
+          WHERE "id" = ${ride.id}::uuid
+        `;
+        if (coords && coords.length > 0) {
+          startLng = coords[0].start_lng;
+          startLat = coords[0].start_lat;
+          endLng = coords[0].end_lng;
+          endLat = coords[0].end_lat;
+        }
+      } catch (err) {
+        console.error(`Error fetching coords for ride ${ride.id}:`, err);
+      }
+
+      return {
+        ...ride,
+        startLat,
+        startLng,
+        endLat,
+        endLng
+      };
+    }));
+
+    res.status(200).json({
+      success: true,
+      summary: {
+        totalRevenue,
+        weeklyGrowth,
+        completedTrips: allCompletedRides.length
+      },
+      data: ridesWithCoords,
+      pagination: {
+        total: totalRides,
+        page,
+        limit,
+        hasMore: skip + rides.length < totalRides
+      }
+    });
+  } catch (error) {
+    console.error('Error fetching driver ride history:', error);
+    res.status(500).json({ success: false, message: 'Server error while fetching history.' });
+  }
+});
+
 export default router;

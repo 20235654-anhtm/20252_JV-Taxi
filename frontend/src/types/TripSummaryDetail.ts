@@ -7,6 +7,7 @@ export interface TripSummaryDetailType {
   tip: number;
   rating: number;
   passenger: {
+    id: string;
     name: string;
     avatarUrl: string;
   };
@@ -41,6 +42,7 @@ export interface TotalIncomeCardProps {
 
 export interface PassengerInfoProps {
   passenger: {
+    id: string;
     name: string;
     avatarUrl: string;
   };
@@ -48,6 +50,7 @@ export interface PassengerInfoProps {
     pickup: { time: string; location: string };
     dropoff: { time: string; location: string };
   };
+  onClickMessage?: () => void;
 }
 
 export interface BillSectionProps {
