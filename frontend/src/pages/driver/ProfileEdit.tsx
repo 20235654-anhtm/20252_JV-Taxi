@@ -73,7 +73,7 @@ export default function ProfileEdit() {
     if (!formData.fullName.trim()) newErrors.fullName = "無効な形式";
     if (!formData.email.includes('@')) newErrors.email = "無効な形式";
     if (!formData.phone.trim()) newErrors.phone = "無効な形式";
-    
+
     if (user?.role === 'driver') {
       if (!formData.licensePlate.trim()) newErrors.licensePlate = "無効な形式";
       if (!formData.carType.trim()) newErrors.carType = "無効な形式";
@@ -99,7 +99,7 @@ export default function ProfileEdit() {
   const handleSave = () => {
     if (!validate()) return;
     setIsSubmitting(true);
-    
+
     setTimeout(() => {
       if (user?.role === 'driver' || user?.role === 'DRIVER') {
         showToast("編集リクエストを送信しました", "success");
@@ -131,11 +131,11 @@ export default function ProfileEdit() {
         <div className="pe-avatar-section">
           <div className="pe-avatar-wrapper">
             <img src={formData.avatar} alt="Avatar" className="pe-avatar" />
-            <input 
-              type="file" 
-              ref={fileInputRef} 
-              onChange={handleFileChange} 
-              style={{ display: 'none' }} 
+            <input
+              type="file"
+              ref={fileInputRef}
+              onChange={handleFileChange}
+              style={{ display: 'none' }}
               accept="image/*"
             />
             <div className="pe-avatar-edit-btn" onClick={handleAvatarClick}>
@@ -149,11 +149,11 @@ export default function ProfileEdit() {
           <h2 className="pe-section-title">
             <User size={22} strokeWidth={2.5} /> 個人情報
           </h2>
-          
+
           <div className={`pe-input-card ${errors.fullName ? 'pe-invalid' : ''}`}>
             <label className="pe-label">氏名</label>
-            <input 
-              type="text" 
+            <input
+              type="text"
               name="fullName"
               value={formData.fullName}
               onChange={handleInputChange}
@@ -164,8 +164,8 @@ export default function ProfileEdit() {
 
           <div className={`pe-input-card ${errors.email ? 'pe-invalid' : ''}`}>
             <label className="pe-label">メールアドレス</label>
-            <input 
-              type="email" 
+            <input
+              type="email"
               name="email"
               value={formData.email}
               onChange={handleInputChange}
@@ -176,8 +176,8 @@ export default function ProfileEdit() {
 
           <div className={`pe-input-card ${errors.phone ? 'pe-invalid' : ''}`}>
             <label className="pe-label">電話番号</label>
-            <input 
-              type="text" 
+            <input
+              type="text"
               name="phone"
               value={formData.phone}
               onChange={handleInputChange}
@@ -192,11 +192,11 @@ export default function ProfileEdit() {
           <h2 className="pe-section-title">
             <CarFront size={22} strokeWidth={2.5} /> 車労詳細
           </h2>
-          
+
           <div className={`pe-input-card ${errors.licensePlate ? 'pe-invalid' : ''}`}>
             <label className="pe-label">ナンバープレート</label>
-            <input 
-              type="text" 
+            <input
+              type="text"
               name="licensePlate"
               value={formData.licensePlate}
               onChange={handleInputChange}
@@ -207,8 +207,8 @@ export default function ProfileEdit() {
 
           <div className={`pe-input-card ${errors.carType ? 'pe-invalid' : ''}`}>
             <label className="pe-label">車種タイプ</label>
-            <input 
-              type="text" 
+            <input
+              type="text"
               name="carType"
               value={formData.carType}
               onChange={handleInputChange}
@@ -219,8 +219,8 @@ export default function ProfileEdit() {
 
           <div className={`pe-input-card ${errors.carModel ? 'pe-invalid' : ''}`}>
             <label className="pe-label">車種モデル</label>
-            <input 
-              type="text" 
+            <input
+              type="text"
               name="carModel"
               value={formData.carModel}
               onChange={handleInputChange}
@@ -235,7 +235,7 @@ export default function ProfileEdit() {
           <h2 className="pe-section-title">
             <ShieldCheck size={22} strokeWidth={2.5} /> 証明書類
           </h2>
-          
+
           <div className="pe-docs-grid">
             <div className="pe-doc-card">
               <IdCard className="pe-doc-icon" size={32} strokeWidth={1.5} />

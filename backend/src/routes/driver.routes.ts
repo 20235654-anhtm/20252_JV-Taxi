@@ -237,7 +237,15 @@ router.get('/:id', async (req: Request, res: Response) => {
     const profile = await prisma.profile.findUnique({
       where: { id },
       include: {
-        driverProfile: true
+        driverProfile: true,
+        reviewsReceived: {
+          include: {
+            reviewer: true
+          },
+          orderBy: {
+            createdAt: 'desc'
+          }
+        }
       }
     }) as any;
 
@@ -266,6 +274,9 @@ router.get('/:id', async (req: Request, res: Response) => {
         fullName: profile.fullName,
         email: profile.email,
         phone: profile.phone,
+        status: profile.status,
+        avatar: profile.avatar,
+        reviews: profile.reviewsReceived || [],
         driverProfile: {
           ...profile.driverProfile,
           parsedVehicleInfor
@@ -309,6 +320,7 @@ router.get('/admin/pending', async (req: Request, res: Response) => {
             fullName: true,
             email: true,
             phone: true,
+            createdAt: true,
           }
         }
       }
@@ -355,6 +367,32 @@ router.put('/admin/approve/:userId', async (req: Request, res: Response) => {
 });
 
 /**
+ * API: PUT /api/drivers/admin/reject/:userId
+ * Rejects driver application by deleting their driver profile
+ */
+router.put('/admin/reject/:userId', async (req: Request, res: Response) => {
+  try {
+    const { userId } = req.params;
+
+    const deleted = await prisma.driverProfile.delete({
+      where: { userId: userId as string },
+    });
+
+    res.status(200).json({
+      success: true,
+      message: 'Driver rejected successfully.',
+      data: deleted,
+    });
+  } catch (error) {
+    console.error('Error rejecting driver:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error while rejecting driver.',
+    });
+  }
+});
+
+/**
  * API: PUT /api/drivers/status
  * Updates driver's online/offline status and current GPS location.
  * Requires driver authentication.
@@ -379,6 +417,12 @@ router.put('/status', authMiddleware as any, async (req: AuthRequest, res: Respo
     }
     if (lat !== undefined) updateData.lat = Number(lat);
     if (lng !== undefined) updateData.lng = Number(lng);
+
+    // Update lastActive timestamp in Profile model (e.g. on toggling status or logging out)
+    await prisma.profile.update({
+      where: { id: userId },
+      data: { lastActive: new Date() }
+    });
 
     const updated = await driverProfileService.updateDriverProfile(userId, updateData);
 

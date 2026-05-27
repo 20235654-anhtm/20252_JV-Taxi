@@ -11,6 +11,7 @@ import messageRoutes from './routes/message.routes';
 import reviewRoutes from './routes/review.routes';
 import fareRoutes from './routes/fare.routes';
 import prisma from './config/db';
+import adminRoutes from './routes/admin.routes';
 import dotenv from 'dotenv';
 import cors from 'cors';
 
@@ -159,6 +160,7 @@ app.use('/api/rides', rideRoutes);
 app.use('/api/messages', messageRoutes);
 app.use('/api/reviews', reviewRoutes);
 app.use('/api/fare', fareRoutes);
+app.use('/api/admin', adminRoutes);
 app.get('/', (req: Request, res: Response) => {
     res.send('Backend Express Server is running');
 });

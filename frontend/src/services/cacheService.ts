@@ -85,4 +85,5 @@ export function clearAllCache(): void {
 export const CACHE_KEYS = {
   USER_PROFILE: 'user_profile',
   DRIVER_PROFILE: 'driver_profile',
+  TRIP_HISTORY_STATE: 'trip_history_state',
 } as const;

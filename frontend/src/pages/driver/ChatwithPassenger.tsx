@@ -176,14 +176,19 @@ const ChatwithPassenger: React.FC = () => {
   };
 
   const handleBack = () => {
-    navigate('/driver/in-trip', {
-      state: {
-        rideId,
-        passengerId: passenger.passengerId,
-        passengerName: passenger.passengerName,
-        passengerAvatar: passenger.passengerAvatar
-      }
-    });
+    const fromHistory = location.state?.fromHistory || false;
+    if (fromHistory) {
+      navigate(-1);
+    } else {
+      navigate('/driver/in-trip', {
+        state: {
+          rideId,
+          passengerId: passenger.passengerId,
+          passengerName: passenger.passengerName,
+          passengerAvatar: passenger.passengerAvatar
+        }
+      });
+    }
   };
 
   return (

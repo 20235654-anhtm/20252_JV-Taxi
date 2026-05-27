@@ -253,6 +253,10 @@ export default function SignIn() {
 
       const data = await response.json();
       if (!response.ok) {
+        if (response.status === 403 || data.isBlocked) {
+          navigate('/blocked');
+          return;
+        }
         throw new Error(data.message || t.errorAuth);
       }
 
@@ -262,6 +266,8 @@ export default function SignIn() {
       // Điều hướng dựa trên vai trò (Role)
       if (data.user.role === 'DRIVER') {
         navigate('/driver');
+      } else if (data.user.role === 'ADMIN') {
+        navigate('/admin');
       } else {
         navigate('/passenger');
       }
