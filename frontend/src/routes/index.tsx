@@ -37,6 +37,8 @@ import PassengerManagement from '../pages/admin/Passenger management';
 
 // Driver Pages
 import DriverDashboard from '../pages/driver/DriverDashboard';
+import TripHistory from '../pages/driver/TripHistory';
+import TripSummaryDetail from '../pages/driver/TripSummaryDetail';
 import DriverProfile from '../pages/driver/DriverProfile';
 import DriverProfileEdit from '../pages/driver/ProfileEdit';
 import ChatwithPassenger from '../pages/driver/ChatwithPassenger';
@@ -141,12 +143,14 @@ const AppRoutes = () => {
       <Route path="/passenger/management" element={<ProtectedRoute allowedRole="CUSTOMER"><PassengerManagement /></ProtectedRoute>} />
 
       {/* ======================= DRIVER FLOW (AUTHENTICATED) ======================= */}
-      <Route path="/driver" element={<ProtectedRoute allowedRole="DRIVER"><DriverDashboard /></ProtectedRoute>} />
-      <Route path="/driver/profile" element={<ProtectedRoute allowedRole="DRIVER"><DriverProfile /></ProtectedRoute>} />
-      <Route path="/driver/profile/edit" element={<ProtectedRoute allowedRole="DRIVER"><DriverProfileEdit /></ProtectedRoute>} />
-      <Route path="/driver/chat" element={<ProtectedRoute allowedRole="DRIVER"><ChatwithPassenger /></ProtectedRoute>} />
-      <Route path="/driver/call-passenger" element={<ProtectedRoute allowedRole="DRIVER"><CallPassenger /></ProtectedRoute>} />
-      <Route path="/driver/in-trip" element={<ProtectedRoute allowedRole="DRIVER"><DriverInTrip /></ProtectedRoute>} />
+      <Route path="/driver" element={<DriverDashboard />} />
+      <Route path="/driver/history" element={<TripHistory />} />
+      <Route path="/driver/history/:id" element={<TripSummaryDetail />} />
+      <Route path="/driver/profile" element={<DriverProfile />} />
+      <Route path="/driver/profile/edit" element={<DriverProfileEdit />} />
+      <Route path="/driver/chat" element={<ChatwithPassenger />} />
+      <Route path="/driver/call-passenger" element={<CallPassenger />} />
+      <Route path="/driver/in-trip" element={<DriverInTrip />} />
 
       {/* ======================= ADMIN FLOW ======================= */}
       <Route path="/admin" element={<ProtectedRoute allowedRole="ADMIN"><Navigate to="/admin/dashboard" replace /></ProtectedRoute>} />

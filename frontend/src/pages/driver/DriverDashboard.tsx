@@ -349,6 +349,7 @@ const DriverDashboard = () => {
       <BottomNavBar
         activeTab={activeTab}
         onTabChange={handleTabChange}
+        role="driver"
       />
 
       {/* INCOMING REQUEST POPUP */}
