@@ -4,110 +4,18 @@ import { BottomNavBar } from '../../components/layout/BottomNavBar';
 import { TripCard } from '../../components/RideHistory/TripCard';
 import type { TripData } from '../../types/RideHistory';
 import IconCalendar from '../../assets/IconCalendar.svg';
+import { API_BASE_URL } from '../../config/api';
 import './Profile.css';
 
-export const ALL_MOCK_TRIPS: TripData[] = [
-  {
-    id: "trip-1",
-    driverName: "Nguyen Van Anh",
-    driverAvatar: "https://avatar.iran.liara.run/public/boy?username=nguyenvananh",
-    price: "₫145,000",
-    status: "完了",
-    startLocationName: "ホテル ニッコー サイゴン",
-    startLocationAddress: "1区 グエンヴァンクー通り 235番地",
-    endLocationName: "タンソンニャット国際空港 第2ターミナル",
-    endLocationAddress: "タンビン区 チュオンソン通り",
-    date: "2023年10月12日",
-    time: "午前08:45",
-  },
-  {
-    id: "trip-2",
-    driverName: "Tran Thi Bich",
-    driverAvatar: "https://avatar.iran.liara.run/public/girl?username=tranthibich",
-    price: "₫210,000",
-    status: "完了",
-    startLocationName: "ビンコムセンター ランドマーク81",
-    startLocationAddress: "ビンタイン区",
-    endLocationName: "クレセント モール",
-    endLocationAddress: "7区 フーミーフン",
-    date: "2023年10月8日",
-    time: "午後01:15",
-  },
-  {
-    id: "trip-3",
-    driverName: "Sato Takeshi",
-    driverAvatar: "https://avatar.iran.liara.run/public/boy?username=satotakeshi",
-    price: "₫120,000",
-    status: "完了",
-    startLocationName: "ベンタイン市場",
-    startLocationAddress: "1区",
-    endLocationName: "ホアセン大学",
-    endLocationAddress: "1区 グエンヴァンチャン通り",
-    date: "2023年10月5日",
-    time: "午前10:30",
-  },
-  {
-    id: "trip-4",
-    driverName: "Le Van Cuong",
-    driverAvatar: "https://avatar.iran.liara.run/public/boy?username=levancuong",
-    price: "₫90,000",
-    status: "完了",
-    startLocationName: "サイゴン中央郵便局",
-    startLocationAddress: "1区",
-    endLocationName: "サイゴン動植物園",
-    endLocationAddress: "1区",
-    date: "2023年10月2日",
-    time: "午後03:20",
-  },
-  {
-    id: "trip-5",
-    driverName: "Pham Thi Dung",
-    driverAvatar: "https://avatar.iran.liara.run/public/girl?username=phamthidung",
-    price: "₫350,000",
-    status: "完了",
-    startLocationName: "イオンモール タンフー",
-    startLocationAddress: "タンフー区",
-    endLocationName: "スイティエン公園",
-    endLocationAddress: "9区",
-    date: "2023年9月28日",
-    time: "午前09:15",
-  },
-  {
-    id: "trip-6",
-    driverName: "Hoang Van E",
-    driverAvatar: "https://avatar.iran.liara.run/public/boy?username=hoangvane",
-    price: "₫85,000",
-    status: "完了",
-    startLocationName: "チョロン (Binh Tay Market)",
-    startLocationAddress: "6区",
-    endLocationName: "ダムセン公園",
-    endLocationAddress: "11区",
-    date: "2023年9月25日",
-    time: "午後05:45",
-  },
-  {
-    id: "trip-7",
-    driverName: "Ngo Thi F",
-    driverAvatar: "https://avatar.iran.liara.run/public/girl?username=ngothif",
-    price: "₫110,000",
-    status: "完了",
-    startLocationName: "ホーチミン美術館",
-    startLocationAddress: "1区",
-    endLocationName: "独立宮殿",
-    endLocationAddress: "1区",
-    date: "2023年9月20日",
-    time: "午前11:00",
-  }
-];
+export const ALL_MOCK_TRIPS: TripData[] = [];
 
-const ITEMS_PER_PAGE = 3;
+const ITEMS_PER_PAGE = 5;
 
 export default function RideHistory() {
-  // State quản lý dữ liệu và phân trang
-  const [trips, setTrips] = useState<TripData[]>(ALL_MOCK_TRIPS.slice(0, ITEMS_PER_PAGE));
+  const [trips, setTrips] = useState<TripData[]>([]);
   const [page, setPage] = useState(1);
-  const [loading, setLoading] = useState(false);
-  const [hasMore, setHasMore] = useState(ALL_MOCK_TRIPS.length > ITEMS_PER_PAGE);
+  const [loading, setLoading] = useState(true);
+  const [hasMore, setHasMore] = useState(true);
 
   // Biến observer để theo dõi cuộn
   const observer = useRef<IntersectionObserver | null>(null);
@@ -128,27 +36,80 @@ export default function RideHistory() {
     if (node) observer.current.observe(node); // Bắt đầu theo dõi thẻ cuối
   }, [loading, hasMore]);
 
-  // Giả lập gọi API Backend mỗi khi biến `page` thay đổi
-  useEffect(() => {
-    if (page === 1) return; // Bỏ qua trang 1 vì đã lấy khi khởi tạo state
-
-    setLoading(true);
-    
-    // Giả lập mạng chậm 1.5 giây
-    setTimeout(() => {
-      const startIndex = (page - 1) * ITEMS_PER_PAGE;
-      const newTrips = ALL_MOCK_TRIPS.slice(startIndex, startIndex + ITEMS_PER_PAGE);
-
-      // Gộp mảng dữ liệu cũ với mảng mới tải về
-      setTrips(prev => [...prev, ...newTrips]);
-      setLoading(false);
-
-      // Nếu đã lấy hết mảng mock
-      if (startIndex + ITEMS_PER_PAGE >= ALL_MOCK_TRIPS.length) {
-        setHasMore(false);
+  const fetchTrips = useCallback(async (pageNum: number) => {
+    try {
+      setLoading(true);
+      const token = sessionStorage.getItem('authToken') || localStorage.getItem('authToken');
+      if (!token) {
+        setLoading(false);
+        return;
       }
-    }, 1500);
-  }, [page]);
+      const response = await fetch(`${API_BASE_URL}/api/rides/passenger/history?page=${pageNum}&limit=${ITEMS_PER_PAGE}`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (!response.ok) throw new Error('Failed to fetch history');
+      const resData = await response.json();
+      if (resData.success) {
+        const mappedTrips = resData.data.map((ride: any) => {
+          const statusMap: Record<string, string> = {
+            PENDING: '保留中',
+            ACCEPTED: '受付済',
+            REJECTED: '拒否',
+            COMPLETED: '完了',
+            CANCELLED: 'キャンセル済',
+          };
+          const getLocDetails = (addr: string) => {
+            if (!addr) return { name: '...', address: '...' };
+            const parts = addr.split(',');
+            if (parts.length > 1) {
+              return {
+                name: parts[0].trim(),
+                address: parts.slice(1).join(',').trim()
+              };
+            }
+            return {
+              name: addr,
+              address: addr
+            };
+          };
+          const startLoc = getLocDetails(ride.startAddress);
+          const endLoc = getLocDetails(ride.endAddress);
+          const dateObj = new Date(ride.createdAt);
+          const dateStr = `${dateObj.getFullYear()}年${dateObj.getMonth() + 1}月${dateObj.getDate()}日`;
+          const hours = dateObj.getHours();
+          const minutes = String(dateObj.getMinutes()).padStart(2, '0');
+          const ampm = hours >= 12 ? '午後' : '午前';
+          const displayHours = hours % 12 || 12;
+          const timeStr = `${ampm}${String(displayHours).padStart(2, '0')}:${minutes}`;
+
+          return {
+            id: ride.id,
+            driverName: ride.driver?.fullName || '未定',
+            driverAvatar: ride.driver?.driverProfile?.avatarPicture || ride.driver?.avatar || 'https://avatar.iran.liara.run/public/boy',
+            price: ride.payment?.totalAmount ? `₫${Number(ride.payment.totalAmount).toLocaleString('vi-VN')}` : (ride.matchFee ? `₫${Number(ride.matchFee).toLocaleString('vi-VN')}` : '₫0'),
+            status: statusMap[ride.status] || ride.status,
+            startLocationName: startLoc.name,
+            startLocationAddress: startLoc.address,
+            endLocationName: endLoc.name,
+            endLocationAddress: endLoc.address,
+            date: dateStr,
+            time: timeStr,
+          };
+        });
+
+        setTrips(prev => pageNum === 1 ? mappedTrips : [...prev, ...mappedTrips]);
+        setHasMore(resData.pagination.hasMore);
+      }
+    } catch (error) {
+      console.error('Error fetching history:', error);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchTrips(page);
+  }, [page, fetchTrips]);
 
   return (
     <div className="pp-container bg-[#f4fbf1] relative min-h-screen">
@@ -163,7 +124,7 @@ export default function RideHistory() {
           </div>
           <div className="px-[16px] py-[8px] bg-[#E3EAE0] rounded-full flex justify-start items-center gap-[8px]">
             <img src={IconCalendar} alt="Calendar" className="w-[11px] h-[12px] text-[#006D37]" />
-            <div className="text-[#171D17] text-[12px] font-[700] leading-[16px] break-words flex flex-col justify-center">2023年10月</div>
+            <div className="text-[#171D17] text-[12px] font-[700] leading-[16px] break-words flex flex-col justify-center">履歴一覧</div>
           </div>
         </div>
 
@@ -172,7 +133,7 @@ export default function RideHistory() {
           {trips.map((trip, index) => {
             if (trips.length === index + 1) {
               return (
-                <div ref={lastTripElementRef} key={trip.id}>
+                <div ref={lastTripElementRef} key={trip.id} className="w-full">
                   <TripCard {...trip} />
                 </div>
               );
@@ -190,9 +151,16 @@ export default function RideHistory() {
         )}
 
         {/* Dòng chữ báo hết dữ liệu */}
-        {!hasMore && (
+        {!loading && !hasMore && trips.length > 0 && (
           <div className="w-full text-center py-4 text-[#3D4A3F] text-[14px] font-bold">
             これ以上の履歴はありません
+          </div>
+        )}
+
+        {/* Dòng chữ báo không có dữ liệu nào */}
+        {!loading && trips.length === 0 && (
+          <div className="w-full text-center py-8 text-[#3D4A3F] text-[16px]">
+            乗車履歴がありません。
           </div>
         )}
       </div>

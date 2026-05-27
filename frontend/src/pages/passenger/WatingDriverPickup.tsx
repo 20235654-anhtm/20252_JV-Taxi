@@ -215,6 +215,7 @@ export default function WatingDriverPickup() {
       if (msg.text === 'ドライバーが到着しました') {
         console.log("🚀 Driver has arrived! Automatically navigating to InTrip...");
         showToast('ドライバーが到着しました！', 'success');
+        sessionStorage.setItem('driver_arrived', 'true');
         navigate('/passenger/in-trip', { state: { driver } });
       }
     });

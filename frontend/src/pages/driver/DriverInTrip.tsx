@@ -37,7 +37,13 @@ const DriverInTrip: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { position, error } = useGeolocation();
-  const [tripPhase, setTripPhase] = useState<TripPhase>('picking_up');
+  const [tripPhase, setTripPhaseState] = useState<TripPhase>(
+    () => (sessionStorage.getItem('active_trip_phase') as TripPhase) || 'picking_up'
+  );
+  const setTripPhase = (phase: TripPhase) => {
+    sessionStorage.setItem('active_trip_phase', phase);
+    setTripPhaseState(phase);
+  };
   const [isCompleting, setIsCompleting] = useState(false);
   const [recenterKey, setRecenterKey] = useState(0);
 
@@ -319,6 +325,7 @@ const DriverInTrip: React.FC = () => {
         sessionStorage.removeItem('active_duration');
         sessionStorage.removeItem('active_fare');
         sessionStorage.removeItem('active_payment_method');
+        sessionStorage.removeItem('active_trip_phase');
         navigate('/driver');
       } else {
         showToast(data.message || '乗車完了処理中にエラーが発生しました。', 'error');

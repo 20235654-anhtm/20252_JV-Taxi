@@ -310,6 +310,98 @@ router.post('/cancel', authMiddleware as any, async (req: AuthRequest, res: Resp
 });
 
 /**
+ * GET /api/rides/passenger/history
+ * Fetch the ride history of the authenticated passenger.
+ */
+router.get('/passenger/history', authMiddleware as any, async (req: AuthRequest, res: Response) => {
+  try {
+    const passengerId = req.user?.userId;
+    if (!passengerId) {
+      res.status(401).json({ success: false, message: 'Unauthorized' });
+      return;
+    }
+
+    const page = parseInt(req.query.page as string || '1', 10);
+    const limit = parseInt(req.query.limit as string || '10', 10);
+    const skip = (page - 1) * limit;
+
+    // Get rides count
+    const totalRides = await prisma.ride.count({
+      where: { passengerId }
+    });
+
+    // Get rides
+    const rides = await prisma.ride.findMany({
+      where: { passengerId },
+      include: {
+        payment: true,
+        driver: {
+          include: {
+            driverProfile: true
+          }
+        },
+        reviews: {
+          where: { reviewerId: passengerId }
+        }
+      },
+      orderBy: { createdAt: 'desc' },
+      skip,
+      take: limit
+    });
+
+    // PostGIS location coordinates
+    const ridesWithCoords = await Promise.all(rides.map(async (ride) => {
+      let startLat = null;
+      let startLng = null;
+      let endLat = null;
+      let endLng = null;
+
+      try {
+        const coords = await prisma.$queryRaw<any[]>`
+          SELECT 
+            ST_X(start_location::geometry) as start_lng,
+            ST_Y(start_location::geometry) as start_lat,
+            ST_X(end_location::geometry) as end_lng,
+            ST_Y(end_location::geometry) as end_lat
+          FROM "rides"
+          WHERE "id" = ${ride.id}::uuid
+        `;
+        if (coords && coords.length > 0) {
+          startLng = coords[0].start_lng;
+          startLat = coords[0].start_lat;
+          endLng = coords[0].end_lng;
+          endLat = coords[0].end_lat;
+        }
+      } catch (err) {
+        console.error(`Error fetching coords for ride ${ride.id}:`, err);
+      }
+
+      return {
+        ...ride,
+        startLat,
+        startLng,
+        endLat,
+        endLng
+      };
+    }));
+
+    res.status(200).json({
+      success: true,
+      data: ridesWithCoords,
+      pagination: {
+        total: totalRides,
+        page,
+        limit,
+        hasMore: skip + rides.length < totalRides
+      }
+    });
+  } catch (error) {
+    console.error('Error fetching passenger ride history:', error);
+    res.status(500).json({ success: false, message: 'Server error while fetching history.' });
+  }
+});
+
+/**
  * GET /api/rides/:id
  * Get details of a specific ride by its ID (includes payment details)
  */
@@ -325,7 +417,8 @@ router.get('/:id', authMiddleware as any, async (req: AuthRequest, res: Response
             driverProfile: true
           }
         },
-        passenger: true
+        passenger: true,
+        reviews: true
       }
     }) as any;
 

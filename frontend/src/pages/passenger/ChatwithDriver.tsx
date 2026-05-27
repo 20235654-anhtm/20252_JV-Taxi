@@ -45,6 +45,11 @@ const ChatwithDriver: React.FC = () => {
     messagesRef.current = messages;
   }, [messages]);
 
+  const driverRef = React.useRef(driver);
+  React.useEffect(() => {
+    driverRef.current = driver;
+  }, [driver]);
+
   React.useEffect(() => {
     if (!rideId) {
       showToast('Không tìm thấy thông tin chuyến đi. Vui lòng quay lại màn hình chính.', 'error');
@@ -96,6 +101,12 @@ const ChatwithDriver: React.FC = () => {
       // Avoid duplicate if we just sent it
       if (msg.senderId === userId) return;
 
+      // Check if driver has arrived
+      if (msg.text === 'ドライバーが到着しました') {
+        sessionStorage.setItem('driver_arrived', 'true');
+        showToast('ドライバーが到着しました！', 'success');
+      }
+
       const incoming: Message = {
         id: msg.id,
         sender: 'driver',
@@ -114,10 +125,25 @@ const ChatwithDriver: React.FC = () => {
       }
     });
 
+    // Listen for ride completion
+    socketService.onRideCompleted((data) => {
+      console.log('🏁 Ride completed successfully (received in Chat)!', data);
+      showToast('目的地に到着しました。ご利用ありがとうございました。', 'success');
+      
+      // Clear active ride session
+      sessionStorage.removeItem('active_ride_id');
+      sessionStorage.removeItem('active_driver');
+      sessionStorage.removeItem('driver_arrived');
+      
+      // Redirect to rating page
+      navigate('/passenger/rate-trip', { state: { driver: driverRef.current, rideId } });
+    });
+
     return () => {
       socketService.offReceiveMessage();
+      socketService.offRideCompleted();
     };
-  }, [rideId, userId]);
+  }, [rideId, userId, navigate]);
 
   // Effect to re-translate existing messages when toggle is turned on
   React.useEffect(() => {
@@ -176,12 +202,29 @@ const ChatwithDriver: React.FC = () => {
   };
 
   const handleBack = () => {
-    navigate('/passenger/in-trip', {
-      state: {
-        rideId,
-        driver
-      }
-    });
+    // Nếu đến từ lịch sử chuyến đi, quay về trang chi tiết chuyến đi
+    if (location.state?.from === 'history') {
+      navigate(`/passenger/history/${rideId}`);
+      return;
+    }
+
+    // Nếu đang trong chuyến đi hoạt động
+    const driverArrived = sessionStorage.getItem('driver_arrived') === 'true';
+    if (driverArrived) {
+      navigate('/passenger/in-trip', {
+        state: {
+          rideId,
+          driver
+        }
+      });
+    } else {
+      navigate('/passenger/waiting-driver-pickup', {
+        state: {
+          rideId,
+          driver
+        }
+      });
+    }
   };
 
   return (

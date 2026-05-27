@@ -132,6 +132,7 @@ export default function InTrip() {
       // Clear active ride session
       sessionStorage.removeItem('active_ride_id');
       sessionStorage.removeItem('active_driver');
+      sessionStorage.removeItem('driver_arrived');
       
       // Redirect to rating page
       navigate('/passenger/rate-trip', { state: { driver, rideId } });
