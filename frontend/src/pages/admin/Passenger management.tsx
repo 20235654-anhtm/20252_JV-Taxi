@@ -1,0 +1,430 @@
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { API_BASE_URL } from '../../config/api';
+import './Passenger management.css';
+import { Card } from '../../components/ui/Card';
+import { Avatar } from '../../components/ui/Avatar';
+import { Heading } from '../../components/ui/Heading';
+import { Text } from '../../components/ui/Text';
+import { SearchInput } from '../../components/ui/SearchInput';
+
+import { LayoutDashboard, CarFront, Users, ShieldCheck, ChevronLeft, ChevronRight } from 'lucide-react';
+
+interface Passenger {
+  id: string;
+  name: string;
+  email: string;
+  phone: string;
+  avatarUrl: string;
+  rides: number;
+  totalSpent: number;
+  status: 'active' | 'pending' | 'suspended';
+  statusText: string;
+}
+
+const PassengerManagement: React.FC = () => {
+  const navigate = useNavigate();
+  const [searchQuery, setSearchQuery] = useState('');
+  const [activeLang, setActiveLang] = useState<'JP' | 'VN'>('JP');
+  const [activeNavTab, setActiveNavTab] = useState<'overview' | 'driver' | 'user' | 'approval'>('user');
+
+  const ITEMS_PER_PAGE = 10;
+  const [currentPage, setCurrentPage] = useState(1);
+
+  const [passengers, setPassengers] = useState<Passenger[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [unauthorized, setUnauthorized] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  const getAvatarUrl = (pic: string | null): string => {
+    if (!pic) return '';
+    if (pic.startsWith('http://') || pic.startsWith('https://') || pic.startsWith('data:')) return pic;
+    const path = pic.startsWith('/') ? pic : `/${pic}`;
+    return `${API_BASE_URL}${path}`;
+  };
+
+  useEffect(() => {
+    const fetchPassengers = async () => {
+      try {
+        const token = sessionStorage.getItem('authToken') || localStorage.getItem('authToken');
+        const response = await fetch(`${API_BASE_URL}/api/admin/users?role=CUSTOMER&limit=50`, {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+        if (response.status === 403) {
+          setUnauthorized(true);
+          setErrorMessage('Bạn không có quyền truy cập trang này (Admin required).');
+          setLoading(false);
+          return;
+        }
+
+        const data = await response.json();
+        if (!response.ok) {
+          throw new Error(data.message || 'Lỗi khi lấy dữ liệu người dùng');
+        }
+
+        if (data.success && data.data) {
+          const mappedPassengers: Passenger[] = data.data.map((user: any) => {
+            let status: 'active' | 'pending' | 'suspended' = 'active';
+            let statusText = 'アクティブ'; // Default active
+
+            if (user.status === 'BANNED') {
+              status = 'suspended';
+              statusText = '停止中';
+            } else if (user.status === 'INACTIVE') {
+              status = 'pending';
+              statusText = '保留中';
+            }
+
+            return {
+              id: user.id,
+              name: user.fullName || 'Unknown',
+              email: user.email || '',
+              phone: user.phone || '',
+              avatarUrl: getAvatarUrl(user.avatar),
+              rides: user.completedRides ?? 0,
+              totalSpent: user.totalSpent ?? 0,
+              status: status,
+              statusText: statusText
+            };
+          });
+          setPassengers(mappedPassengers);
+        }
+      } catch (error) {
+        console.error('Error fetching passengers:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchPassengers();
+  }, []);
+
+  // Lọc danh sách hành khách theo từ khóa tìm kiếm (Tên hoặc Email)
+  const filteredPassengers = passengers.filter(passenger =>
+    passenger.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    passenger.email.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery]);
+
+  const totalPages = Math.ceil(filteredPassengers.length / ITEMS_PER_PAGE);
+  const currentPassengers = filteredPassengers.slice(
+    (currentPage - 1) * ITEMS_PER_PAGE,
+    currentPage * ITEMS_PER_PAGE
+  );
+
+  const getPaginationGroup = () => {
+    if (totalPages < 5) {
+      return Array.from({ length: totalPages }, (_, i) => i + 1);
+    }
+    
+    if (currentPage <= 2) {
+      return [1, 2, '...', totalPages];
+    } else if (currentPage >= totalPages - 1) {
+      return [1, '...', totalPages - 1, totalPages];
+    } else {
+      return [1, '...', currentPage, '...', totalPages];
+    }
+  };
+
+  return (
+    <div className="passenger-management-container">
+      { }
+      <div style={{
+        width: '100%',
+        height: '64px',
+        paddingLeft: '24px',
+        paddingRight: '24px',
+        left: '0px',
+        top: '0px',
+        position: 'fixed',
+        background: 'rgba(255, 255, 255, 0.80)',
+        boxShadow: '0px 1px 2px rgba(0, 0, 0, 0.05)',
+        backdropFilter: 'blur(6px)',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        display: 'flex',
+        zIndex: 1000
+      }}>
+        {/* Left: Title */}
+        <div style={{
+          justifyContent: 'flex-start',
+          alignItems: 'center',
+          gap: '16px',
+          display: 'flex'
+        }}>
+          <div style={{
+            flexDirection: 'column',
+            justifyContent: 'flex-start',
+            alignItems: 'flex-start',
+            display: 'inline-flex'
+          }}>
+            <div style={{
+              minWidth: '163px',
+              height: '28px',
+              justifyContent: 'center',
+              display: 'flex',
+              flexDirection: 'column',
+              color: '#064E3B',
+              fontSize: '20px',
+              fontFamily: 'Plus Jakarta Sans',
+              fontWeight: 800,
+              lineHeight: '28px',
+              wordWrap: 'break-word'
+            }}>
+              JV - Taxi 管理者
+            </div>
+          </div>
+        </div>
+
+        {/* Right: Language Switcher */}
+        <div style={{
+          padding: '4px',
+          background: 'rgba(244, 244, 245, 0.80)',
+          borderRadius: '9999px',
+          outline: '1px rgba(192, 201, 187, 0.10) solid',
+          outlineOffset: '-1px',
+          justifyContent: 'flex-start',
+          alignItems: 'center',
+          display: 'flex'
+        }}>
+          <div style={{
+            padding: '2px',
+            background: 'rgba(255, 255, 255, 0.50)',
+            borderRadius: '9999px',
+            justifyContent: 'flex-start',
+            alignItems: 'center',
+            gap: '2px',
+            display: 'flex'
+          }}>
+            {/* JP Button (Active) */}
+            <button
+              type="button"
+              onClick={() => setActiveLang('JP')}
+              aria-label="Switch to Japanese"
+              aria-pressed={activeLang === 'JP'}
+              style={{
+                width: 'auto',
+                minWidth: '33px',
+                paddingLeft: '12px',
+                paddingRight: '12px',
+                paddingTop: '6px',
+                paddingBottom: '6px',
+                background: activeLang === 'JP' ? '#1B5E20' : 'transparent',
+                boxShadow: '0px 1px 2px rgba(0, 0, 0, 0.05)',
+                borderRadius: '9999px',
+                border: 'none',
+                flexDirection: 'column',
+                justifyContent: 'center',
+                alignItems: 'center',
+                display: 'flex',
+                cursor: 'pointer'
+              }}>
+              <div style={{
+                textAlign: 'center',
+                color: activeLang === 'JP' ? 'white' : '#41493E',
+                fontSize: '11px',
+                fontFamily: 'Inter',
+                fontWeight: 700,
+                lineHeight: '16px'
+              }}>
+                JP
+              </div>
+            </button>
+
+            {/* VN Button (Inactive) */}
+            <button
+              type="button"
+              onClick={() => setActiveLang('VN')}
+              aria-label="Switch to Vietnamese"
+              aria-pressed={activeLang === 'VN'}
+              style={{
+                width: 'auto',
+                minWidth: '32px',
+                paddingLeft: '12px',
+                paddingRight: '12px',
+                paddingTop: '6px',
+                paddingBottom: '6px',
+                borderRadius: '9999px',
+                border: 'none',
+                background: activeLang === 'VN' ? '#1B5E20' : 'transparent',
+                flexDirection: 'column',
+                justifyContent: 'center',
+                alignItems: 'center',
+                display: 'flex',
+                cursor: 'pointer'
+              }}>
+              <div style={{
+                textAlign: 'center',
+                color: activeLang === 'VN' ? 'white' : '#41493E',
+                fontSize: '11px',
+                fontFamily: 'Inter',
+                fontWeight: 500,
+                lineHeight: '16px'
+              }}>
+                VN
+              </div>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Khu vực nội dung chính */}
+      <div className="passenger-management-content" style={{ paddingTop: '80px' }}>
+        {/* Thanh tìm kiếm */}
+        <div className="passenger-search-input-wrapper">
+          <SearchInput
+            className="passenger-search-input"
+            placeholder="名前またはメールアドレスで検索…"
+            value={searchQuery}
+            onValueChange={(v) => setSearchQuery(v.slice(0, 200))}
+            maxLength={200}
+          />
+        </div>
+
+        {/* Danh sách thẻ hành khách đã qua bộ lọc */}
+        <div className="passenger-cards-list">
+          {loading ? (
+            <div style={{ textAlign: 'center', padding: '20px', color: '#666' }}>Đang tải dữ liệu...</div>
+          ) : currentPassengers.length > 0 ? (
+            currentPassengers.map((passenger) => (
+              <Card key={passenger.id} className="passenger-card-item">
+
+                {/* Vùng thông tin cá nhân (Avatar + Name + Email + Phone) */}
+                <div className="passenger-profile-section">
+                  {passenger.avatarUrl ? (
+                    <Avatar
+                      src={passenger.avatarUrl}
+                      size="56"
+                      className={`passenger-avatar passenger-avatar-${passenger.status}`}
+                    />
+                  ) : (
+                    <div className="passenger-avatar passenger-avatar-placeholder">
+                      {passenger.name.charAt(0).toUpperCase()}
+                    </div>
+                  )}
+
+                  <div className="passenger-info-text">
+                    <Heading level={3} className="passenger-name">
+                      {passenger.name}
+                    </Heading>
+                    <Text className="passenger-email">
+                      {passenger.email}
+                    </Text>
+                    <Text className="passenger-phone">
+                      {passenger.phone}
+                    </Text>
+                  </div>
+                </div>
+
+                {/* Hộp thông số bên dưới (Số chuyến đi & Trạng thái hoạt động) */}
+                <div className="passenger-stats-row">
+
+                  {/* Cột hiển thị số lượt đi (乗車) */}
+                  <div className="passenger-stat-box">
+                    <Text className="passenger-stat-label">乗車</Text>
+                    <Text className="passenger-stat-value">{passenger.rides}</Text>
+                  </div>
+
+                  {/* Cột hiển thị tổng tiền chi tiêu (累金額計利用) */}
+                  <div className="passenger-stat-box">
+                    <Text className="passenger-stat-label">累金額計利用</Text>
+                    <Text className="passenger-stat-value">
+                      {new Intl.NumberFormat('ja-JP').format(passenger.totalSpent)} <span className="text-xs">VND</span>
+                    </Text>
+                  </div>
+
+                </div>
+              </Card>
+            ))
+          ) : (
+            <div style={{ textAlign: 'center', padding: '20px', color: '#666' }}></div>
+          )}
+        </div>
+
+        {/* Pagination */}
+        {totalPages > 1 && (
+          <div className="passenger-pagination">
+            <button
+              className="passenger-page-btn passenger-page-btn-icon"
+              onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
+              disabled={currentPage === 1}
+            >
+              <ChevronLeft size={16} />
+            </button>
+
+            {getPaginationGroup().map((page, index) => (
+              <button
+                key={index}
+                className={`passenger-page-btn ${
+                  page === currentPage ? 'passenger-page-btn-active' : ''
+                } ${page === '...' ? 'passenger-page-btn-dots' : ''}`}
+                onClick={() => typeof page === 'number' && setCurrentPage(page)}
+                disabled={page === '...'}
+              >
+                {page}
+              </button>
+            ))}
+
+            <button
+              className="passenger-page-btn passenger-page-btn-icon"
+              onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
+              disabled={currentPage === totalPages}
+            >
+              <ChevronRight size={16} />
+            </button>
+          </div>
+        )}
+      </div>
+
+      {/* Thanh BottomNavBar điều hướng dưới chân trang */}
+      <div className="admin-bottom-nav">
+        <button
+          type="button"
+          onClick={() => navigate('/admin/dashboard')}
+          className={`admin-bottom-nav-button ${activeNavTab === 'overview' ? 'active' : ''}`}
+          aria-label="概要"
+        >
+          <LayoutDashboard size={24} strokeWidth={activeNavTab === 'overview' ? 2.5 : 2} />
+          <span>概要</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => navigate('/admin/driver-management')}
+          className={`admin-bottom-nav-button ${activeNavTab === 'driver' ? 'active' : ''}`}
+          aria-label="ドライバー"
+        >
+          <CarFront size={24} strokeWidth={activeNavTab === 'driver' ? 2.5 : 2} />
+          <span>ドライバー</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setActiveNavTab('user')}
+          className={`admin-bottom-nav-button ${activeNavTab === 'user' ? 'active' : ''}`}
+          aria-label="顧客"
+        >
+          <Users size={24} strokeWidth={activeNavTab === 'user' ? 2.5 : 2} />
+          <span>顧客</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => navigate('/admin/driver-approval-list')}
+          className={`admin-bottom-nav-button ${activeNavTab === 'approval' ? 'active' : ''}`}
+          aria-label="承認"
+        >
+          <ShieldCheck size={24} strokeWidth={activeNavTab === 'approval' ? 2.5 : 2} />
+          <span>承認</span>
+        </button>
+      </div>
+    </div>
+  );
+};
+
+export default PassengerManagement;

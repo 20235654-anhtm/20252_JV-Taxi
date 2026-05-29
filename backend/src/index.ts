@@ -7,9 +7,13 @@ import authRoutes from './routes/auth.routes';
 import paymentRoutes from './routes/payment.routes';
 import callRoutes from './routes/call.routes';
 import rideRoutes from './routes/ride.routes';
+<<<<<<< HEAD
 import messageRoutes from './routes/message.routes';
 import reviewRoutes from './routes/review.routes';
 import prisma from './config/db';
+=======
+import adminRoutes from './routes/admin.routes';
+>>>>>>> b3e3435ab53fdd25ccfbe02df22e25dd4cdfd464
 import dotenv from 'dotenv';
 import cors from 'cors';
 
@@ -106,8 +110,12 @@ app.use('/api/destinations', destinationRoutes);
 app.use('/api/payments', paymentRoutes);
 app.use('/api/call', callRoutes);
 app.use('/api/rides', rideRoutes);
+<<<<<<< HEAD
 app.use('/api/messages', messageRoutes);
 app.use('/api/reviews', reviewRoutes);
+=======
+app.use('/api/admin', adminRoutes);
+>>>>>>> b3e3435ab53fdd25ccfbe02df22e25dd4cdfd464
 app.get('/', (req: Request, res: Response) => {
     res.send('Backend Express Server is running');
 });

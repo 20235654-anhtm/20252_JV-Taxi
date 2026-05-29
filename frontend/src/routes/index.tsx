@@ -25,6 +25,7 @@ import Rateyourtrip from '../pages/passenger/Rateyourtrip';
 import ChatwithDriver from '../pages/passenger/ChatwithDriver';
 import CallDriver from '../pages/passenger/CallDriver';
 import InTrip from '../pages/passenger/InTrip';
+import PassengerManagement from '../pages/admin/Passenger management';
 
 // Driver Pages
 import DriverDashboard from '../pages/driver/DriverDashboard';
@@ -35,12 +36,15 @@ import ChatwithPassenger from '../pages/driver/ChatwithPassenger';
 import CallPassenger from '../pages/driver/CallPassenger';
 import DriverInTrip from '../pages/driver/DriverInTrip';
 import DriverApproval from '../pages/admin/DriverApproval';
+import DriverApprovalList from '../pages/admin/DriverApprovalList';
+import AdminDashboard from '../pages/admin/AdminDashboard';
+import DriverManagement from '../pages/admin/DriverManagement';
 
 // ── Auth Guards ──
 
 interface ProtectedRouteProps {
   children: React.ReactElement;
-  allowedRole: 'CUSTOMER' | 'DRIVER';
+  allowedRole: 'CUSTOMER' | 'DRIVER' | 'ADMIN';
 }
 
 const ProtectedRoute = ({ children, allowedRole }: ProtectedRouteProps) => {
@@ -57,6 +61,8 @@ const ProtectedRoute = ({ children, allowedRole }: ProtectedRouteProps) => {
   if (userRole !== allowedRole) {
     if (userRole === 'DRIVER') {
       return <Navigate to="/driver" replace />;
+    } else if (userRole === 'ADMIN') {
+      return <Navigate to="/admin" replace />;
     } else {
       return <Navigate to="/passenger" replace />;
     }
@@ -78,6 +84,8 @@ const GuestRoute = ({ children }: GuestRouteProps) => {
     const userRole = user.role?.toUpperCase();
     if (userRole === 'DRIVER') {
       return <Navigate to="/driver" replace />;
+    } else if (userRole === 'ADMIN') {
+      return <Navigate to="/admin" replace />;
     } else {
       return <Navigate to="/passenger" replace />;
     }
@@ -113,6 +121,7 @@ const AppRoutes = () => {
       <Route path="/passenger/call-driver" element={<ProtectedRoute allowedRole="CUSTOMER"><CallDriver /></ProtectedRoute>} />
       <Route path="/passenger/in-trip" element={<ProtectedRoute allowedRole="CUSTOMER"><InTrip /></ProtectedRoute>} />
       <Route path="/passenger/rate-trip" element={<ProtectedRoute allowedRole="CUSTOMER"><Rateyourtrip /></ProtectedRoute>} />
+      <Route path="/passenger/management" element={<ProtectedRoute allowedRole="CUSTOMER"><PassengerManagement /></ProtectedRoute>} />
 
       {/* ======================= DRIVER FLOW (AUTHENTICATED) ======================= */}
       <Route path="/driver" element={<ProtectedRoute allowedRole="DRIVER"><DriverDashboard /></ProtectedRoute>} />
@@ -124,7 +133,11 @@ const AppRoutes = () => {
       <Route path="/driver/in-trip" element={<ProtectedRoute allowedRole="DRIVER"><DriverInTrip /></ProtectedRoute>} />
 
       {/* ======================= ADMIN FLOW ======================= */}
-      <Route path="/admin" element={<DriverApproval />} />
+      <Route path="/admin" element={<ProtectedRoute allowedRole="ADMIN"><DriverApproval /></ProtectedRoute>} />
+      <Route path="/admin/dashboard" element={<ProtectedRoute allowedRole="ADMIN"><AdminDashboard /></ProtectedRoute>} />
+      <Route path="/admin/passenger-management" element={<ProtectedRoute allowedRole="ADMIN"><PassengerManagement /></ProtectedRoute>} />
+      <Route path="/admin/driver-management" element={<ProtectedRoute allowedRole="ADMIN"><DriverManagement /></ProtectedRoute>} />
+      <Route path="/admin/driver-approval-list" element={<ProtectedRoute allowedRole="ADMIN"><DriverApprovalList /></ProtectedRoute>} />
     </Routes>
   );
 };
