@@ -46,10 +46,6 @@ const TRANSLATIONS = {
     submit: "ドライバーとして登録",
     cccd: "本人確認書類",
     cccdPlaceholder: "079xxxxxx889",
-    errorEmail: "有効なメールアドレスを入力してください",
-    errorPhone: "有効な電話番号を入力してください",
-    errorPass: "パスワードは8文字以上で入力してください",
-    errorRequired: "必須項目を入力してください",
   },
   VN: {
     headerTitle: "JV - Taxi",
@@ -90,10 +86,6 @@ const TRANSLATIONS = {
     submit: "Đăng ký làm tài xế",
     cccd: "Số CCCD/CMND",
     cccdPlaceholder: "079xxxxxx889",
-    errorEmail: "Vui lòng nhập email hợp lệ",
-    errorPhone: "Vui lòng nhập số điện thoại hợp lệ",
-    errorPass: "Vui lòng nhập tối thiểu 8 ký tự",
-    errorRequired: "Vui lòng điền thông tin này",
   },
 };
 
@@ -176,7 +168,7 @@ function Heading1({ label }: { label: string }) {
   );
 }
 
-function InputField({ label, placeholder, value, onChange, onBlur, error, errorText }: { label: string; placeholder: string; value: string; onChange: (v: string) => void; onBlur?: () => void; error?: boolean; errorText?: string }) {
+function InputField({ label, placeholder, value, onChange, onBlur, error }: { label: string; placeholder: string; value: string; onChange: (v: string) => void; onBlur?: () => void; error?: boolean }) {
   return (
     <div className="bg-[#eff6ec] col-1 justify-self-stretch relative rounded-[24px] self-start shrink-0 w-full" data-name="Input Field">
       <div className="content-stretch flex flex-col gap-[4px] items-start p-[20px] relative size-full">
@@ -199,13 +191,12 @@ function InputField({ label, placeholder, value, onChange, onBlur, error, errorT
             />
           </div>
         </div>
-        {error && errorText && <span className="text-red-500 text-xs font-medium mt-1">{errorText}</span>}
       </div>
     </div>
   );
 }
 
-function PasswordField({ t, value, onChange, error, errorText, showPass, onTogglePass }: { t: any; value: string; onChange: (v: string) => void; error?: boolean; errorText?: string; showPass: boolean; onTogglePass: () => void }) {
+function PasswordField({ t, value, onChange, error, showPass, onTogglePass }: { t: any; value: string; onChange: (v: string) => void; error?: boolean; showPass: boolean; onTogglePass: () => void }) {
   return (
     <div className="bg-[#eff6ec] relative rounded-[24px] shrink-0 w-full" data-name="Password Field">
       <div className="gap-x-[4px] gap-y-[4px] grid grid-cols-[repeat(2,minmax(0,1fr))] grid-rows-[repeat(2,fit-content(100%))] p-[20px] relative size-full">
@@ -228,7 +219,6 @@ function PasswordField({ t, value, onChange, error, errorText, showPass, onToggl
         <button onClick={onTogglePass} className="absolute right-[20px] bottom-[22px] flex items-center justify-center text-[#6D7A6E] hover:text-[#006d37] transition-colors outline-none focus:outline-none" data-name="Icon">
           {showPass ? <Eye size={18} /> : <EyeOff size={18} />}
         </button>
-        {error && errorText && <div className="col-span-2 text-red-500 text-xs font-medium mt-1">{errorText}</div>}
       </div>
     </div>
   );
@@ -416,7 +406,9 @@ export default function DriverSignUp() {
   const [licenseFiles, setLicenseFiles] = useState<File[]>([]);
 
   const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-  const phoneRegex = /^\+?[0-9]{10,15}$/;
+  const phoneRegex = /^\d{10}$/;
+  const cccdRegex = /^\d{12}$/;
+  const jlptRegex = /^N[1-5]$/;
 
   const validate = () => {
     const newErrors: Record<string, boolean> = {};
@@ -424,24 +416,25 @@ export default function DriverSignUp() {
     if (!phoneRegex.test(form.phone)) newErrors.phone = true;
     if (!emailRegex.test(form.email)) newErrors.email = true;
     if (form.pass.length < 8) newErrors.pass = true;
-    if (!form.cccd) newErrors.cccd = true;
+    if (!cccdRegex.test(form.cccd)) newErrors.cccd = true;
+    if (!form.vehicleType) newErrors.vehicleType = true;
+    if (!form.plate) newErrors.plate = true;
+    if (!form.year) newErrors.year = true;
+    if (!form.drivingLicense) newErrors.drivingLicense = true;
+    if (!jlptRegex.test(form.jlpt)) newErrors.jlpt = true;
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
   const isInvalid = (field: string) => {
     if (errors[field]) return true;
-    if (field === 'pass') {
-      const val = form.pass;
-      if (val !== "") {
-        return val.length < 8;
-      }
-    } else {
-      const val = field === 'email' ? form.email : form.phone;
-      if (val !== "") {
-        if (field === 'email') return !emailRegex.test(val);
-        if (field === 'phone') return !phoneRegex.test(val);
-      }
+    const val = form[field as keyof typeof form];
+    if (val !== "") {
+      if (field === 'pass') return val.length < 8;
+      if (field === 'email') return !emailRegex.test(val as string);
+      if (field === 'phone') return !phoneRegex.test(val as string);
+      if (field === 'cccd') return !cccdRegex.test(val as string);
+      if (field === 'jlpt') return !jlptRegex.test(val as string);
     }
     return false;
   };
@@ -512,26 +505,26 @@ export default function DriverSignUp() {
               <InputField label={t.fullName} placeholder={t.namePlaceholder} value={form.name} onChange={(v) => {
                 setForm({ ...form, name: v });
                 if (v) setErrors((prev) => ({ ...prev, name: false }));
-              }} error={errors.name} errorText={!form.name ? t.errorRequired : undefined} />
+              }} error={errors.name} />
               <InputField label={t.phone} placeholder={t.phonePlaceholder} value={form.phone} onChange={(v) => {
                 const val = v.replace(/[^0-9+]/g, '');
                 setForm({ ...form, phone: val });
                 if (phoneRegex.test(val)) setErrors((prev) => ({ ...prev, phone: false }));
-              }} error={isInvalid('phone')} errorText={!form.phone ? t.errorRequired : t.errorPhone} />
+              }} error={isInvalid('phone')} />
             </div>
             <InputField label={t.cccd} placeholder={t.cccdPlaceholder} value={form.cccd} onChange={(v) => {
               const val = v.replace(/[^0-9]/g, '');
               setForm({ ...form, cccd: val });
-              if (val) setErrors((prev) => ({ ...prev, cccd: false }));
-            }} error={errors.cccd} errorText={!form.cccd ? t.errorRequired : undefined} />
+              if (/^\d{12}$/.test(val)) setErrors((prev) => ({ ...prev, cccd: false }));
+            }} error={isInvalid('cccd')} />
             <InputField label={t.email} placeholder={t.emailPlaceholder} value={form.email} onChange={(v) => {
               setForm({ ...form, email: v });
               if (emailRegex.test(v)) setErrors((prev) => ({ ...prev, email: false }));
-            }} error={isInvalid('email')} errorText={!form.email ? t.errorRequired : t.errorEmail} />
+            }} error={isInvalid('email')} />
             <PasswordField t={t} value={form.pass} onChange={(v) => {
               setForm({ ...form, pass: v });
               if (v.length >= 8) setErrors((prev) => ({ ...prev, pass: false }));
-            }} error={isInvalid('pass')} errorText={!form.pass ? t.errorRequired : t.errorPass} showPass={showPass} onTogglePass={() => setShowPass(!showPass)} />
+            }} error={isInvalid('pass')} showPass={showPass} onTogglePass={() => setShowPass(!showPass)} />
           </div>
 
           {/* Vehicle Section */}
@@ -550,16 +543,31 @@ export default function DriverSignUp() {
                   </div>
                 </div>
               </div>
-              <InputField label={t.vehicleType} placeholder={t.vehicleTypePlaceholder} value={form.vehicleType} onChange={(v) => setForm({ ...form, vehicleType: v })} />
-              <InputField label={t.licensePlate} placeholder={t.platePlaceholder} value={form.plate} onChange={(v) => setForm({ ...form, plate: v })} />
-              <InputField label={t.year} placeholder={t.yearPlaceholder} value={form.year} onChange={(v) => setForm({ ...form, year: v })} />
+              <InputField label={t.vehicleType} placeholder={t.vehicleTypePlaceholder} value={form.vehicleType} onChange={(v) => {
+                setForm({ ...form, vehicleType: v });
+                if (v) setErrors((prev) => ({ ...prev, vehicleType: false }));
+              }} error={errors.vehicleType} />
+              <InputField label={t.licensePlate} placeholder={t.platePlaceholder} value={form.plate} onChange={(v) => {
+                setForm({ ...form, plate: v });
+                if (v) setErrors((prev) => ({ ...prev, plate: false }));
+              }} error={errors.plate} />
+              <InputField label={t.year} placeholder={t.yearPlaceholder} value={form.year} onChange={(v) => {
+                setForm({ ...form, year: v });
+                if (v) setErrors((prev) => ({ ...prev, year: false }));
+              }} error={errors.year} />
               
               <div className="mt-4">
                 <Heading1 label={t.docsHeader} />
               </div>
               
-              <InputField label={t.drivingLicense} placeholder={t.licensePlaceholder} value={form.drivingLicense} onChange={(v) => setForm({ ...form, drivingLicense: v })} />
-              <InputField label={t.jlpt} placeholder={t.jlptPlaceholder} value={form.jlpt} onChange={(v) => setForm({ ...form, jlpt: v })} />
+              <InputField label={t.drivingLicense} placeholder={t.licensePlaceholder} value={form.drivingLicense} onChange={(v) => {
+                setForm({ ...form, drivingLicense: v });
+                if (v) setErrors((prev) => ({ ...prev, drivingLicense: false }));
+              }} error={errors.drivingLicense} />
+              <InputField label={t.jlpt} placeholder={t.jlptPlaceholder} value={form.jlpt} onChange={(v) => {
+                setForm({ ...form, jlpt: v.toUpperCase() });
+                if (/^N[1-5]$/.test(v.toUpperCase())) setErrors((prev) => ({ ...prev, jlpt: false }));
+              }} error={isInvalid('jlpt')} />
             </div>
           </div>
 

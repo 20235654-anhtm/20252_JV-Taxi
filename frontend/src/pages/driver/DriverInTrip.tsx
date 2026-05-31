@@ -47,6 +47,16 @@ const DriverInTrip: React.FC = () => {
   const [isCompleting, setIsCompleting] = useState(false);
   const [recenterKey, setRecenterKey] = useState(0);
 
+  // Accumulate actual GPS route taken by driver
+  const [gpsRouteHistory, setGpsRouteHistory] = useState<[number, number][]>(() => {
+    try {
+      const stored = sessionStorage.getItem('active_gps_route_history');
+      return stored ? JSON.parse(stored) : [];
+    } catch {
+      return [];
+    }
+  });
+
   // Retrieve active ride data from state or sessionStorage
   const rideId = location.state?.rideId || sessionStorage.getItem('active_ride_id') || '';
   const passengerName = location.state?.passengerName || sessionStorage.getItem('active_passenger_name') || '';
@@ -259,6 +269,21 @@ const DriverInTrip: React.FC = () => {
     }
   }, [position]);
 
+  // Track GPS history when in trip
+  useEffect(() => {
+    if (position?.lat && position?.lng && tripPhase === 'in_trip') {
+      setGpsRouteHistory(prev => {
+        const lastPos = prev[prev.length - 1];
+        if (!lastPos || lastPos[0] !== position.lat || lastPos[1] !== position.lng) {
+          const newRoute = [...prev, [position.lat, position.lng] as [number, number]];
+          sessionStorage.setItem('active_gps_route_history', JSON.stringify(newRoute));
+          return newRoute;
+        }
+        return prev;
+      });
+    }
+  }, [position?.lat, position?.lng, tripPhase]);
+
   const handleChat = () => {
     navigate('/driver/chat', {
       state: {
@@ -311,7 +336,10 @@ const DriverInTrip: React.FC = () => {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`
         },
-        body: JSON.stringify({ rideId })
+        body: JSON.stringify({ 
+          rideId, 
+          actualPath: JSON.stringify(gpsRouteHistory) 
+        })
       });
       const data = await response.json();
       if (data.success) {
@@ -326,6 +354,7 @@ const DriverInTrip: React.FC = () => {
         sessionStorage.removeItem('active_fare');
         sessionStorage.removeItem('active_payment_method');
         sessionStorage.removeItem('active_trip_phase');
+        sessionStorage.removeItem('active_gps_route_history');
         navigate('/driver');
       } else {
         showToast(data.message || '乗車完了処理中にエラーが発生しました。', 'error');

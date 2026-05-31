@@ -26,12 +26,18 @@ export interface TripSummaryDetailType {
     bookingFee: number; // 指名料 (Nomination fee / Booking fee)
     total: number; // 手取り合計 (Net total)
   };
+  pickupPosition?: { lat: number; lng: number } | null;
+  destinationPosition?: { lat: number; lng: number } | null;
+  actualPath?: [number, number][];
 }
 
 export interface MapSectionProps {
   distance: number;
   duration: number;
   status: string;
+  pickupPosition?: { lat: number; lng: number } | null;
+  destinationPosition?: { lat: number; lng: number } | null;
+  actualPath?: [number, number][];
 }
 
 export interface TotalIncomeCardProps {

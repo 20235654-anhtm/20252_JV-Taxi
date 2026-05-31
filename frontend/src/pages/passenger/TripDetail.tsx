@@ -149,6 +149,15 @@ const TripDetail: React.FC = () => {
       })()
     : '';
 
+  let parsedActualPath: [number, number][] | undefined = undefined;
+  if (ride.actualPath) {
+    try {
+      parsedActualPath = JSON.parse(ride.actualPath);
+    } catch (e) {
+      console.error('Failed to parse actualPath', e);
+    }
+  }
+
   const pickupPosition = ride.startLat && ride.startLng ? { lat: Number(ride.startLat), lng: Number(ride.startLng) } : { lat: 10.7630, lng: 106.6822 };
   const destinationPosition = ride.endLat && ride.endLng ? { lat: Number(ride.endLat), lng: Number(ride.endLng) } : { lat: 10.8142, lng: 106.6663 };
   const driverAvatar = ride.driver?.driverProfile?.avatarPicture || ride.driver?.avatar || 'https://avatar.iran.liara.run/public/boy';
@@ -183,6 +192,7 @@ const TripDetail: React.FC = () => {
           <MapCard 
             pickupPosition={pickupPosition}
             destinationPosition={destinationPosition}
+            actualPath={parsedActualPath}
           />
 
           {/* 2. Driver Info */}
