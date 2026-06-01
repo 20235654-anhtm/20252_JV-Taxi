@@ -1,132 +1,134 @@
+[English](README.md) | [日本語](README.ja.md) | [Tiếng Việt](README.vi.md)
+
 # JV-TAXI
 
-Dự án này bao gồm 2 phần chính: **Backend** (Node.js + Express + TypeScript) và **Frontend** (React + TypeScript + Vite).
+This project consists of two main parts: **Backend** (Node.js + Express + TypeScript) and **Frontend** (React + TypeScript + Vite).
 
-Dưới đây là hướng dẫn để các thành viên trong team clone source code về và setup chạy thử trên máy cá nhân.
+Below is a guide for team members to clone the source code and set it up to run locally.
 
-## Yêu cầu môi trường
+## Environment Requirements
 
-- Đã cài đặt [Node.js](https://nodejs.org/) (**Yêu cầu: phiên bản LTS từ 18.x trở lên**). 
-  - *Lưu ý:* Nếu chưa cài Node.js, bạn sẽ không thể chạy lệnh `npm`. Nếu dùng phiên bản quá cũ, các thư viện như `Prisma` hoặc `@tailwindcss/vite` sẽ báo lỗi khi cài đặt.
-- Đã cài đặt Git.
+- [Node.js](https://nodejs.org/) installed (**Requirement: LTS version 18.x or higher**).
+  - *Note:* If Node.js is not installed, you won't be able to run `npm` commands. If you use a version that is too old, libraries like `Prisma` or `@tailwindcss/vite` will throw errors during installation.
+- Git installed.
 
 ---
 
 ## 1. Setup Backend
 
-1. Mở terminal và di chuyển vào thư mục `backend`:
+1. Open a terminal and navigate to the `backend` directory:
    ```bash
    cd backend
    ```
-2. Cài đặt các gói thư viện (dependencies):
+2. Install dependencies:
    ```bash
    npm install
    ```
-3. Cấu hình biến môi trường và kết nối Database (Supabase):
-   - Tạo file `.env` từ file `.env.example` trong thư mục `backend`.
-   - Mở file `.env` vừa tạo và thay thế `[YOUR-PASSWORD]` bằng mật khẩu kết nối database thực tế của bạn.
-   - Cấu hình các biến Stripe:
+3. Configure environment variables and database connection (Supabase):
+   - Create a `.env` file from the `.env.example` file in the `backend` directory.
+   - Open the newly created `.env` file and replace `[YOUR-PASSWORD]` with your actual database connection password.
+   - Configure Stripe variables:
      ```env
      STRIPE_SECRET_KEY=sk_test_...
      STRIPE_PUBLISHABLE_KEY=pk_test_...
      ```
-4. Kiểm tra kết nối database:
+4. Test the database connection:
    ```bash
    npx ts-node src/test-db.ts
    ```
-   _Nếu terminal hiện "Kết nối database thành công!" thì bạn đã cấu hình đúng._
-5. Khởi động server trong môi trường dev:
+   _If the terminal prints "Database connection successful!" (Kết nối database thành công!), you have configured it correctly._
+5. Start the server in the development environment:
    ```bash
    npm run dev
    ```
-   _Server sẽ khởi chạy. Mặc định sẽ chạy ở port 5000 (ví dụ: `http://localhost:5000`)._
+   _The server will start running. By default, it runs on port 5000 (e.g., `http://localhost:5000`)._
 
 ---
 
 ## 2. Setup Frontend
 
-1. Mở một terminal mới (giữ terminal backend chạy song song) và di chuyển vào thư mục `frontend`:
+1. Open a new terminal (keep the backend terminal running in parallel) and navigate to the `frontend` directory:
    ```bash
    cd frontend
    ```
-2. Cài đặt các gói thư viện (dependencies):
+2. Install dependencies:
    ```bash
    npm install
    ```
-3. Khởi động ứng dụng frontend:
+3. Start the frontend application:
    ```bash
    npm run dev
    ```
 
 ---
 
-## 3. Hướng dẫn Test chức năng Thanh toán (Stripe Visa Demo)
+## 3. Stripe Visa Payment Demo Testing Guide
 
-Dự án đã tích hợp thanh toán thẻ Visa (demo) thông qua cổng Stripe. Để test chức năng này, hãy làm theo các bước sau:
+The project integrates a demo Visa card payment through Stripe. To test this feature, follow these steps:
 
-### Bước 1: Truy cập trang Xác nhận đặt xe
-1. Đăng nhập vào tài khoản Passenger.
-2. Thực hiện quy trình tìm xe: **Tìm địa điểm** -> **Chọn loại xe** -> **Chọn tài xế**.
-3. Bạn sẽ được dẫn đến trang **Xác nhận đặt xe** (`/passenger/booking-confirmation`).
+### Step 1: Access the Booking Confirmation Page
+1. Log in as a Passenger.
+2. Complete the driver-seeking process: **Search Location** -> **Select Ride Type** -> **Select Driver**.
+3. You will be redirected to the **Booking Confirmation** page (`/passenger/booking-confirmation`).
 
-### Bước 2: Nhập thông tin thanh toán
-1. Tại mục **Phương thức thanh toán**, chọn **Thẻ (Card)**.
-2. Nhấn **Xác nhận đặt xe**.
-3. Một Popup nhập thông tin thẻ sẽ hiện lên. Nhập thông tin thẻ demo của Stripe:
-   - **Số thẻ (Card number):** `4242 4242 4242 4242`
-   - **Tháng/Năm hết hạn:** Bất kỳ ngày nào trong tương lai (VD: `12/30`).
-   - **Mã bảo mật (CVC):** 3 chữ số bất kỳ (VD: `123`).
-   - **Mã bưu điện (Zip Code):** 5 chữ số bất kỳ (VD: `10000`).
-4. Nhấn **Thanh toán ngay**.
+### Step 2: Enter Payment Information
+1. Under **Payment Method**, choose **Card**.
+2. Click **Confirm Booking**.
+3. A card input popup will appear. Enter the Stripe demo card details:
+   - **Card number:** `4242 4242 4242 4242`
+   - **Expiration Date (MM/YY):** Any date in the future (e.g., `12/30`).
+   - **CVC:** Any 3-digit number (e.g., `123`).
+   - **Zip Code:** Any 5-digit number (e.g., `10000`).
+4. Click **Pay Now**.
 
-### Bước 3: Kiểm tra kết quả
-- Nếu thông tin đúng, một Popup thông báo **"Thanh toán thành công"** sẽ hiện ra cùng với mã giao dịch (Payment ID).
-- Bạn có thể vào trang **Cá nhân (Profile)** để xem minh họa thẻ Visa đã được liên kết với tài khoản.
-
----
-
-## 4. Cấu trúc Route Frontend
-
-### Luồng cho Khách (Guest - Chưa đăng nhập)
-
-| Đường dẫn (URL)          | Component (`src/pages/guest/`) | Mô tả                                 |
-| :----------------------- | :----------------------------- | :------------------------------------ |
-| `/`                      | `GuestHome.tsx`                | Trang chủ dành cho khách.             |
-| `/guest/search-location` | `GuestSearchLocation.tsx`      | Trang tìm và chọn điểm đến cho khách. |
-| `/login`                 | `SignIn.tsx`                   | Màn hình đăng nhập.                   |
-| `/signup`                | `SignUpSelection.tsx`          | Màn hình chọn vai trò đăng ký.        |
-| `/signup/passenger`      | `PassengerSignUp.tsx`          | Màn hình đăng ký cho hành khách.      |
-| `/signup/driver`         | `DriverSignUp.tsx`             | Màn hình đăng ký cho tài xế.          |
-
-### Luồng cho Hành Khách (Passenger - Đã đăng nhập)
-
-| Đường dẫn (URL)                   | Component (`src/pages/passenger/`) | Mô tả                                 |
-| :-------------------------------- | :--------------------------------- | :------------------------------------ |
-| `/passenger`                      | `PassengerHome.tsx`                | Trang chủ dành cho hành khách.        |
-| `/passenger/search-location`      | `SearchLocation.tsx`               | Trang tìm, chọn điểm đến để bắt xe.   |
-| `/passenger/booking-options`      | `BookingOptions.tsx`               | Trang chọn phương thức ghép cuốc.     |
-| `/passenger/select-driver`        | `SelectDriver.tsx`                 | Trang hiển thị danh sách tài xế.      |
-| `/passenger/driver-detail`        | `DriverDetail.tsx`                 | Trang xem chi tiết một tài xế.        |
-| `/passenger/booking-confirmation` | `BookingConfirmationWrapper.tsx`   | Trang xác nhận & thanh toán Stripe.   |
-| `/passenger/profile`              | `Profile.tsx`                      | Trang thông tin cá nhân & Visa info.  |
+### Step 3: Check Results
+- If the details are correct, a **"Payment Successful"** popup will show up along with a transaction ID (Payment ID).
+- You can go to the **Profile** page to see the linked demo Visa card under your account.
 
 ---
 
-## 5. Lưu ý quan trọng
+## 4. Frontend Route Structure
+
+### Flow for Guests (Not logged in)
+
+| Route (URL)              | Component (`src/pages/guest/`) | Description                                         |
+| :----------------------- | :----------------------------- | :-------------------------------------------------- |
+| `/`                      | `GuestHome.tsx`                | Home page for guests.                               |
+| `/guest/search-location` | `GuestSearchLocation.tsx`      | Page to search and select destination for guests.   |
+| `/login`                 | `SignIn.tsx`                   | Login screen.                                       |
+| `/signup`                | `SignUpSelection.tsx`          | Sign-up role selection screen.                      |
+| `/signup/passenger`      | `PassengerSignUp.tsx`          | Passenger registration screen.                      |
+| `/signup/driver`         | `DriverSignUp.tsx`             | Driver registration screen.                        |
+
+### Flow for Passengers (Logged in)
+
+| Route (URL)                       | Component (`src/pages/passenger/`) | Description                                         |
+| :-------------------------------- | :--------------------------------- | :-------------------------------------------------- |
+| `/passenger`                      | `PassengerHome.tsx`                | Home page for passengers.                           |
+| `/passenger/search-location`      | `SearchLocation.tsx`               | Page to search and select destination to book a ride.|
+| `/passenger/booking-options`      | `BookingOptions.tsx`               | Page to choose booking/matching options.            |
+| `/passenger/select-driver`        | `SelectDriver.tsx`                 | Page listing online drivers.                        |
+| `/passenger/driver-detail`        | `DriverDetail.tsx`                 | Driver detail page.                                 |
+| `/passenger/booking-confirmation` | `BookingConfirmationWrapper.tsx`   | Confirmation & Stripe payment page.                 |
+| `/passenger/profile`              | `Profile.tsx`                      | Personal profile and Visa card info page.           |
+
+---
+
+## 5. Important Notes
 
 1. **Prisma 7 & Supabase**:
-   - **Bắt buộc**: Chạy `npx prisma generate` trong thư mục `backend` ngay sau khi `npm install`. Nếu thiếu bước này, code sẽ không nhận diện được các Model (Profile, Ride...), dẫn đến lỗi TypeScript hoặc lỗi Runtime khi chạy server.
-   - Chạy `npx prisma generate` lại mỗi khi bạn thay đổi file `schema.prisma`.
-   - Sử dụng `npm run db:seed` để khởi tạo dữ liệu mẫu (tài khoản demo, danh sách tài xế).
-2. **Xung đột cổng (Port Conflict)**:
-   - Mặc định: Backend dùng port **5000**, Frontend dùng port **5173**.
-   - Nếu máy bạn đã có ứng dụng khác chạy trên các cổng này, server sẽ báo lỗi hoặc tự động chuyển sang cổng khác. 
-   - *Lưu ý:* Nếu port Backend bị đổi, bạn cần cập nhật lại URL gọi API trong code Frontend để tránh lỗi kết nối.
-3. **Bảo mật**: Tuyệt đối không push file `.env` chứa Secret Key thật lên Git. File hiện tại đang sử dụng Test Key của Stripe cho mục đích demo.
+   - **Required**: Run `npx prisma generate` in the `backend` directory immediately after running `npm install`. Without this step, the code will not recognize the models (Profile, Ride, etc.), resulting in TypeScript or runtime errors when running the server.
+   - Run `npx prisma generate` again whenever you modify the `schema.prisma` file.
+   - Use `npm run db:seed` to seed sample data (demo accounts, driver lists).
+2. **Port Conflict**:
+   - Defaults: Backend runs on port **5000**, Frontend runs on port **5173**.
+   - If you have other applications running on these ports, the server will throw an error or assign a different port.
+   - *Note:* If the Backend port changes, you must update the API base URL in the Frontend code to prevent connection errors.
+3. **Security**: Never push `.env` files containing actual secret keys to Git. The current demo utilizes Stripe test keys.
 
 ---
 
-## Git & File bỏ qua (.gitignore)
+## Git & Ignored Files (.gitignore)
 
-- Toàn bộ thư mục `node_modules/` và thư mục build (`dist/`, `build/`) đã được cấu hình loại bỏ trong `.gitignore`.
-- Các file chứa biến môi trường nhạy cảm như `.env` cũng đã được ignore.
+- The entire `node_modules/` folder and build directories (`dist/`, `build/`) are ignored in `.gitignore`.
+- Environment variable files containing sensitive data (like `.env`) are also ignored.
