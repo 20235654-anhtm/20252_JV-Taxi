@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { CheckCircle, MoreVertical } from 'lucide-react';
+import { CheckCircle, MoreVertical, ChevronLeft, ChevronRight } from 'lucide-react';
 import { API_BASE_URL } from '../../config/api';
 import { useLanguage } from '../../context/LanguageContext';
 import './DriverApproval.css';
@@ -90,6 +90,9 @@ const DriverApproval = () => {
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [activeMenuId, setActiveMenuId] = useState<string | null>(null);
 
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
+
   const showToast = useCallback((message: string) => {
     setToastMessage(message);
     setTimeout(() => {
@@ -141,6 +144,26 @@ const DriverApproval = () => {
 
   const filteredDrivers = drivers;
 
+  // Pagination logic
+  const totalPages = Math.ceil(filteredDrivers.length / itemsPerPage);
+  const currentDrivers = filteredDrivers.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
+
+  const getPaginationGroup = () => {
+    if (totalPages <= 4) {
+      return Array.from({ length: totalPages }).map((_, i) => i + 1);
+    }
+    if (currentPage <= 2) {
+      return [1, 2, '...', totalPages];
+    } else if (currentPage >= totalPages - 1) {
+      return [1, '...', totalPages - 1, totalPages];
+    } else {
+      return [1, '...', currentPage, '...', totalPages];
+    }
+  };
+
   const getJlptLevel = (cer: string | null) => {
     if (!cer) return '';
     const match = cer.match(/N[1-5]/i);
@@ -185,25 +208,22 @@ const DriverApproval = () => {
             <div className="flex items-center bg-[#f5f5f5] rounded-full p-1 min-w-[86px] relative h-[36px]">
               <button
                 onClick={() => setLang('JP')}
-                className={`relative z-10 w-1/2 h-full flex justify-center items-center text-[10px] font-black transition-all duration-300 ${
-                  lang === 'JP' ? 'text-white' : 'text-[#8e8e8e]'
-                }`}
+                className={`relative z-10 w-1/2 h-full flex justify-center items-center text-[10px] font-black transition-all duration-300 ${lang === 'JP' ? 'text-white' : 'text-[#8e8e8e]'
+                  }`}
               >
                 JP
               </button>
               <button
                 onClick={() => setLang('VN')}
-                className={`relative z-10 w-1/2 h-full flex justify-center items-center text-[10px] font-black transition-all duration-300 ${
-                  lang === 'VN' ? 'text-white' : 'text-[#8e8e8e]'
-                }`}
+                className={`relative z-10 w-1/2 h-full flex justify-center items-center text-[10px] font-black transition-all duration-300 ${lang === 'VN' ? 'text-white' : 'text-[#8e8e8e]'
+                  }`}
               >
                 VN
               </button>
               {/* Sliding Indicator */}
               <div
-                className={`absolute top-1 bottom-1 w-[calc(50%-4px)] bg-[#1a4d2e] rounded-full transition-all duration-300 shadow-sm ${
-                  lang === 'JP' ? 'left-1' : 'left-[calc(50%+3px)]'
-                }`}
+                className={`absolute top-1 bottom-1 w-[calc(50%-4px)] bg-[#1a4d2e] rounded-full transition-all duration-300 shadow-sm ${lang === 'JP' ? 'left-1' : 'left-[calc(50%+3px)]'
+                  }`}
               />
             </div>
           </div>
@@ -232,7 +252,7 @@ const DriverApproval = () => {
           </div>
         ) : (
           <div className="admin-drivers-grid">
-            {filteredDrivers.map(driver => {
+            {currentDrivers.map(driver => {
               let vehicle = { model: 'BMW', plate: 'N/A', year: '2022', image: null };
               try {
                 if (driver.vehicleInfor) {
@@ -300,6 +320,38 @@ const DriverApproval = () => {
                 </div>
               );
             })}
+          </div>
+        )}
+
+        {/* Pagination Controls */}
+        {!loading && filteredDrivers.length > 0 && totalPages > 1 && (
+          <div className="pagination-container">
+            <button
+              className="pagination-btn"
+              onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+              disabled={currentPage === 1}
+            >
+              <ChevronLeft size={12} />
+            </button>
+            
+            {getPaginationGroup().map((item, index) => (
+              <button
+                key={index}
+                className={`pagination-btn ${item === currentPage ? 'active' : ''} ${item === '...' ? 'dots' : ''}`}
+                onClick={() => item !== '...' && setCurrentPage(item as number)}
+                disabled={item === '...'}
+              >
+                {item}
+              </button>
+            ))}
+
+            <button
+              className="pagination-btn"
+              onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+              disabled={currentPage === totalPages}
+            >
+              <ChevronRight size={12} />
+            </button>
           </div>
         )}
       </main>

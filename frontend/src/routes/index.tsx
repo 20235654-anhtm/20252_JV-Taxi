@@ -46,7 +46,6 @@ import CallPassenger from '../pages/driver/CallPassenger';
 import DriverInTrip from '../pages/driver/DriverInTrip';
 import DriverApproval from '../pages/admin/DriverApproval';
 import AdminDriverReviewDetail from '../pages/admin/DriverReviewDetail';
-import DriverApprovalList from '../pages/admin/DriverApprovalList';
 import AdminDashboard from '../pages/admin/AdminDashboard';
 import DriverManagement from '../pages/admin/DriverManagement';
 import AdminDriverDetail from '../pages/admin/AdminDriverDetail';
