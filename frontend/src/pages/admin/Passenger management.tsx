@@ -8,7 +8,7 @@ import { Heading } from '../../components/ui/Heading';
 import { Text } from '../../components/ui/Text';
 import { SearchInput } from '../../components/ui/SearchInput';
 
-import { LayoutDashboard, CarFront, Users, ShieldCheck } from 'lucide-react';
+import { LayoutDashboard, CarFront, Users, ShieldCheck, ChevronLeft, ChevronRight } from 'lucide-react';
 
 
 interface Passenger {
@@ -28,6 +28,8 @@ const PassengerManagement: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [activeLang, setActiveLang] = useState<'JP' | 'VN'>('JP');
   const [activeNavTab, setActiveNavTab] = useState<'overview' | 'driver' | 'user' | 'approval'>('user');
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
 
   const [passengers, setPassengers] = useState<Passenger[]>([]);
   const [loading, setLoading] = useState(true);
@@ -50,41 +52,30 @@ const PassengerManagement: React.FC = () => {
             'Authorization': `Bearer ${token}`
           }
         });
-        if (response.status === 403) {
+        const data = await response.json();
+        
+        if (data.status === 403 || response.status === 403) {
           setUnauthorized(true);
-          setErrorMessage('このページへのアクセス権限がありません (管理者権限が必要です)。');
           setLoading(false);
           return;
-        }
-
-        const data = await response.json();
-        if (!response.ok) {
-          throw new Error(data.message || 'ユーザーデータの取得に失敗しました');
         }
 
         if (data.success && data.data) {
           const mappedPassengers: Passenger[] = data.data.map((user: any) => {
             let status: 'active' | 'pending' | 'suspended' = 'active';
             let statusText = 'アクティブ'; // Default active
-
-            if (user.status === 'BANNED') {
-              status = 'suspended';
-              statusText = '停止中';
-            } else if (user.status === 'INACTIVE') {
-              status = 'pending';
-              statusText = '保留中';
-            }
-
+            
+            // Just basic mapping if needed
             return {
-              id: user.id,
-              name: user.fullName || 'Unknown',
-              email: user.email || '',
-              phone: user.phone || '',
-              avatarUrl: getAvatarUrl(user.avatar),
-              rides: user.completedRides ?? 0,
-              totalSpent: user.totalSpent ?? 0,
-              status: status,
-              statusText: statusText
+              id: user.userId,
+              name: user.profile?.fullName || 'N/A',
+              email: user.profile?.email || 'N/A',
+              phone: user.profile?.phone || 'N/A',
+              avatarUrl: getAvatarUrl(user.avatarPicture),
+              rides: user.rides || 0,
+              totalSpent: user.totalSpent || 0,
+              status,
+              statusText
             };
           });
           setPassengers(mappedPassengers);
@@ -104,6 +95,38 @@ const PassengerManagement: React.FC = () => {
     passenger.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
     passenger.email.toLowerCase().includes(searchQuery.toLowerCase())
   );
+
+  // Tính toán phân trang
+  const totalPages = Math.ceil(filteredPassengers.length / itemsPerPage);
+  const currentPassengers = filteredPassengers.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+
+  const getPaginationGroup = () => {
+    if (totalPages <= 4) {
+      return Array.from({ length: totalPages }).map((_, i) => i + 1);
+    }
+    if (currentPage <= 2) {
+      return [1, 2, '...', totalPages];
+    } else if (currentPage >= totalPages - 1) {
+      return [1, '...', totalPages - 1, totalPages];
+    } else {
+      return [1, '...', currentPage, '...', totalPages];
+    }
+  };
+
+  const renderPaginationNumbers = () => {
+    const pages = getPaginationGroup();
+    
+    return pages.map((page, index) => (
+      <button
+        key={index}
+        className={`passenger-pagination-btn ${page === currentPage ? 'active' : ''} ${page === '...' ? 'ellipsis' : ''}`}
+        onClick={() => typeof page === 'number' && setCurrentPage(page)}
+        disabled={page === '...'}
+      >
+        {page}
+      </button>
+    ));
+  };
 
   return (
     <div className="passenger-management-container">
@@ -255,7 +278,10 @@ const PassengerManagement: React.FC = () => {
             className="passenger-search-input"
             placeholder="名前またはメールアドレスで検索…"
             value={searchQuery}
-            onValueChange={(v) => setSearchQuery(v.slice(0, 200))}
+            onValueChange={(v) => {
+              setSearchQuery(v.slice(0, 200));
+              setCurrentPage(1); // Reset page when searching
+            }}
             maxLength={200}
           />
         </div>
@@ -264,8 +290,8 @@ const PassengerManagement: React.FC = () => {
         <div className="passenger-cards-list">
           {loading ? (
             <div style={{ textAlign: 'center', padding: '20px', color: '#666' }}>データを読み込み中...</div>
-          ) : filteredPassengers.length > 0 ? (
-            filteredPassengers.map((passenger) => (
+          ) : currentPassengers.length > 0 ? (
+            currentPassengers.map((passenger) => (
               <Card key={passenger.id} className="passenger-card-item">
 
                 {/* Vùng thông tin cá nhân (Avatar + Name + Email + Phone) */}
@@ -319,6 +345,31 @@ const PassengerManagement: React.FC = () => {
             <div style={{ textAlign: 'center', padding: '20px', color: '#666' }}></div>
           )}
         </div>
+
+        {/* Phân trang */}
+        {!loading && totalPages > 1 && (
+          <div className="passenger-pagination-container">
+            <button
+              className="passenger-pagination-btn nav-btn"
+              onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+              disabled={currentPage === 1}
+            >
+              <ChevronLeft size={14} />
+            </button>
+            
+            <div className="passenger-pagination-numbers">
+              {renderPaginationNumbers()}
+            </div>
+            
+            <button
+              className="passenger-pagination-btn nav-btn"
+              onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+              disabled={currentPage === totalPages}
+            >
+              <ChevronRight size={14} />
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Thanh BottomNavBar điều hướng dưới chân trang */}
