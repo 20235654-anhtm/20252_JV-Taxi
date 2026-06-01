@@ -691,6 +691,60 @@
   box-shadow: 0 -10px 20px rgba(0, 0, 0, 0.05);
 }
 
+/* --- Pagination Styles --- */
+.passenger-pagination-container {
+  display: flex;
+  justify-content: flex-end; /* Căn phải */
+  align-items: center;
+  gap: 16px;
+  margin-top: 24px;
+  margin-bottom: 32px;
+  padding-bottom: 80px; 
+}
+
+.passenger-pagination-numbers {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.passenger-pagination-btn {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 20px;          /* Kích thước vòng tròn 20x20px */
+  height: 20px;
+  border-radius: 50%;
+  border: 1px solid #E5E7EB;
+  background-color: white;
+  color: #4B5563;
+  font-size: 11px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.passenger-pagination-btn:hover:not(:disabled):not(.ellipsis) {
+  border-color: #D1D5DB;
+  background-color: #F3F4F6;
+}
+
+.passenger-pagination-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.passenger-pagination-btn.active {
+  background-color: #14422D !important;
+  color: white !important;
+  border-color: #14422D !important;
+}
+
+.passenger-pagination-btn.ellipsis {
+  border: none;
+  background-color: transparent;
+  cursor: default;
+}
+
 /* RESPONSIVE DESIGN */
 @media (max-width: 768px) {
   .admin-page-title-row {

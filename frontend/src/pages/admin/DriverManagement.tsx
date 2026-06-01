@@ -135,8 +135,8 @@ const DriverManagement: React.FC = () => {
               rating: user.driverProfile?.averageRating ? parseFloat(Number(user.driverProfile.averageRating).toFixed(2)) : null,
               vehicleName: vehicleModel || "未登録",
               status: status,
-              avatar: user.avatar || (user.fullName?.toLowerCase().includes('thi')
-                ? `https://avatar.iran.liara.run/public/girl?username=${user.id}`
+              avatar: user.avatar || (user.fullName?.toLowerCase().includes('thi') 
+                ? `https://avatar.iran.liara.run/public/girl?username=${user.id}` 
                 : `https://avatar.iran.liara.run/public/boy?username=${user.id}`),
               japaneseCert: jlpt,
               destination: destination,
@@ -308,7 +308,6 @@ const DriverManagement: React.FC = () => {
             maxLength={200}
           />
         </div>
-
         {/* Driver List */}
         <div className="drivers-list-container">
           {loading ? (

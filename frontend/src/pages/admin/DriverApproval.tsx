@@ -325,19 +325,19 @@ const DriverApproval = () => {
 
         {/* Pagination Controls */}
         {!loading && filteredDrivers.length > 0 && totalPages > 1 && (
-          <div className="pagination-container">
+          <div className="passenger-pagination-container">
             <button
-              className="pagination-btn"
+              className="passenger-pagination-btn"
               onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
               disabled={currentPage === 1}
             >
-              <ChevronLeft size={12} />
+              <ChevronLeft size={14} />
             </button>
             
             {getPaginationGroup().map((item, index) => (
               <button
                 key={index}
-                className={`pagination-btn ${item === currentPage ? 'active' : ''} ${item === '...' ? 'dots' : ''}`}
+                className={`passenger-pagination-btn ${item === currentPage ? 'active' : ''} ${item === '...' ? 'ellipsis' : ''}`}
                 onClick={() => item !== '...' && setCurrentPage(item as number)}
                 disabled={item === '...'}
               >
@@ -346,11 +346,11 @@ const DriverApproval = () => {
             ))}
 
             <button
-              className="pagination-btn"
+              className="passenger-pagination-btn"
               onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
               disabled={currentPage === totalPages}
             >
-              <ChevronRight size={12} />
+              <ChevronRight size={14} />
             </button>
           </div>
         )}
