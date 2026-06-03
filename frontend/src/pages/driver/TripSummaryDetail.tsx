@@ -115,7 +115,9 @@ const TripSummaryDetail: React.FC = () => {
               distanceFee,
               bookingFee,
               total
-            }
+            },
+            pickupPosition: { lat: startLat, lng: startLng },
+            destinationPosition: { lat: endLat, lng: endLng }
           };
 
           setTripDetail(mappedDetail);
@@ -172,6 +174,8 @@ const TripSummaryDetail: React.FC = () => {
           distance={tripDetail.distance}
           duration={tripDetail.duration}
           status={tripDetail.status}
+          pickupPosition={tripDetail.pickupPosition}
+          destinationPosition={tripDetail.destinationPosition}
         />
 
         <TotalIncomeCard 

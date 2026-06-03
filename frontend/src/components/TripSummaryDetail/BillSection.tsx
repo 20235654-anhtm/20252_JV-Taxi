@@ -1,4 +1,5 @@
 import React from 'react';
+import IconBill from '../../assets/IconBill.svg';
 import type { BillSectionProps } from '../../types/TripSummaryDetail';
 
 const BillSection: React.FC<BillSectionProps> = ({ distance, distanceFee, bookingFee, total }) => {
@@ -10,7 +11,7 @@ const BillSection: React.FC<BillSectionProps> = ({ distance, distanceFee, bookin
     <div style={{alignSelf: 'stretch', padding: 24, background: 'white', boxShadow: '0px 1px 2px rgba(0, 0, 0, 0.05)', borderRadius: 40, outline: '1px rgba(0, 109, 55, 0.05) solid', outlineOffset: '-1px', flexDirection: 'column', justifyContent: 'flex-start', alignItems: 'flex-start', gap: 24, display: 'flex', width: '100%'}}>
       <div style={{alignSelf: 'stretch', justifyContent: 'flex-start', alignItems: 'center', gap: 8, display: 'flex'}}>
         <div style={{flexDirection: 'column', justifyContent: 'flex-start', alignItems: 'flex-start', display: 'flex'}}>
-          <img src="/src/assets/IconBill.svg" alt="bill" style={{width: 18, height: 20}} />
+          <img src={IconBill} alt="bill" style={{width: 18, height: 20}} />
         </div>
         <div style={{flexDirection: 'column', justifyContent: 'flex-start', alignItems: 'flex-start', display: 'flex'}}>
           <div style={{height: 24, justifyContent: 'center', display: 'flex', flexDirection: 'column', color: '#171D17', fontSize: 16, fontFamily: 'Plus Jakarta Sans', fontWeight: '700', lineHeight: '24px', wordWrap: 'break-word'}}>料金明細</div>

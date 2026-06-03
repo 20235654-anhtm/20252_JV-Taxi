@@ -1,4 +1,5 @@
 import React from 'react';
+import IconEmptyBlackMess from '../../assets/IconEmptyBlackMess.svg';
 import type { PassengerInfoProps } from '../../types/TripSummaryDetail';
 
 const PassengerInfo: React.FC<PassengerInfoProps> = ({ passenger, timeline, onClickMessage }) => {
@@ -36,7 +37,7 @@ const PassengerInfo: React.FC<PassengerInfoProps> = ({ passenger, timeline, onCl
           }}
         >
           <div style={{flexDirection: 'column', justifyContent: 'flex-start', alignItems: 'center', display: 'flex'}}>
-            <img src="/src/assets/IconEmptyBlackMess.svg" alt="message" style={{width: 16.67, height: 16.67}} />
+            <img src={IconEmptyBlackMess} alt="message" style={{width: 16.67, height: 16.67}} />
           </div>
         </div>
       </div>

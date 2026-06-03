@@ -1,4 +1,5 @@
 import React from 'react';
+import IconEmotyBrownStar from '../../assets/IconEmotyBrownStar.svg';
 import type { TotalIncomeCardProps } from '../../types/TripSummaryDetail';
 
 const TotalIncomeCard: React.FC<TotalIncomeCardProps> = ({ totalIncome, tip, rating }) => {
@@ -30,7 +31,7 @@ const TotalIncomeCard: React.FC<TotalIncomeCardProps> = ({ totalIncome, tip, rat
           <div style={{height: 31.50, position: 'relative'}}>
             <div style={{height: 17, justifyContent: 'center', display: 'flex', flexDirection: 'column', color: '#3D4A3F', fontSize: 11, fontFamily: 'Plus Jakarta Sans', fontWeight: '700', textTransform: 'uppercase', lineHeight: '16.50px', letterSpacing: 1.10, wordWrap: 'break-word'}}>受け取った評価</div>
           </div>
-          <img src="/src/assets/IconEmotyBrownStar.svg" alt="star" style={{width: 25, height: 25}} />
+          <img src={IconEmotyBrownStar} alt="star" style={{width: 25, height: 25}} />
         </div>
         <div style={{alignSelf: 'stretch', justifyContent: 'flex-start', alignItems: 'flex-end', gap: 8, display: 'flex'}}>
           <div style={{flexDirection: 'column', justifyContent: 'flex-start', alignItems: 'flex-start', display: 'flex'}}>
