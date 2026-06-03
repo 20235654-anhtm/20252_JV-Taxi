@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Polyline, CircleMarker } from 'react-leaflet';
+import { Polyline } from 'react-leaflet';
 import { getRouteCoordinates } from '../../hooks/useLocationSuggestions';
 
 interface MapRouteProps {
@@ -7,26 +7,13 @@ interface MapRouteProps {
   end: { lat: number; lng: number } | null;
   color?: string;
   outlineColor?: string;
-  showDots?: boolean;
-  actualPath?: [number, number][];
 }
 
-export const MapRoute: React.FC<MapRouteProps> = ({ 
-  start, 
-  end, 
-  color = '#0f4c3a', 
-  outlineColor,
-  showDots = false,
-  actualPath
-}) => {
+export const MapRoute: React.FC<MapRouteProps> = ({ start, end, color = '#0f4c3a', outlineColor }) => {
   const [positions, setPositions] = useState<[number, number][]>([]);
 
   useEffect(() => {
     const fetchRoute = async () => {
-      if (actualPath && actualPath.length > 0) {
-        setPositions(actualPath);
-        return;
-      }
       if (start && end) {
         const coords = await getRouteCoordinates(start, end);
         setPositions(coords);
@@ -36,7 +23,7 @@ export const MapRoute: React.FC<MapRouteProps> = ({
     };
 
     fetchRoute();
-  }, [start, end, actualPath]);
+  }, [start, end]);
 
   if (positions.length === 0) return null;
 
@@ -70,7 +57,7 @@ export const MapRoute: React.FC<MapRouteProps> = ({
         pathOptions={{
           color: color,
           weight: 5,
-          opacity: 0.9,
+          opacity: 0.8,
           lineJoin: 'round',
           lineCap: 'round'
         }}
@@ -82,33 +69,12 @@ export const MapRoute: React.FC<MapRouteProps> = ({
           pathOptions={{
             color: color,
             weight: 10,
-            opacity: 0.15,
+            opacity: 0.2,
             lineJoin: 'round',
             lineCap: 'round'
           }}
         />
       )}
-
-      {/* Hiển thị các chấm tròn dọc đường đi giống như mockup */}
-      {showDots && positions.map((pos, idx) => {
-        // Chỉ vẽ chấm ở mỗi điểm thứ 4 để tránh quá dày đặc, và vẽ ở điểm cuối cùng
-        if (idx % 4 === 0 || idx === positions.length - 1) {
-          return (
-            <CircleMarker
-              key={`route-dot-${idx}`}
-              center={pos}
-              radius={3}
-              pathOptions={{
-                color: '#171D17', // Viền màu đen sẫm
-                fillColor: '#93C5FD', // Ruột màu xanh dương nhạt cực kỳ cao cấp
-                fillOpacity: 1,
-                weight: 1.5,
-              }}
-            />
-          );
-        }
-        return null;
-      })}
     </>
   );
 };

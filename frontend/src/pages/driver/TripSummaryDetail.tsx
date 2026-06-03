@@ -94,15 +94,6 @@ const TripSummaryDetail: React.FC = () => {
             return parts[0].trim();
           };
 
-          let parsedActualPath: [number, number][] | undefined = undefined;
-          if (ride.actualPath) {
-            try {
-              parsedActualPath = JSON.parse(ride.actualPath);
-            } catch (e) {
-              console.error('Failed to parse actualPath', e);
-            }
-          }
-
           const mappedDetail: TripSummaryDetailType = {
             id: ride.id,
             distance,
@@ -124,10 +115,7 @@ const TripSummaryDetail: React.FC = () => {
               distanceFee,
               bookingFee,
               total
-            },
-            pickupPosition: { lat: startLat, lng: startLng },
-            destinationPosition: { lat: endLat, lng: endLng },
-            actualPath: parsedActualPath
+            }
           };
 
           setTripDetail(mappedDetail);
@@ -184,9 +172,6 @@ const TripSummaryDetail: React.FC = () => {
           distance={tripDetail.distance}
           duration={tripDetail.duration}
           status={tripDetail.status}
-          pickupPosition={tripDetail.pickupPosition}
-          destinationPosition={tripDetail.destinationPosition}
-          actualPath={tripDetail.actualPath}
         />
 
         <TotalIncomeCard 

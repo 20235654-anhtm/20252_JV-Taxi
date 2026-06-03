@@ -110,7 +110,6 @@ model Ride {
   rejectedDriverIds    String[] @map("rejected_driver_ids") @db.Uuid
   status        RideStatus? @default(PENDING)
   createdAt     DateTime @default(now()) @map("created_at")
-  actualPath    String?  @map("actual_path") @db.Text
 
   passenger Profile? @relation("PassengerRides", fields: [passengerId], references: [id])
   driver    Profile? @relation("DriverRides", fields: [driverId], references: [id])
