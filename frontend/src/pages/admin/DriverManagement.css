@@ -127,7 +127,8 @@
 }
 
 .stat-card.offline {
-  background-color: #E9EFE7; /* Light greyish green */
+  background-color: #E9EFE7;
+  /* Light greyish green */
 }
 
 .stat-icon-wrapper {
@@ -369,11 +370,13 @@
 }
 
 .driver-rating-badge.high-rating {
-  background-color: #FDF1DD; /* Gold */
+  background-color: #FDF1DD;
+  /* Gold */
 }
 
 .driver-rating-badge.standard-rating {
-  background-color: #F1F3F0; /* Grey */
+  background-color: #F1F3F0;
+  /* Grey */
   color: #6D7A6E;
 }
 
@@ -532,7 +535,9 @@
 }
 
 @keyframes spin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 /* --- Pagination controls --- */

@@ -698,6 +698,60 @@
   box-shadow: 0 -10px 20px rgba(0, 0, 0, 0.05);
 }
 
+/* --- Pagination Styles --- */
+.passenger-pagination-container {
+  display: flex;
+  justify-content: flex-end; /* Căn phải */
+  align-items: center;
+  gap: 16px;
+  margin-top: 24px;
+  margin-bottom: 32px;
+  padding-bottom: 80px; 
+}
+
+.passenger-pagination-numbers {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.passenger-pagination-btn {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 20px;          /* Kích thước vòng tròn 20x20px */
+  height: 20px;
+  border-radius: 50%;
+  border: 1px solid #E5E7EB;
+  background-color: white;
+  color: #4B5563;
+  font-size: 11px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.passenger-pagination-btn:hover:not(:disabled):not(.ellipsis) {
+  border-color: #D1D5DB;
+  background-color: #F3F4F6;
+}
+
+.passenger-pagination-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.passenger-pagination-btn.active {
+  background-color: #14422D !important;
+  color: white !important;
+  border-color: #14422D !important;
+}
+
+.passenger-pagination-btn.ellipsis {
+  border: none;
+  background-color: transparent;
+  cursor: default;
+}
+
 /* RESPONSIVE DESIGN */
 @media (max-width: 768px) {
   .admin-page-title-row {
@@ -710,4 +764,54 @@
     padding: 80px 16px 120px;
     gap: 16px;
   }
+}
+
+/* PAGINATION */
+.pagination-container {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 8px;
+  margin-top: 24px;
+  padding-bottom: 24px;
+}
+
+.pagination-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 1px solid #d2ded5;
+  background-color: white;
+  color: #71717a;
+  font-weight: 700;
+  font-size: 11px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  padding: 0;
+}
+
+.pagination-btn:hover:not(:disabled):not(.dots) {
+  border-color: #006D37;
+  color: #006D37;
+}
+
+.pagination-btn.active {
+  background-color: #2e4a3d;
+  border-color: #2e4a3d;
+  color: white;
+}
+
+.pagination-btn:disabled:not(.dots) {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.pagination-btn.dots {
+  border: 1px solid #e1e9e3;
+  background-color: transparent;
+  color: #71717a;
+  cursor: default;
 }

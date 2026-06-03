@@ -308,7 +308,6 @@ const DriverManagement: React.FC = () => {
             maxLength={200}
           />
         </div>
-
         {/* Driver List */}
         <div className="drivers-list-container">
           {loading ? (
