@@ -83,11 +83,11 @@ const DriverInTrip: React.FC = () => {
     iconAnchor: [70, 24],
     html: `
       <div class="flex flex-col items-center">
-        <div class="w-[44px] h-[49px] bg-[#865300] rounded-[9999px] flex items-center justify-center mb-1.5 shadow-[0_10px_15px_-3px_rgba(0,0,0,0.10),0_4px_6px_-4px_rgba(0,0,0,0.10)] border-[4px] border-white box-border">
+        <div class="w-[44px] h-[49px] bg-[#D9AF1D] rounded-[9999px] flex items-center justify-center mb-1.5 shadow-[0_10px_15px_-3px_rgba(0,0,0,0.10),0_4px_6px_-4px_rgba(0,0,0,0.10)] border-[4px] border-white box-border">
           <img src="${IconLocation}" alt="Destination" class="w-[20px] h-[25px] object-contain" />
         </div>
-        <div class="bg-white border-[1.5px] border-[#865300] rounded-[10px] py-1 px-3.5 text-center shadow-md whitespace-nowrap">
-          <div class="text-[10px] font-extrabold text-[#865300] leading-tight mb-0.5">目的地</div>
+        <div class="bg-white border-[1.5px] border-[#D9AF1D] rounded-[10px] py-1 px-3.5 text-center shadow-md whitespace-nowrap">
+          <div class="text-[10px] font-extrabold text-[#D9AF1D] leading-tight mb-0.5">目的地</div>
           <div class="text-[13px] font-extrabold text-[#1a1a1a] leading-tight">${destName}</div>
         </div>
       </div>
@@ -486,7 +486,7 @@ const DriverInTrip: React.FC = () => {
             <div className="flex items-start gap-3 min-w-0 flex-1">
               <div className="pt-1 flex-shrink-0">
                 {tripPhase === 'in_trip' ? (
-                  <MapPin className="text-[#865300] w-5 h-5" strokeWidth={2.5} />
+                  <MapPin className="text-[#D9AF1D] w-5 h-5" strokeWidth={2.5} />
                 ) : (
                   <Flag className="text-[#006D37] w-5 h-5" strokeWidth={2.5} />
                 )}

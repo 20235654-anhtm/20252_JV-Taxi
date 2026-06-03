@@ -37,11 +37,11 @@ const createDestinationIcon = (destName: string) => L.divIcon({
   iconAnchor: [70, 24],
   html: `
     <div class="flex flex-col items-center">
-      <div class="w-[44px] h-[49px] bg-[#865300] rounded-[9999px] flex items-center justify-center mb-1.5 shadow-[0_10px_15px_-3px_rgba(0,0,0,0.10),0_4px_6px_-4px_rgba(0,0,0,0.10)] border-[4px] border-white box-border">
+      <div class="w-[44px] h-[49px] bg-[#D9AF1D] rounded-[9999px] flex items-center justify-center mb-1.5 shadow-[0_10px_15px_-3px_rgba(0,0,0,0.10),0_4px_6px_-4px_rgba(0,0,0,0.10)] border-[4px] border-white box-border">
         <img src="${IconLocation}" alt="Destination" class="w-[20px] h-[25px] object-contain" />
       </div>
-      <div class="bg-white border-[1.5px] border-[#865300] rounded-[10px] py-1 px-3.5 text-center shadow-md whitespace-nowrap">
-        <div class="text-[10px] font-extrabold text-[#865300] leading-tight mb-0.5">目的地</div>
+      <div class="bg-white border-[1.5px] border-[#D9AF1D] rounded-[10px] py-1 px-3.5 text-center shadow-md whitespace-nowrap">
+        <div class="text-[10px] font-extrabold text-[#D9AF1D] leading-tight mb-0.5">目的地</div>
         <div class="text-[13px] font-extrabold text-[#1a1a1a] leading-tight">${destName}</div>
       </div>
     </div>
@@ -310,7 +310,7 @@ export default function InTrip() {
                   <div style={{width: 2, height: 48, paddingTop: 4, paddingBottom: 4, flexDirection: 'column', justifyContent: 'flex-start', alignItems: 'flex-start', display: 'flex'}}>
                     <div style={{width: 2, height: 40, background: 'rgba(188, 202, 188, 0.30)'}} />
                   </div>
-                  <div style={{width: 12, height: 12, background: '#865300', boxShadow: '0px 0px 8px rgba(254, 165, 32, 0.40)', borderRadius: 9999}} />
+                  <div style={{width: 12, height: 12, background: '#D9AF1D', boxShadow: '0px 0px 8px rgba(254, 165, 32, 0.40)', borderRadius: 9999}} />
                 </div>
                 <div style={{flex: '1 1 0', minWidth: 0, flexDirection: 'column', justifyContent: 'flex-start', alignItems: 'flex-start', gap: 16, display: 'inline-flex'}}>
                   <div style={{alignSelf: 'stretch', opacity: 0.40, flexDirection: 'column', justifyContent: 'flex-start', alignItems: 'stretch', display: 'flex'}}>
@@ -320,7 +320,7 @@ export default function InTrip() {
                     </div>
                   </div>
                   <div style={{alignSelf: 'stretch', flexDirection: 'column', justifyContent: 'flex-start', alignItems: 'stretch', display: 'flex'}}>
-                    <div style={{width: 106.33, height: 15, justifyContent: 'center', display: 'flex', flexDirection: 'column', color: '#865300', fontSize: 10, fontWeight: '400', textTransform: 'uppercase', lineHeight: '15px', wordWrap: 'break-word'}}> 行き先</div>
+                    <div style={{width: 106.33, height: 15, justifyContent: 'center', display: 'flex', flexDirection: 'column', color: '#D9AF1D', fontSize: 10, fontWeight: '400', textTransform: 'uppercase', lineHeight: '15px', wordWrap: 'break-word'}}> 行き先</div>
                     <div style={{alignSelf: 'stretch', flexDirection: 'column', justifyContent: 'flex-start', alignItems: 'stretch', display: 'flex'}}>
                       <div style={{width: '100%', minHeight: 24, display: 'block', color: '#171D17', fontSize: 16, fontWeight: '700', lineHeight: '24px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis'}}>{destName}</div>
                     </div>

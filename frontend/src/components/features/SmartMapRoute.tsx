@@ -117,8 +117,8 @@ export const SmartMapRoute: React.FC<SmartMapRouteProps> = ({ driverPosition, de
       <svg style={{ width: 0, height: 0, position: 'absolute' }}>
         <defs>
           <linearGradient id="routeGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-            <stop offset="0%" stopColor="#1a1a1a" />
-            <stop offset="100%" stopColor="#C4843D" />
+            <stop offset="0%" stopColor="#064e3b" />
+            <stop offset="100%" stopColor="#006d37" />
           </linearGradient>
         </defs>
       </svg>
