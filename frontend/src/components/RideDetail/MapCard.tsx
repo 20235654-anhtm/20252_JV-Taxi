@@ -4,7 +4,7 @@ import { MapView } from '../features/MapView';
 import type { MapCardProps } from '../../types/TripDetail';
 import { LocationMarker } from '../features/LocationMarker';
 
-export const MapCard: React.FC<MapCardProps> = ({ pickupPosition, destinationPosition }) => {
+export const MapCard: React.FC<MapCardProps> = ({ pickupPosition, destinationPosition, actualPath }) => {
   return (
     <div className="w-full h-[256px] relative bg-[#DDE5DB] shadow-[0px_1px_2px_rgba(0,0,0,0.05)] overflow-hidden rounded-[24px] flex flex-col justify-center items-start">
       {/* Bản đồ thật */}
@@ -13,9 +13,10 @@ export const MapCard: React.FC<MapCardProps> = ({ pickupPosition, destinationPos
           position={null}
           pickupPosition={pickupPosition}
           destinationPosition={destinationPosition}
-          interactive={false}
+          interactive={true}
           hidePickupMarker={true}
           hideDestinationMarker={true}
+          actualPath={actualPath}
         >
           {pickupPosition && (
             <LocationMarker 

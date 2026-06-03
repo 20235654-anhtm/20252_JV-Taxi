@@ -488,7 +488,7 @@ router.post('/complete', authMiddleware as any, async (req: AuthRequest, res: Re
       return;
     }
 
-    const { rideId } = req.body;
+    const { rideId, actualPath } = req.body;
     if (!rideId) {
       res.status(400).json({ success: false, message: 'Ride ID is required' });
       return;
@@ -496,6 +496,15 @@ router.post('/complete', authMiddleware as any, async (req: AuthRequest, res: Re
 
     // Update Ride status to COMPLETED
     const ride = await rideService.updateRideStatus(rideId, 'COMPLETED');
+
+    // Save actual GPS path if provided
+    if (actualPath) {
+      await prisma.ride.update({
+        where: { id: rideId },
+        data: { actualPath }
+      });
+      (ride as any).actualPath = actualPath;
+    }
 
     // Set driver status to free (isBusy: false)
     await prisma.driverProfile.update({
