@@ -6,7 +6,6 @@ export interface LatLng {
 export interface MapCardProps {
   pickupPosition?: LatLng;
   destinationPosition?: LatLng;
-  actualPath?: [number, number][];
 }
 
 export interface DriverInfoCardProps {

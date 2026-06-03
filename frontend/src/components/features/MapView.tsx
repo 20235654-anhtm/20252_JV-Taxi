@@ -139,9 +139,7 @@ interface MapViewProps {
   routeColor?: string;
   routeOutlineColor?: string;
   hideRoute?: boolean;
-  showDots?: boolean;
   extraPositions?: LatLng[];
-  actualPath?: [number, number][];
   children?: React.ReactNode;
 }
 
@@ -164,9 +162,7 @@ export function MapView({
   routeColor,
   routeOutlineColor,
   hideRoute = false,
-  showDots = false,
   extraPositions = [],
-  actualPath,
   children
 }: MapViewProps) {
 
@@ -216,7 +212,7 @@ export function MapView({
 
         {/* Vẽ đường đi giữa 2 điểm (mặc định) */}
         {!hideRoute && (
-          <MapRoute start={pickupPosition || null} end={destinationPosition || null} color={routeColor} outlineColor={routeOutlineColor} showDots={showDots} actualPath={actualPath} />
+          <MapRoute start={pickupPosition || null} end={destinationPosition || null} color={routeColor} outlineColor={routeOutlineColor} />
         )}
 
         {/* Marker vị trí GPS thực tế */}
