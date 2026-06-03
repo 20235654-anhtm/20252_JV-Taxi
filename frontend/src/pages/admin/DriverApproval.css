@@ -288,8 +288,15 @@
   font-weight: 700;
   padding: 4px 10px;
   border-radius: 8px;
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   letter-spacing: 0.02em;
+}
+
+.status-badge-waiting .status-icon {
+  color: #E65100;
+  flex-shrink: 0;
 }
 
 /* Dots Options Menu */

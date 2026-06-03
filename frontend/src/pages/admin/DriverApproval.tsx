@@ -6,6 +6,25 @@ import { useLanguage } from '../../context/LanguageContext';
 import './DriverApproval.css';
 import AdminBottomNavBar from '../../components/layout/AdminBottomNavBar';
 
+const HourglassIcon = ({ size = 12, className = "" }: { size?: number; className?: string }) => (
+  <svg
+    width={size}
+    height={size}
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2.5"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    className={className}
+  >
+    <path d="M5 3h14" />
+    <path d="M5 21h14" />
+    <path d="M7 3v3c0 3 3.5 5 3.5 6s-3.5 3-3.5 6v3" />
+    <path d="M17 3v3c0 3-3.5 5-3.5 6s3.5 3 3.5 6v3" />
+  </svg>
+);
+
 interface Driver {
   userId: string;
   vehicleType: string;
@@ -27,7 +46,7 @@ const TRANSLATIONS = {
     subtitle: "認証待ちリスト",
     title: "保留中ドライバー",
     applyDate: "応募日 : ",
-    statusWaiting: "⏳ 確認待ち",
+    statusWaiting: "確認待ち",
     experienceLabel: "経験",
     vehicleLabel: "車両",
     btnDetails: "詳細を見る",
@@ -55,7 +74,7 @@ const TRANSLATIONS = {
     subtitle: "Danh sách chờ duyệt",
     title: "Tài xế chờ duyệt",
     applyDate: "Ngày đăng ký : ",
-    statusWaiting: "⏳ Chờ xác nhận",
+    statusWaiting: "Chờ xác nhận",
     experienceLabel: "Kinh nghiệm",
     vehicleLabel: "Phương tiện",
     btnDetails: "Xem chi tiết",
@@ -271,7 +290,10 @@ const DriverApproval = () => {
                       <p className="driver-card-date">{formatApplyDate(driver.profile.createdAt, lang)}</p>
 
                       <div className="driver-card-status">
-                        <span className="status-badge-waiting">{t.statusWaiting}</span>
+                        <span className="status-badge-waiting">
+                          <HourglassIcon size={12} className="status-icon" />
+                          {t.statusWaiting}
+                        </span>
                       </div>
                     </div>
                   </div>
