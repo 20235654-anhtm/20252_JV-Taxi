@@ -59,20 +59,22 @@ const PassengerManagement: React.FC = () => {
           setLoading(false);
           return;
         }
-
         if (data.success && data.data) {
           const mappedPassengers: Passenger[] = data.data.map((user: any) => {
             let status: 'active' | 'pending' | 'suspended' = 'active';
             let statusText = 'アクティブ'; // Default active
+            if (user.status === 'BANNED') {
+              status = 'suspended';
+              statusText = '停止中';
+            }
             
-            // Just basic mapping if needed
             return {
-              id: user.userId,
-              name: user.profile?.fullName || 'N/A',
-              email: user.profile?.email || 'N/A',
-              phone: user.profile?.phone || 'N/A',
-              avatarUrl: getAvatarUrl(user.avatarPicture),
-              rides: user.rides || 0,
+              id: user.id,
+              name: user.fullName || 'N/A',
+              email: user.email || 'N/A',
+              phone: user.phone || 'N/A',
+              avatarUrl: getAvatarUrl(user.avatar),
+              rides: user.completedRides || 0,
               totalSpent: user.totalSpent || 0,
               status,
               statusText

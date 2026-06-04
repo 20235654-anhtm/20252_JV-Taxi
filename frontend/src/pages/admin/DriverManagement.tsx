@@ -44,7 +44,7 @@ const DriverManagement: React.FC = () => {
   const [drivers, setDrivers] = useState<Driver[]>([]);
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 20;
+  const itemsPerPage = 10;
 
   // Fetch drivers from backend on mount
   useEffect(() => {
@@ -182,15 +182,37 @@ const DriverManagement: React.FC = () => {
   const offlineCount = drivers.filter(d => d.status === 'offline').length;
 
   // Pagination calculations
-  const totalPages = Math.ceil(filteredDrivers.length / itemsPerPage) || 1;
+  const totalPages = Math.ceil(filteredDrivers.length / itemsPerPage);
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
   const currentDrivers = filteredDrivers.slice(indexOfFirstItem, indexOfLastItem);
 
-  const handlePageChange = (pageNumber: number) => {
-    if (pageNumber >= 1 && pageNumber <= totalPages) {
-      setCurrentPage(pageNumber);
+  const getPaginationGroup = () => {
+    if (totalPages <= 4) {
+      return Array.from({ length: totalPages }).map((_, i) => i + 1);
     }
+    if (currentPage <= 2) {
+      return [1, 2, '...', totalPages];
+    } else if (currentPage >= totalPages - 1) {
+      return [1, '...', totalPages - 1, totalPages];
+    } else {
+      return [1, '...', currentPage, '...', totalPages];
+    }
+  };
+
+  const renderPaginationNumbers = () => {
+    const pages = getPaginationGroup();
+    
+    return pages.map((page, index) => (
+      <button
+        key={index}
+        className={`passenger-pagination-btn ${page === currentPage ? 'active' : ''} ${page === '...' ? 'ellipsis' : ''}`}
+        onClick={() => typeof page === 'number' && setCurrentPage(page)}
+        disabled={page === '...'}
+      >
+        {page}
+      </button>
+    ));
   };
 
   // Navigate to driver details and block page
@@ -404,28 +426,26 @@ const DriverManagement: React.FC = () => {
         </div>
 
         {/* Pagination */}
-        {totalPages > 1 && (
-          <div className="pagination-row">
+        {!loading && totalPages > 1 && (
+          <div className="passenger-pagination-container">
             <button
-              type="button"
-              className="pagination-btn"
+              className="passenger-pagination-btn nav-btn"
+              onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
               disabled={currentPage === 1}
-              onClick={() => handlePageChange(currentPage - 1)}
-              aria-label="Previous Page"
             >
-              <ChevronLeft size={20} />
+              <ChevronLeft size={14} />
             </button>
-            <span className="pagination-text">
-              {currentPage} / {totalPages}
-            </span>
+            
+            <div className="passenger-pagination-numbers">
+              {renderPaginationNumbers()}
+            </div>
+            
             <button
-              type="button"
-              className="pagination-btn"
+              className="passenger-pagination-btn nav-btn"
+              onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
               disabled={currentPage === totalPages}
-              onClick={() => handlePageChange(currentPage + 1)}
-              aria-label="Next Page"
             >
-              <ChevronRight size={20} />
+              <ChevronRight size={14} />
             </button>
           </div>
         )}
