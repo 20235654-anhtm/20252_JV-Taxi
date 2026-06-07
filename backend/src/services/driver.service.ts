@@ -11,6 +11,7 @@ export interface NearbyDriverResult {
   vehicle_type: string;
   vehicle_infor: string;
   avatar_picture: string | null;
+  japanese_cer_infor: string | null;
   distance: number; // Distance in meters
 }
 
@@ -41,6 +42,7 @@ export const getNearbyDrivers = async (
         dp."vehicle_type",
         dp."vehicle_infor",
         dp."avatar_picture",
+        dp."japanese_cer_infor",
         ST_Distance(
           dp."current_location", 
           ST_SetSRID(ST_MakePoint(${longitude}, ${latitude}), 4326)::geography
@@ -80,6 +82,7 @@ export const getAllDrivers = async (): Promise<NearbyDriverResult[]> => {
         dp."vehicle_type",
         dp."vehicle_infor",
         dp."avatar_picture",
+        dp."japanese_cer_infor",
         0 as distance
       FROM "driver_profiles" dp
       INNER JOIN "profiles" p ON dp."user_id" = p."id"

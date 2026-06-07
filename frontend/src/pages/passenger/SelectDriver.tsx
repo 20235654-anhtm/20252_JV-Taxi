@@ -17,6 +17,7 @@ interface Driver {
   price: string;
   rating: number;
   avatar: string;
+  jlpt: string | null;
 }
 
 /** Search status types */
@@ -356,6 +357,9 @@ const SelectDriver = () => {
                         <h3 className="sd-driver-name">{driver.name}</h3>
                         <p className="sd-car-model">{formatVehicleInfo(driver.car)}</p>
                         <div className="sd-tags">
+                          {driver.jlpt && driver.jlpt !== 'N/A' && driver.jlpt.trim() !== '' && (
+                            <span className="sd-tag sd-tag--jlpt">{driver.jlpt}</span>
+                          )}
                           <span className="sd-tag">{driver.distance}</span>
                           <span className="sd-tag">{driver.time}</span>
                         </div>

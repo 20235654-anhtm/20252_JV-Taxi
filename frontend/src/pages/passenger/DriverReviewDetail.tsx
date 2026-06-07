@@ -16,6 +16,7 @@ interface DriverSummary {
   price: string;
   rating: number;
   avatar: string;
+  jlpt?: string | null;
 }
 
 interface DriverReviewDetailData extends DriverSummary {
@@ -23,6 +24,7 @@ interface DriverReviewDetailData extends DriverSummary {
   phone?: string;
   vehicleInfor?: string;
   parsedVehicleInfor?: Record<string, any>;
+  jlpt?: string | null;
 }
 
 const formatVehicleText = (infoStr: string) => {
@@ -73,6 +75,7 @@ const DriverReviewDetail = () => {
           phone: data.data.phone,
           vehicleInfor: data.data.driverProfile?.vehicleInfor || (prev ?? initialDriver).car,
           parsedVehicleInfor: data.data.driverProfile?.parsedVehicleInfor || {},
+          jlpt: (prev ?? initialDriver).jlpt ?? null,
         }));
 
         // Fetch reviews
@@ -156,9 +159,11 @@ const DriverReviewDetail = () => {
             <div className="dd-badge dd-badge-rating">
               <span style={{ color: '#006D37' }}>★</span> {driver.rating && !isNaN(Number(driver.rating)) ? Number(driver.rating).toFixed(1) : driver.rating}
             </div>
-            <div className="dd-badge dd-badge-lang">
-              <span>文<sub>A</sub></span> JLPT N2
-            </div>
+            {driver.jlpt && driver.jlpt !== 'N/A' && driver.jlpt.trim() !== '' && (
+              <div className="dd-badge dd-badge-lang">
+                <span>文<sub>A</sub></span> {driver.jlpt}
+              </div>
+            )}
           </div>
 
           <div className="dd-vehicle-box">

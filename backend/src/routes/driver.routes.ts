@@ -74,6 +74,7 @@ router.get('/nearby', async (req: Request, res: Response) => {
       time: `${Math.max(1, Math.ceil(Number(driver.distance) / 500))} min`,
       rating: Number(driver.average_rating),
       avatar: getAvatarUrl(driver.avatar_picture),
+      jlpt: driver.japanese_cer_infor || null,
       // Calculate estimated price based on distance
       price: calculateEstimatedPrice(Number(driver.distance)),
     }));
@@ -114,6 +115,7 @@ router.get('/', async (req: Request, res: Response) => {
       time: driver.distance > 0 ? `${Math.max(1, Math.ceil(driver.distance / 500))} min` : '--',
       rating: Number(driver.average_rating),
       avatar: getAvatarUrl(driver.avatar_picture),
+      jlpt: driver.japanese_cer_infor || null,
       price: calculateEstimatedPrice(driver.distance > 0 ? driver.distance : 5000), // Default 5km for price if no distance
     }));
 
