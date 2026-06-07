@@ -57,6 +57,60 @@ const SelectDriver = () => {
   const [timeRemaining, setTimeRemaining] = useState(SEARCH_TIMEOUT_MS);
   const [coords, setCoords] = useState<{ lng: number; lat: number } | null>(null);
 
+  // --- Filter & Sort State ---
+  // jlptFilter: null = すべて, 1..5 = N{n}以上のみ表示
+  const [jlptFilter, setJlptFilter] = useState<number | null>(null);
+  // sortOrder: array of criteria in tick order (first ticked = highest priority)
+  type SortKey = 'jlpt' | 'distance' | 'rating';
+  const [sortOrder, setSortOrder] = useState<SortKey[]>([]);
+  const [showSortPanel, setShowSortPanel] = useState(false);
+  const [showJlptPanel, setShowJlptPanel] = useState(false);
+
+  /** Toggle a sort criterion — add if not present, remove if present */
+  const toggleSort = (key: SortKey) => {
+    setSortOrder(prev =>
+      prev.includes(key) ? prev.filter(k => k !== key) : [...prev, key]
+    );
+  };
+
+  /** JLPT level numeric value: N1=1 (highest), N5=5 (lowest). null = no JLPT */
+  const jlptLevel = (jlpt: string | null | undefined): number => {
+    if (!jlpt || jlpt === 'N/A') return 99;
+    const m = jlpt.match(/([1-5])/);
+    return m ? parseInt(m[1]!) : 99;
+  };
+
+  /** Apply filter then sort to produce the displayed list */
+  const displayedDrivers = (() => {
+    let list = [...drivers];
+
+    // JLPT filter: keep only drivers whose level <= jlptFilter (N1 < N2 < N3 …)
+    if (jlptFilter !== null) {
+      list = list.filter(d => jlptLevel(d.jlpt) <= jlptFilter);
+    }
+
+    // Multi-criteria sort
+    if (sortOrder.length > 0) {
+      list.sort((a, b) => {
+        for (const key of sortOrder) {
+          let diff = 0;
+          if (key === 'jlpt') {
+            diff = jlptLevel(a.jlpt) - jlptLevel(b.jlpt); // lower number = better
+          } else if (key === 'distance') {
+            diff = (a.distanceMeters ?? 0) - (b.distanceMeters ?? 0);
+          } else if (key === 'rating') {
+            diff = (b.rating ?? 0) - (a.rating ?? 0); // higher rating first
+          }
+          if (diff !== 0) return diff;
+        }
+        return 0;
+      });
+    }
+
+    return list;
+  })();
+
+
   const [estimatedFare, setEstimatedFare] = useState<number | null>(() => {
     const fromState = location.state?.fare;
     if (fromState && fromState !== '...') {
@@ -294,7 +348,77 @@ const SelectDriver = () => {
             <span className="sd-status-dot" />
             <span>周辺のドライバー (3km圏内)</span>
           </div>
-          <div className="sd-live-badge">ライブ更新</div>
+          {/* Filter buttons */}
+          <div className="sd-filter-pills">
+            {/* JLPT Filter */}
+            <div className="sd-filter-pill-wrap">
+              <button
+                className={`sd-filter-pill${jlptFilter !== null ? ' sd-filter-pill--active' : ''}`}
+                onClick={() => { setShowJlptPanel(p => !p); setShowSortPanel(false); }}
+                title="JLPTレベルでフィルター"
+              >
+                文<sub>A</sub>
+                {jlptFilter !== null && <span className="sd-filter-badge">N{jlptFilter}↑</span>}
+                <span className="sd-filter-chevron">{showJlptPanel ? '▲' : '▼'}</span>
+              </button>
+              {showJlptPanel && (
+                <div className="sd-filter-dropdown">
+                  <p className="sd-filter-dropdown-label">JLPT N以上を表示</p>
+                  <div className="sd-filter-dropdown-row">
+                    {[1,2,3,4,5].map(n => (
+                      <button
+                        key={n}
+                        className={`sd-filter-opt${jlptFilter === n ? ' sd-filter-opt--on' : ''}`}
+                        onClick={() => { setJlptFilter(jlptFilter === n ? null : n); setShowJlptPanel(false); }}
+                      >N{n}</button>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Sort */}
+            <div className="sd-filter-pill-wrap">
+              <button
+                className={`sd-filter-pill${sortOrder.length > 0 ? ' sd-filter-pill--active' : ''}`}
+                onClick={() => { setShowSortPanel(p => !p); setShowJlptPanel(false); }}
+                title="並び替え"
+              >
+                ⇅ 並替
+                {sortOrder.length > 0 && <span className="sd-filter-badge">{sortOrder.length}</span>}
+                <span className="sd-filter-chevron">{showSortPanel ? '▲' : '▼'}</span>
+              </button>
+              {showSortPanel && (
+                <div className="sd-filter-dropdown sd-filter-dropdown--sort">
+                  <p className="sd-filter-dropdown-label">並び替え（優先順に選択）</p>
+                  {(['jlpt', 'distance', 'rating'] as const).map((key) => {
+                    const labels: Record<string, string> = {
+                      jlpt: '文A JLPT',
+                      distance: '📍 距離（近い順）',
+                      rating: '★ 評価（高い順）',
+                    };
+                    const idx = sortOrder.indexOf(key);
+                    return (
+                      <button
+                        key={key}
+                        className={`sd-sort-row${idx !== -1 ? ' sd-sort-row--on' : ''}`}
+                        onClick={() => toggleSort(key)}
+                      >
+                        <span className="sd-sort-priority">{idx !== -1 ? `${idx + 1}` : ''}</span>
+                        <span className="sd-sort-label">{labels[key]}</span>
+                        <span className="sd-sort-check">{idx !== -1 ? '✓' : ''}</span>
+                      </button>
+                    );
+                  })}
+                  {sortOrder.length > 0 && (
+                    <button className="sd-sort-clear" onClick={() => setSortOrder([])}>
+                      クリア
+                    </button>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
         </div>
 
         {/* Timer Badge - hiện khi đang tìm */}
@@ -336,7 +460,7 @@ const SelectDriver = () => {
         {drivers.length > 0 && (
           <>
             <div className="sd-driver-list">
-              {drivers.map((driver) => (
+              {displayedDrivers.map((driver) => (
                 <div className="sd-driver-card" key={driver.id}>
                   <div className="sd-card-top">
                     <div className="sd-driver-info">
@@ -384,6 +508,11 @@ const SelectDriver = () => {
                   </button>
                 </div>
               ))}
+              {displayedDrivers.length === 0 && drivers.length > 0 && (
+                <div className="sd-no-results">
+                  <p>絞り込み条件に合うドライバーがいません</p>
+                </div>
+              )}
             </div>
 
             {/* Loading Footer - tiếp tục tìm thêm tài xế */}
