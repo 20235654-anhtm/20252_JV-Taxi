@@ -7,37 +7,18 @@ import { API_BASE_URL } from "../../config/api";
 import { getCache, setCache, clearAllCache, CACHE_KEYS } from "../../services/cacheService";
 import "./Profile.css";
 import { socketService } from "../../services/socketService";
+import { Avatar } from "../../components/ui/Avatar";
 
 // Avatar component: shows image if available, otherwise first letter of name
 function AvatarDisplay({ src, name, size = 100 }: { src?: string | null; name?: string; size?: number }) {
-  const [imgError, setImgError] = useState(false);
-
-  const hasValidSrc = src && !src.includes('pravatar.cc') && !imgError;
-  const initial = (name || "U").charAt(0).toUpperCase();
-
-  if (hasValidSrc) {
-    return (
-      <img
-        src={src}
-        alt="Avatar"
-        className="pp-avatar"
-        style={{ width: size, height: size }}
-        onError={() => setImgError(true)}
-      />
-    );
-  }
-
   return (
-    <div
-      className="pp-avatar pp-avatar-initial"
-      style={{
-        width: size,
-        height: size,
-        fontSize: size * 0.42,
-      }}
-    >
-      {initial}
-    </div>
+    <Avatar 
+      src={src} 
+      name={name} 
+      className="pp-avatar"
+      style={{ width: size, height: size, fontSize: size * 0.42 }}
+      borderColor="none"
+    />
   );
 }
 

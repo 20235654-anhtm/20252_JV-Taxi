@@ -3,6 +3,7 @@ import { useNavigate, useLocation, useSearchParams } from 'react-router-dom';
 import { ArrowLeft, User, Mail, Phone, ShieldCheck, Car, Scan, Languages, BadgeCheck } from 'lucide-react';
 import { API_BASE_URL } from '../../config/api';
 import { useLanguage } from '../../context/LanguageContext';
+import { Avatar } from '../../components/ui/Avatar';
 import './DriverReviewDetail.css';
 
 const CustomIdCardIcon = ({ size = 20, className = "" }: { size?: number; className?: string }) => (
@@ -301,10 +302,11 @@ const DriverReviewDetail = () => {
         {/* Profile Section */}
         <section className="profile-section">
           <div className="profile-squircle-wrapper">
-            <img
-              src={driver.avatarPicture || "/driver_avatar.png"}
-              alt={driver.profile.fullName}
-              className="profile-squircle-avatar"
+            <Avatar
+              src={driver.avatarPicture}
+              name={driver.profile.fullName}
+              className="profile-squircle-avatar text-4xl"
+              borderColor="none"
             />
           </div>
           <h2 className="profile-name">{driver.profile.fullName}</h2>

@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { ArrowLeft, Camera, User, CarFront, ShieldCheck, Pen, Languages, IdCard } from "lucide-react";
 import "./ProfileEdit.css";
 import { showToast } from "../../components/ui/Toast";
+import { Avatar } from "../../components/ui/Avatar";
 
 interface DriverInfo {
   fullName: string;
@@ -130,7 +131,12 @@ export default function ProfileEdit() {
       <div className="pe-scroll-content">
         <div className="pe-avatar-section">
           <div className="pe-avatar-wrapper">
-            <img src={formData.avatar} alt="Avatar" className="pe-avatar" />
+            <Avatar 
+              src={formData.avatar} 
+              name={formData.fullName} 
+              className="pe-avatar text-5xl" 
+              borderColor="none" 
+            />
             <input
               type="file"
               ref={fileInputRef}

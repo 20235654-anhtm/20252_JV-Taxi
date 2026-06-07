@@ -6,6 +6,7 @@ import { MapView } from '../../components/features/MapView';
 import { useBooking } from '../../contexts/BookingContext';
 import { API_BASE_URL } from '../../config/api';
 import { showToast } from '../../components/ui/Toast';
+import { Avatar } from '../../components/ui/Avatar';
 import './BookingOptions.css';
 
 const CarIcon = ({ size = 24, color = 'currentColor' }) => (
@@ -213,14 +214,12 @@ const BookingOptions = () => {
             <div className="bo-badges">
               <div className="bo-avatars">
                 {nearbyDrivers.slice(0, 2).map((driver, index) => (
-                  <div 
+                  <Avatar 
                     key={driver.id || index} 
-                    className="bo-avt" 
-                    style={driver.avatar ? { 
-                      backgroundImage: `url(${driver.avatar})`,
-                      backgroundSize: 'cover',
-                      backgroundPosition: 'center'
-                    } : {}}
+                    src={driver.avatar} 
+                    name={driver.name} 
+                    className="bo-avt text-[8px] flex items-center justify-center" 
+                    borderColor="none"
                   />
                 ))}
                 {nearbyDrivers.length > 2 && (

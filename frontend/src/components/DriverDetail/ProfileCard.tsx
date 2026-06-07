@@ -5,6 +5,8 @@ import IconMail from '../../assets/IconMail.svg';
 import IconCall2 from '../../assets/IconCall2.svg';
 import IconBrownTick from '../../assets/IconBrownTick.svg';
 
+import { Avatar } from '../ui/Avatar';
+
 export const ProfileCard: React.FC<ProfileCardProps> = ({
   name,
   subName,
@@ -18,17 +20,12 @@ export const ProfileCard: React.FC<ProfileCardProps> = ({
       {/* Avatar Section */}
       <div className="relative mb-[24px] w-[160px] h-[160px]">
         <div className="w-full h-full relative transform rotate-3 bg-[#2b6469] shadow-[0px_8px_10px_-6px_rgba(0,0,0,0.10),0px_20px_25px_-5px_rgba(0,0,0,0.10)] overflow-hidden rounded-[32px] flex items-center justify-center">
-          {avatarUrl ? (
-            <img
-              className="absolute left-[-4px] top-[5px] w-[168px] h-[168px] transform -rotate-3 object-cover"
-              src={avatarUrl}
-              alt="Avatar"
-            />
-          ) : (
-            <div className="text-white text-[36px] font-[800] transform -rotate-3">
-              {name ? name.charAt(0).toUpperCase() : 'D'}
-            </div>
-          )}
+          <Avatar
+            src={avatarUrl}
+            name={name}
+            className="absolute left-[-4px] top-[5px] w-[168px] h-[168px] transform -rotate-3 object-cover rounded-[32px] text-4xl"
+            borderColor="none"
+          />
         </div>
         {/* Tick Badge */}
         {isVerified && (

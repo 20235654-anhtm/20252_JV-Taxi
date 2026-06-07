@@ -151,6 +151,7 @@ const Rateyourtrip: React.FC = () => {
             <div className="driver-info-content">
               <Avatar 
                 src={realDriver?.driverProfile?.avatarPicture || driver?.avatar || ""} 
+                name={realDriver?.fullName || driver?.name}
                 className="!w-[64px] !h-[64px]"
                 borderColor="transparent"
               />

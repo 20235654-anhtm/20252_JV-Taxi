@@ -7,6 +7,7 @@ import { DailyProvider, DailyAudio, useDaily } from '@daily-co/daily-react';
 import { useCallManager } from '../../hooks/useCallManager';
 import { showToast } from '../../components/ui/Toast';
 import { socketService } from '../../services/socketService';
+import { Avatar } from '../../components/ui/Avatar';
 import './CallPassenger.css';
 
 const CallPassengerUI = () => {
@@ -129,7 +130,12 @@ const CallPassengerUI = () => {
       <div className="call-content">
         <div className="call-header">
           <div className="call-avatar-container">
-            <img src={passengerAvatar} alt={passengerName} className="call-avatar" />
+            <Avatar 
+              src={passengerAvatar} 
+              name={passengerName} 
+              className="call-avatar text-4xl" 
+              borderColor="none" 
+            />
             <div className="call-badge">
               <BadgeCheck size={18} color="#519A64" fill="white" strokeWidth={2.5} />
             </div>

@@ -9,6 +9,7 @@ import { MapView } from '../../components/features/MapView';
 import { useBooking } from '../../contexts/BookingContext';
 import { socketService } from '../../services/socketService';
 import { API_BASE_URL } from '../../config/api';
+import { Avatar } from '../../components/ui/Avatar';
 import './WaitingDriver.css';
 
 type WaitingStatus = 'waiting' | 'rejected' | 'accepted' | 'expired';
@@ -202,7 +203,7 @@ const WaitingDriver = () => {
             {driver && (
               <div className="wd-driver-info-card">
                 <div className="wd-driver-main-info">
-                  <img src={driver.avatar} alt={driver.name} className="wd-driver-avatar" />
+                  <Avatar src={driver.avatar} name={driver.name} className="wd-driver-avatar" borderColor="none" />
                   <div className="wd-driver-details">
                     <h3 className="wd-driver-name">{driver.name}</h3>
                     <p className="wd-driver-car">{getCarModel(driver.car)} • {driver.vehicleType}</p>

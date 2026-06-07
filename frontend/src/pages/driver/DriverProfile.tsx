@@ -5,17 +5,18 @@ import { API_BASE_URL } from "../../config/api";
 import { BottomNavBar } from "../../components/layout/BottomNavBar";
 import { showToast } from "../../components/ui/Toast";
 import { getCache, setCache, clearAllCache, CACHE_KEYS } from "../../services/cacheService";
+import { Avatar } from "../../components/ui/Avatar";
 
 const imgDriverProfile = "https://i.pravatar.cc/150?img=12";
 const imgVehicleHero = "/bmw_car.png";
 
-function HeaderTopAppBar({ avatarUrl }: { avatarUrl?: string }) {
+function HeaderTopAppBar({ avatarUrl, name }: { avatarUrl?: string; name?: string }) {
   return (
     <div className="fixed top-0 left-0 right-0 h-[64px] bg-[rgba(244,251,241,0.8)] backdrop-blur-[6px] shadow-[0px_1px_2px_rgba(0,0,0,0.05)] flex justify-center z-[1000]">
       <div className="w-full max-w-[480px] flex items-center justify-between px-[24px]">
         <div className="font-['Plus_Jakarta_Sans',sans-serif] font-bold text-[#166534] text-[20px] tracking-[-0.5px]">JV - Taxi</div>
         <div className="size-[40px] rounded-full overflow-hidden border-2 border-white shadow-sm shrink-0">
-          <img src={avatarUrl || imgDriverProfile} alt="Driver" className="size-full object-cover" />
+          <Avatar src={avatarUrl} name={name} className="w-full h-full text-sm" borderColor="none" />
         </div>
       </div>
     </div>
@@ -263,7 +264,7 @@ export default function DriverProfile() {
 
   return (
     <div className="bg-[#f4fbf1] h-full w-full flex flex-col items-center overflow-hidden font-['Plus_Jakarta_Sans',sans-serif]">
-      <HeaderTopAppBar avatarUrl={dp.avatarPicture} />
+      <HeaderTopAppBar avatarUrl={dp.avatarPicture} name={profile.fullName} />
 
       <main className="w-full max-w-[480px] px-[24px] pt-[80px] pb-[140px] flex-1 overflow-y-auto flex flex-col gap-[24px]" style={{ WebkitOverflowScrolling: 'touch' }}>
         {/* Hero Section */}
@@ -271,7 +272,7 @@ export default function DriverProfile() {
           <div className="absolute bg-[rgba(0,109,55,0.05)] blur-[32px] right-[-32px] rounded-[9999px] size-[128px] top-[-32px]" />
 
           <div className="relative rounded-full size-[96px] border-4 border-[rgba(0,109,55,0.1)] p-[4px]">
-            <img alt="Avatar" className="rounded-full size-full object-cover" src={dp.avatarPicture || imgDriverProfile} />
+            <Avatar src={dp.avatarPicture} name={profile.fullName} className="w-full h-full text-3xl" borderColor="none" />
           </div>
 
           <div className="text-center">
@@ -442,7 +443,7 @@ export default function DriverProfile() {
               {/* Avatar Section */}
               <div className="flex flex-col items-center justify-center relative py-[12px]">
                 <div className="relative rounded-full size-[96px] border-4 border-[rgba(0,109,55,0.1)] p-[4px]">
-                  <img alt="Avatar" className="rounded-full size-full object-cover" src={editAvatarImage ? URL.createObjectURL(editAvatarImage) : (dp.avatarPicture || imgDriverProfile)} />
+                  <Avatar src={editAvatarImage ? URL.createObjectURL(editAvatarImage) : dp.avatarPicture} name={editForm.fullName} className="w-full h-full text-3xl" borderColor="none" />
                   <label className="absolute bottom-0 right-0 bg-[#006d37] hover:bg-[#00542a] text-white p-[6px] rounded-full cursor-pointer shadow-md border-2 border-white transition-all flex items-center justify-center size-[28px]">
                     <input
                       type="file"

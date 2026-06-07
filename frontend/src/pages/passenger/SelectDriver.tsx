@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Header } from '../../components/layout/Header';
 import { useBooking } from '../../contexts/BookingContext';
+import { Avatar } from '../../components/ui/Avatar';
 import './SelectDriver.css';
 
 /** Interface for driver data from API */
@@ -294,10 +295,11 @@ const SelectDriver = () => {
                   <div className="sd-card-top">
                     <div className="sd-driver-info">
                       <div className="sd-avatar-wrapper">
-                        <img
-                          src={driver.avatar}
-                          alt={driver.name}
-                          className="sd-avatar-img"
+                        <Avatar 
+                          src={driver.avatar} 
+                          name={driver.name} 
+                          className="sd-avatar-img" 
+                          borderColor="none" 
                         />
                         <div className="sd-rating-badge">
                           <span className="sd-rating-star">★</span>

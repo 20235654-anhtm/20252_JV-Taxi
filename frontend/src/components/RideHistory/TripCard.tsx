@@ -4,6 +4,7 @@ import type { TripData } from '../../types/RideHistory';
 import IconBrownLocation from '../../assets/IconBrownLocation.svg';
 import IconNext from '../../assets/IconNext.svg';
 import IconFab from '../../assets/IconFab.svg';
+import { Avatar } from '../ui/Avatar';
 
 export const TripCard: React.FC<TripData> = ({
   id,
@@ -24,8 +25,13 @@ export const TripCard: React.FC<TripData> = ({
       {/* Header */}
       <div className="w-full flex justify-between items-start">
         <div className="flex-1 flex justify-start items-center gap-[16px] mr-[16px] min-w-0">
-          <div className="w-[52px] h-[56px] bg-[#E9F0E6] overflow-hidden rounded-full flex justify-center items-center shrink-0">
-            <img className="w-full h-full object-cover" src={driverAvatar} alt="Driver" />
+          <div className="w-[52px] h-[56px] overflow-hidden rounded-full flex justify-center items-center shrink-0">
+            <Avatar 
+              src={driverAvatar} 
+              name={driverName} 
+              className="w-full h-full text-lg" 
+              borderColor="none" 
+            />
           </div>
           <div className="flex-1">
             <div className="text-[#171D17] text-[18px] font-[700] leading-[28px] break-words">

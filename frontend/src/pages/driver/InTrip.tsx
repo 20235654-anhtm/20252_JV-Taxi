@@ -3,6 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { Header } from '../../components/layout/Header';
 import { MapView } from '../../components/features/MapView';
 import { MessageCircle } from 'lucide-react';
+import { Avatar } from '../../components/ui/Avatar';
 
 const InTrip: React.FC = () => {
   const navigate = useNavigate();
@@ -37,7 +38,12 @@ const InTrip: React.FC = () => {
         {/* Passenger Info Overlay */}
         <div style={{ position: 'absolute', bottom: '20px', left: '20px', right: '20px', background: 'white', borderRadius: '16px', padding: '16px', boxShadow: '0 8px 24px rgba(0,0,0,0.1)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyItems: 'space-between' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flex: 1 }}>
-            <img src={passenger.avatar} alt="Passenger" style={{ width: '48px', height: '48px', borderRadius: '50%', objectFit: 'cover' }} />
+            <Avatar 
+              src={passenger.avatar} 
+              name={passenger.name} 
+              className="w-[48px] h-[48px] rounded-full text-lg" 
+              borderColor="none" 
+            />
             <div>
               <h3 style={{ margin: 0, fontSize: '16px', color: '#171d17', fontWeight: 'bold' }}>{passenger.name}</h3>
               <p style={{ margin: 0, fontSize: '14px', color: '#6d7a6e' }}>Đang di chuyển</p>

@@ -298,17 +298,12 @@ const PassengerManagement: React.FC = () => {
 
                 {/* Vùng thông tin cá nhân (Avatar + Name + Email + Phone) */}
                 <div className="passenger-profile-section">
-                  {passenger.avatarUrl ? (
-                    <Avatar
-                      src={passenger.avatarUrl}
-                      size="56"
-                      className={`passenger-avatar passenger-avatar-${passenger.status}`}
-                    />
-                  ) : (
-                    <div className="passenger-avatar passenger-avatar-placeholder">
-                      {passenger.name.charAt(0).toUpperCase()}
-                    </div>
-                  )}
+                  <Avatar
+                    src={passenger.avatarUrl}
+                    name={passenger.name}
+                    className={`passenger-avatar passenger-avatar-${passenger.status}`}
+                    borderColor="none"
+                  />
 
                   <div className="passenger-info-text">
                     <Heading level={3} className="passenger-name">

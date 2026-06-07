@@ -4,31 +4,18 @@ import { ArrowLeft, Pen, User, Mail, Phone } from "lucide-react";
 import { API_BASE_URL } from "../../config/api";
 import { showToast } from "../../components/ui/Toast";
 import { getCache, setCache, CACHE_KEYS } from "../../services/cacheService";
+import { Avatar } from "../../components/ui/Avatar";
 import "./ProfileEdit.css";
 
 // Avatar component: shows image if available, otherwise first letter of name
 function AvatarEditDisplay({ src, name }: { src?: string | null; name?: string }) {
-  const [imgError, setImgError] = useState(false);
-  const hasValidSrc = src && !src.includes('pravatar.cc') && !imgError;
-  const initial = (name || "U").charAt(0).toUpperCase();
-
-  if (hasValidSrc) {
-    return (
-      <img
-        src={src}
-        alt="Avatar"
-        className="ppe-avatar"
-        onError={() => setImgError(true)}
-      />
-    );
-  }
-
   return (
-    <div
-      className="ppe-avatar ppe-avatar-initial"
-    >
-      {initial}
-    </div>
+    <Avatar 
+      src={src} 
+      name={name} 
+      className="ppe-avatar"
+      borderColor="none"
+    />
   );
 }
 

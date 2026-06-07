@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Header } from '../../components/layout/Header';
 import { API_BASE_URL } from '../../config/api';
+import { Avatar } from '../../components/ui/Avatar';
 import './DriverReviewDetail.css';
 
 interface DriverSummary {
@@ -138,7 +139,12 @@ const DriverReviewDetail = () => {
         {/* MAIN DRIVER CARD */}
         <div className="dd-main-card">
           <div className="dd-avatar-wrapper">
-            <img src={driver.avatar} alt={driver.name} className="dd-avatar" />
+            <Avatar 
+              src={driver.avatar} 
+              name={driver.name} 
+              className="dd-avatar text-4xl" 
+              borderColor="none" 
+            />
             <div className="dd-verified-badge">
               <div className="dd-verified-icon">✓</div>
             </div>
@@ -178,18 +184,12 @@ const DriverReviewDetail = () => {
             <div key={review.id} className="dd-review-card">
               <div className="dd-review-header">
                 <div className="dd-reviewer-info">
-                  {review.reviewer?.avatar ? (
-                    <img 
-                      src={review.reviewer.avatar} 
-                      alt={review.reviewer.fullName || 'User'} 
-                      className="dd-reviewer-avatar" 
-                      style={{ objectFit: 'cover' }}
-                    />
-                  ) : (
-                    <div className="dd-reviewer-avatar">
-                      {review.reviewer?.fullName?.charAt(0) || 'U'}
-                    </div>
-                  )}
+                  <Avatar 
+                    src={review.reviewer?.avatar} 
+                    name={review.reviewer?.fullName} 
+                    className="dd-reviewer-avatar text-[11px]" 
+                    borderColor="none" 
+                  />
                   <div>
                     <h4 className="dd-reviewer-name">{review.reviewer?.fullName || 'ユーザー'}</h4>
                     <div className="dd-review-stars">

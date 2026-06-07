@@ -23,6 +23,7 @@ import { API_BASE_URL } from '../../config/api';
 import { socketService } from '../../services/socketService';
 import { getRouteWithDuration } from '../../hooks/useLocationSuggestions';
 import { SmartMapRoute } from '../../components/features/SmartMapRoute';
+import { Avatar } from '../../components/ui/Avatar';
 
 // Outline Icons we designed
 import IconCall from '../../assets/IconCall.svg';
@@ -449,10 +450,11 @@ const DriverInTrip: React.FC = () => {
           <div className="w-full flex gap-4 items-stretch">
             {/* Left Block: Passenger Info Card */}
             <div className="flex-1 bg-[#EFF6EC] rounded-[24px] p-4 flex gap-4 items-center min-w-0">
-              <img 
-                className="w-14 h-14 rounded-2xl object-cover shadow-sm flex-shrink-0" 
+              <Avatar 
                 src={passengerAvatar} 
-                alt={passengerName} 
+                name={passengerName} 
+                className="w-14 h-14 rounded-2xl object-cover shadow-sm flex-shrink-0 text-xl" 
+                borderColor="none" 
               />
               <div className="flex flex-col items-start min-w-0 flex-1">
                 <span className="text-[#3D4A3F]/70 text-xs font-semibold uppercase tracking-wider mb-0.5">

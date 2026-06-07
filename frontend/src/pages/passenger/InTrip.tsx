@@ -7,6 +7,7 @@ import { MapView } from '../../components/features/MapView';
 import { FAB } from '../../components/ui/FAB';
 import { useBooking } from '../../contexts/BookingContext';
 import { showToast } from '../../components/ui/Toast';
+import { Avatar } from '../../components/ui/Avatar';
 
 // SVG Icons
 import IconCall from '../../assets/IconCall.svg';
@@ -255,7 +256,13 @@ export default function InTrip() {
                 <div style={{width: 188, justifyContent: 'flex-start', alignItems: 'center', gap: 10, display: 'flex'}}>
                   <div style={{position: 'relative', flexDirection: 'column', justifyContent: 'flex-start', alignItems: 'flex-start', display: 'inline-flex'}}>
                     <div style={{width: 64, height: 64, background: 'rgba(255, 255, 255, 0)', boxShadow: '0px 2px 4px -2px rgba(0, 0, 0, 0.10), 0px 4px 6px -1px rgba(0, 0, 0, 0.10)', overflow: 'hidden', borderRadius: 16, flexDirection: 'column', justifyContent: 'center', alignItems: 'flex-start', display: 'flex'}}>
-                      <img style={{alignSelf: 'stretch', flex: '1 1 0', position: 'relative', objectFit: 'cover'}} src={driver.avatar} alt={driver.name} />
+                      <Avatar 
+                        src={driver.avatar} 
+                        name={driver.name} 
+                        className="w-full h-full text-2xl" 
+                        style={{ borderRadius: 16 }}
+                        borderColor="none"
+                      />
                     </div>
                     <div style={{paddingLeft: 8, paddingRight: 8, paddingTop: 2, paddingBottom: 2, left: 29.77, top: 53, position: 'absolute', background: '#FEA520', boxShadow: '0px 1px 2px rgba(0, 0, 0, 0.05)', borderRadius: 8, justifyContent: 'flex-start', alignItems: 'center', gap: 3.99, display: 'inline-flex'}}>
                       <div style={{justifyContent: 'center', display: 'flex', flexDirection: 'column', color: '#694000', fontSize: 8, fontWeight: '900', lineHeight: '15px', whiteSpace: 'nowrap'}}>{driver.rating && driver.rating !== '...' && !isNaN(Number(driver.rating)) ? Number(driver.rating).toFixed(1) : driver.rating}</div>

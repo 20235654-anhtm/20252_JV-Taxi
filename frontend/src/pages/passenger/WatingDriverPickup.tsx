@@ -293,10 +293,11 @@ export default function WatingDriverPickup() {
           <div className="flex items-center justify-between w-full">
             <div className="flex items-center gap-[12px] sm:gap-[20px] flex-1 min-w-0 pr-2">
               <div className="relative inline-flex flex-col items-start justify-start flex-shrink-0">
-                <img 
+                <Avatar 
                   src={driver.avatar} 
-                  alt={driver.name} 
-                  className="w-[80px] h-[80px] object-cover shadow-[0px_2px_4px_-2px_rgba(0,0,0,0.10),0px_4px_6px_-1px_rgba(0,0,0,0.10)] rounded-[28px]" 
+                  name={driver.name} 
+                  className="w-[80px] h-[80px] shadow-[0px_2px_4px_-2px_rgba(0,0,0,0.10),0px_4px_6px_-1px_rgba(0,0,0,0.10)] rounded-[28px] text-2xl" 
+                  borderColor="none"
                 />
                 <div className="absolute left-[40px] top-[65px] px-2 py-[2px] bg-[#FEA520] rounded-lg border-2 border-white flex flex-col justify-start items-start">
                   <div className="text-[#2B1700] text-[10px] font-bold leading-[15px] whitespace-nowrap">
