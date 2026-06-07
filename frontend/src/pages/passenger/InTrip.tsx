@@ -53,17 +53,19 @@ export default function InTrip() {
   const navigate = useNavigate();
   const location = useLocation();
   const [recenterKey, setRecenterKey] = useState(0);
-  const { pickup: pickupData, destination: destData } = useBooking();
+  const { pickup: pickupData, destination: destData, setPickup, setDestination } = useBooking();
 
   // Retrieve active ride ID & driver info from state or sessionStorage fallback
   const rideId = location.state?.rideId || sessionStorage.getItem('active_ride_id') || '';
   const storedDriverStr = sessionStorage.getItem('active_driver');
-  const driver = location.state?.driver || (storedDriverStr ? JSON.parse(storedDriverStr) : {
-    name: '...',
-    avatar: '',
-    rating: '...',
-    car: '...',
-    licensePlate: '...'
+  const [driver, setDriver] = useState<any>(() => {
+    return location.state?.driver || (storedDriverStr ? JSON.parse(storedDriverStr) : {
+      name: '...',
+      avatar: '',
+      rating: '...',
+      car: '...',
+      licensePlate: '...'
+    });
   });
 
   const fallbackDriverPos = { 
@@ -93,10 +95,44 @@ export default function InTrip() {
         const res = await response.json();
         if (res.success && res.data) {
           setRideDetails(res.data);
+          if (res.data.driver) {
+            const mappedDriver = {
+              id: res.data.driver.id,
+              name: res.data.driver.fullName || '...',
+              avatar: res.data.driver.avatar || res.data.driver.driverProfile?.avatarPicture || '',
+              rating: res.data.driver.driverProfile?.averageRating ? String(res.data.driver.driverProfile.averageRating) : '...',
+              car: res.data.driver.driverProfile?.vehicleInfor || '...',
+              vehicleType: res.data.driver.driverProfile?.vehicleType || '...',
+              licensePlate: (() => {
+                const info = res.data.driver.driverProfile?.vehicleInfor;
+                if (!info) return '...';
+                try {
+                  return JSON.parse(info).plate || '...';
+                } catch (e) {
+                  return '...';
+                }
+              })()
+            };
+            setDriver(mappedDriver);
+            sessionStorage.setItem('active_driver', JSON.stringify(mappedDriver));
+          }
           if (res.data.driver?.driverProfile?.lat && res.data.driver?.driverProfile?.lng) {
             setDriverPosition({
               lat: Number(res.data.driver.driverProfile.lat),
               lng: Number(res.data.driver.driverProfile.lng)
+            });
+          }
+          // Restore booking context coordinates if empty
+          if (!pickupData?.coords && res.data.startLat && res.data.startLng) {
+            setPickup({
+              address: res.data.start_address || res.data.startAddress || '乗車場所',
+              coords: { lat: Number(res.data.startLat), lng: Number(res.data.startLng) }
+            });
+          }
+          if (!destData?.coords && res.data.endLat && res.data.endLng) {
+            setDestination({
+              address: res.data.end_address || res.data.endAddress || '目的地',
+              coords: { lat: Number(res.data.endLat), lng: Number(res.data.endLng) }
             });
           }
         }
@@ -105,7 +141,7 @@ export default function InTrip() {
       }
     };
     fetchRideDetails();
-  }, [rideId]);
+  }, [rideId, pickupData?.coords, destData?.coords, setPickup, setDestination]);
 
   useEffect(() => {
     if (!rideId) {
@@ -175,8 +211,17 @@ export default function InTrip() {
     fetchEta();
   }, [driverPosition, destData?.coords]);
 
-  // Redirect if no location is selected
+  // If coordinates are missing but we have rideId, show loading while useEffect fetches and restores them
   if (!pickupData?.coords || !destData?.coords) {
+    if (rideId) {
+      return (
+        <div style={{ display: 'flex', height: '100vh', alignItems: 'center', justifyContent: 'center', background: '#F4FBF1', flexDirection: 'column', gap: '12px' }}>
+          <div style={{ width: '40px', height: '40px', border: '4px solid #EFF6EC', borderTopColor: '#006D37', borderRadius: '50%', animation: 'spin 1s linear infinite' }} />
+          <div style={{ color: '#3D4A3F', fontSize: '14px', fontWeight: 'bold' }}>乗車情報を読み込み中...</div>
+          <style>{`@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }`}</style>
+        </div>
+      );
+    }
     return <Navigate to="/passenger/search-location" replace />;
   }
 

@@ -45,46 +45,60 @@ function MapController({
   useEffect(() => {
     // Chờ 200ms để đảm bảo layout DOM của container cha đã ổn định hoàn toàn
     const timer = setTimeout(() => {
-      map.invalidateSize();
+      try {
+        if (!map || !map.getContainer()) return;
+        
+        map.invalidateSize();
 
-      // Ưu tiên FitBounds nếu có lộ trình 2 điểm
-      if (pickupPosition && destinationPosition) {
-        const bounds = L.latLngBounds([
-          [pickupPosition.lat, pickupPosition.lng],
-          [destinationPosition.lat, destinationPosition.lng]
-        ]);
-        // Mở rộng bounds để chứa thêm các điểm phụ (ví dụ vị trí xe tài xế)
-        extraPositions.forEach(pos => {
-          bounds.extend([pos.lat, pos.lng]);
-        });
-
-        map.fitBounds(bounds, {
-          paddingTopLeft: routePadding[0],
-          paddingBottomRight: routePadding[1],
-          animate: true
-        });
-      }
-      // Nếu có viewPadding -> Sử dụng fitBounds để căn chỉnh tâm theo vùng đệm
-      else if (viewPadding && (pickupPosition || position)) {
-        const target = pickupPosition || position;
-        if (target) {
-          const bounds = L.latLngBounds([[target.lat, target.lng], [target.lat, target.lng]]);
-          map.fitBounds(bounds, {
-            paddingTopLeft: [viewPadding.left || 0, viewPadding.top || 0],
-            paddingBottomRight: [viewPadding.right || 0, viewPadding.bottom || 0],
-            maxZoom: 18, 
-            animate: true,
-            duration: 1
+        // Ưu tiên FitBounds nếu có lộ trình 2 điểm
+        if (pickupPosition && destinationPosition && 
+            !isNaN(pickupPosition.lat) && !isNaN(pickupPosition.lng) && 
+            !isNaN(destinationPosition.lat) && !isNaN(destinationPosition.lng)) {
+          const bounds = L.latLngBounds([
+            [pickupPosition.lat, pickupPosition.lng],
+            [destinationPosition.lat, destinationPosition.lng]
+          ]);
+          // Mở rộng bounds để chứa thêm các điểm phụ (ví dụ vị trí xe tài xế)
+          extraPositions.forEach(pos => {
+            if (pos && !isNaN(pos.lat) && !isNaN(pos.lng)) {
+              bounds.extend([pos.lat, pos.lng]);
+            }
           });
+
+          if (bounds.isValid()) {
+            map.fitBounds(bounds, {
+              paddingTopLeft: routePadding[0],
+              paddingBottomRight: routePadding[1],
+              animate: true
+            });
+          }
         }
-      }
-      // Nếu có điểm đón nhưng chưa có điểm đến -> Căn giữa vào điểm đón
-      else if (pickupPosition) {
-        map.setView([pickupPosition.lat, pickupPosition.lng], map.getZoom(), { animate: true });
-      }
-      // Nếu chỉ có vị trí GPS thực tế
-      else if (position) {
-        map.setView([position.lat, position.lng], map.getZoom(), { animate: true });
+        // Nếu có viewPadding -> Sử dụng fitBounds để căn chỉnh tâm theo vùng đệm
+        else if (viewPadding && (pickupPosition || position)) {
+          const target = pickupPosition || position;
+          if (target && !isNaN(target.lat) && !isNaN(target.lng)) {
+            const bounds = L.latLngBounds([[target.lat, target.lng], [target.lat, target.lng]]);
+            if (bounds.isValid()) {
+              map.fitBounds(bounds, {
+                paddingTopLeft: [viewPadding.left || 0, viewPadding.top || 0],
+                paddingBottomRight: [viewPadding.right || 0, viewPadding.bottom || 0],
+                maxZoom: 18, 
+                animate: true,
+                duration: 1
+              });
+            }
+          }
+        }
+        // Nếu có điểm đón nhưng chưa có điểm đến -> Căn giữa vào điểm đón
+        else if (pickupPosition && !isNaN(pickupPosition.lat) && !isNaN(pickupPosition.lng)) {
+          map.setView([pickupPosition.lat, pickupPosition.lng], map.getZoom(), { animate: true });
+        }
+        // Nếu chỉ có vị trí GPS thực tế
+        else if (position && !isNaN(position.lat) && !isNaN(position.lng)) {
+          map.setView([position.lat, position.lng], map.getZoom(), { animate: true });
+        }
+      } catch (e) {
+        console.warn('[MapController] Leaflet manipulation warning:', e);
       }
     }, 200);
 

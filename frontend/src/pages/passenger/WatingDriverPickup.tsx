@@ -54,15 +54,17 @@ export default function WatingDriverPickup() {
   const navigate = useNavigate();
   const location = useLocation();
   const [recenterKey, setRecenterKey] = useState(0);
-  const { pickup: pickupData, destination: destData } = useBooking();
+  const { pickup: pickupData, destination: destData, setPickup, setDestination } = useBooking();
 
-  const driver = location.state?.driver || {
-    name: '...',
-    avatar: '',
-    rating: '...',
-    car: '...',
-    licensePlate: '...'
-  };
+  const [driver, setDriver] = useState<any>(() => {
+    return location.state?.driver || {
+      name: '...',
+      avatar: '',
+      rating: '...',
+      car: '...',
+      licensePlate: '...'
+    };
+  });
 
   const getCarModel = (car: any) => {
     if (!car) return '...';
@@ -91,16 +93,6 @@ export default function WatingDriverPickup() {
     return car.plate || licensePlate || '...';
   };
 
-  // Redirect if no location is selected
-  if (!pickupData?.coords || !destData?.coords) {
-    return <Navigate to="/passenger/search-location" replace />;
-  }
-
-  const pickupPosition = { lat: pickupData.coords.lat, lng: pickupData.coords.lng };
-  const destinationPosition = { lat: destData.coords.lat, lng: destData.coords.lng };
-  const destName = destData.address || '目的地';
-  const pickupLocationName = pickupData.address || '乗車場所';
-
   const getDistanceKm = (lat1: number, lon1: number, lat2: number, lon2: number) => {
     const R = 6371;
     const dLat = (lat2 - lat1) * Math.PI / 180;
@@ -113,18 +105,6 @@ export default function WatingDriverPickup() {
     return R * c;
   };
 
-  const updateDriverPosWithFilter = (lat: number, lng: number) => {
-    const dist = getDistanceKm(lat, lng, pickupPosition.lat, pickupPosition.lng);
-    if (dist < 4) {
-      setDriverPosition({ lat, lng });
-    } else {
-      // Nếu GPS ở quá xa (ví dụ Hoàng Đạo Thúy), mock tài xế ở gần điểm đón để vẽ tuyến đường đón khách đẹp mắt
-      setDriverPosition({ lat: pickupPosition.lat + 0.006, lng: pickupPosition.lng - 0.004 });
-    }
-  };
-
-  const fallbackDriverPos = { lat: pickupPosition.lat + 0.006, lng: pickupPosition.lng - 0.004 };
-
   const formatFare = (val: any) => {
     if (!val) return '...';
     if (typeof val === 'number') return `${val.toLocaleString()} VND`;
@@ -134,13 +114,28 @@ export default function WatingDriverPickup() {
   };
 
   // Vị trí tài xế khởi tạo bằng toạ độ mock để bản đồ vẽ đường ngay lập tức, cập nhật khi fetch thành công hoặc qua socket
-  const [driverPosition, setDriverPosition] = useState<{ lat: number; lng: number }>(fallbackDriverPos);
+  const [driverPosition, setDriverPosition] = useState<{ lat: number; lng: number }>(() => {
+    if (pickupData?.coords) {
+      return { lat: pickupData.coords.lat + 0.006, lng: pickupData.coords.lng - 0.004 };
+    }
+    return { lat: 21.0285, lng: 105.8542 };
+  });
   const [etaMinutes, setEtaMinutes] = useState<number | null>(null);
   const lastFetchedPos = useRef<{ lat: number; lng: number } | null>(null);
   const [rideDetails, setRideDetails] = useState<any>(null);
   const [fareDisplay, setFareDisplay] = useState<string>(
     formatFare(location.state?.fare || sessionStorage.getItem('active_fare'))
   );
+
+  const updateDriverPosWithFilter = (lat: number, lng: number) => {
+    if (!pickupData?.coords) return;
+    const dist = getDistanceKm(lat, lng, pickupData.coords.lat, pickupData.coords.lng);
+    if (dist < 4) {
+      setDriverPosition({ lat, lng });
+    } else {
+      setDriverPosition({ lat: pickupData.coords.lat + 0.006, lng: pickupData.coords.lng - 0.004 });
+    }
+  };
 
   // Fetch ride details to get actual fare and driver coordinates
   useEffect(() => {
@@ -160,11 +155,44 @@ export default function WatingDriverPickup() {
           if (res.data.matchFee) {
             setFareDisplay(formatFare(res.data.matchFee));
           }
+          if (res.data.driver) {
+            const mappedDriver = {
+              id: res.data.driver.id,
+              name: res.data.driver.fullName || '...',
+              avatar: res.data.driver.avatar || res.data.driver.driverProfile?.avatarPicture || '',
+              rating: res.data.driver.driverProfile?.averageRating ? String(res.data.driver.driverProfile.averageRating) : '...',
+              car: res.data.driver.driverProfile?.vehicleInfor || '...',
+              vehicleType: res.data.driver.driverProfile?.vehicleType || '...',
+              licensePlate: (() => {
+                const info = res.data.driver.driverProfile?.vehicleInfor;
+                if (!info) return '...';
+                try {
+                  return JSON.parse(info).plate || '...';
+                } catch (e) {
+                  return '...';
+                }
+              })()
+            };
+            setDriver(mappedDriver);
+          }
           if (res.data.driver?.driverProfile?.lat && res.data.driver?.driverProfile?.lng) {
             updateDriverPosWithFilter(
               Number(res.data.driver.driverProfile.lat),
               Number(res.data.driver.driverProfile.lng)
             );
+          }
+          // Restore booking context coordinates if empty
+          if (!pickupData?.coords && res.data.startLat && res.data.startLng) {
+            setPickup({
+              address: res.data.start_address || res.data.startAddress || '乗車場所',
+              coords: { lat: Number(res.data.startLat), lng: Number(res.data.startLng) }
+            });
+          }
+          if (!destData?.coords && res.data.endLat && res.data.endLng) {
+            setDestination({
+              address: res.data.end_address || res.data.endAddress || '目的地',
+              coords: { lat: Number(res.data.endLat), lng: Number(res.data.endLng) }
+            });
           }
         }
       } catch (err) {
@@ -172,7 +200,27 @@ export default function WatingDriverPickup() {
       }
     };
     fetchRideDetails();
-  }, [location.state?.rideId]);
+  }, [location.state?.rideId, pickupData?.coords, destData?.coords, setPickup, setDestination]);
+
+  // If coordinates are missing but we have rideId, show loading while useEffect fetches and restores them
+  if (!pickupData?.coords || !destData?.coords) {
+    const rideId = location.state?.rideId || sessionStorage.getItem('active_ride_id');
+    if (rideId) {
+      return (
+        <div style={{ display: 'flex', height: '100vh', alignItems: 'center', justifyContent: 'center', background: '#F4FBF1', flexDirection: 'column', gap: '12px' }}>
+          <div style={{ width: '40px', height: '40px', border: '4px solid #EFF6EC', borderTopColor: '#006D37', borderRadius: '50%', animation: 'spin 1s linear infinite' }} />
+          <div style={{ color: '#3D4A3F', fontSize: '14px', fontWeight: 'bold' }}>乗車情報を読み込み中...</div>
+          <style>{`@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }`}</style>
+        </div>
+      );
+    }
+    return <Navigate to="/passenger/search-location" replace />;
+  }
+
+  const pickupPosition = { lat: pickupData.coords.lat, lng: pickupData.coords.lng };
+  const destinationPosition = { lat: destData.coords.lat, lng: destData.coords.lng };
+  const destName = destData.address || '目的地';
+  const pickupLocationName = pickupData.address || '乗車場所';
 
   useEffect(() => {
     const fetchEta = async () => {

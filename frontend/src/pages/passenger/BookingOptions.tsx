@@ -82,6 +82,7 @@ const BookingOptions = () => {
         const data = await response.json();
         if (data.success && data.data) {
           setFareAmount(data.data.fare.totalFare);
+          sessionStorage.setItem('estimated_fare', String(data.data.fare.totalFare));
         }
       } catch (error) {
         console.error('Error fetching fare estimation', error);
@@ -218,8 +219,8 @@ const BookingOptions = () => {
                     key={driver.id || index} 
                     src={driver.avatar} 
                     name={driver.name} 
-                    className="bo-avt text-[8px] flex items-center justify-center" 
-                    borderColor="none"
+                    className="w-[24px] h-[24px] min-w-[24px] min-h-[24px] bo-avt text-[8px] flex items-center justify-center" 
+                    borderColor="white"
                   />
                 ))}
                 {nearbyDrivers.length > 2 && (

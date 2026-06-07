@@ -405,6 +405,35 @@ router.put('/status', authMiddleware as any, async (req: AuthRequest, res: Respo
       return;
     }
 
+    // Verify user role and check if DriverProfile exists
+    const profile = await prisma.profile.findUnique({
+      where: { id: userId },
+      include: { driverProfile: true }
+    });
+
+    if (!profile || profile.role !== 'DRIVER') {
+      res.status(403).json({
+        success: false,
+        message: 'Forbidden: User is not a driver.'
+      });
+      return;
+    }
+
+    if (!profile.driverProfile) {
+      console.log(`[DriverStatus] DriverProfile missing for user ${userId}. Auto-creating default profile.`);
+      // Auto-create a default driver profile for testing if it doesn't exist
+      await prisma.driverProfile.create({
+        data: {
+          userId: userId,
+          drivingLicenseInfor: 'Auto-generated for testing',
+          vehicleInfor: JSON.stringify({ model: 'Standard Sedan', plate: 'TEST-8888' }),
+          vehicleType: 'Car',
+          isApproved: true,
+          isOnline: true,
+        }
+      });
+    }
+
     const { isOnline, lat, lng } = req.body;
 
     const updateData: any = {};

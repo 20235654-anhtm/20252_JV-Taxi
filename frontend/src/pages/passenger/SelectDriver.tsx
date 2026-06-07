@@ -50,12 +50,23 @@ const API_BASE = `${API_BASE_URL}/api/drivers`;
 const SelectDriver = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const passedFare = location.state?.fare;
-  const { pickup } = useBooking();
+  const { pickup, destination } = useBooking();
   const [drivers, setDrivers] = useState<Driver[]>([]);
   const [searchStatus, setSearchStatus] = useState<SearchStatus>('searching');
   const [timeRemaining, setTimeRemaining] = useState(SEARCH_TIMEOUT_MS);
   const [coords, setCoords] = useState<{ lng: number; lat: number } | null>(null);
+
+  const [estimatedFare, setEstimatedFare] = useState<number | null>(() => {
+    const fromState = location.state?.fare;
+    if (fromState && fromState !== '...') {
+      return Number(fromState);
+    }
+    const fromSession = sessionStorage.getItem('estimated_fare');
+    if (fromSession) {
+      return Number(fromSession) + 15000; // adding designated surcharge
+    }
+    return null;
+  });
 
   // Refs for timers and state tracking
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -68,6 +79,40 @@ const SelectDriver = () => {
   useEffect(() => {
     driversCountRef.current = drivers.length;
   }, [drivers.length]);
+
+  useEffect(() => {
+    if (estimatedFare !== null) return;
+    const pCoords = pickup?.coords;
+    const dCoords = destination?.coords;
+    if (!pCoords || !dCoords) return;
+
+    const fetchFare = async () => {
+      try {
+        const response = await fetch(`${API_BASE_URL}/api/fare/estimate`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            startLng: pCoords.lng,
+            startLat: pCoords.lat,
+            endLng: dCoords.lng,
+            endLat: dCoords.lat,
+            vehicleType: 'CAR_4_SEATER',
+          }),
+        });
+        const data = await response.json();
+        if (data.success && data.data) {
+          const baseFare = data.data.fare.totalFare;
+          setEstimatedFare(baseFare + 15000); // designated surcharge
+          sessionStorage.setItem('estimated_fare', String(baseFare));
+        }
+      } catch (error) {
+        console.error('Error fetching fare estimation in SelectDriver:', error);
+      }
+    };
+    fetchFare();
+  }, [estimatedFare, pickup?.coords, destination?.coords]);
 
   /** Task 18: Get accurate GPS location */
   const getGPSLocation = useCallback(() => {
@@ -227,7 +272,7 @@ const SelectDriver = () => {
   const handleSelectDriver = (driver: Driver) => {
     console.log('Driver selected:', driver.name);
     // Navigate to details
-    navigate('/passenger/driver-review-detail', { state: { driver, fare: passedFare } });
+    navigate('/passenger/driver-review-detail', { state: { driver, fare: estimatedFare } });
   };
 
   return (
@@ -318,7 +363,11 @@ const SelectDriver = () => {
                     </div>
 
                     <div className="sd-price-info">
-                      <p className="sd-price">₫{passedFare ? passedFare.toLocaleString() : driver.price}</p>
+                      <p className="sd-price">
+                        {estimatedFare !== null 
+                          ? `₫${estimatedFare.toLocaleString()}` 
+                          : (driver.price ? (driver.price.startsWith('₫') || driver.price.startsWith('đ') ? driver.price : `₫${driver.price}`) : '...')}
+                      </p>
                       <p className="sd-price-label">合計予想金額</p>
                     </div>
                   </div>

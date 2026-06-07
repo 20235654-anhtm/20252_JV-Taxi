@@ -26,11 +26,78 @@ const getCarModel = (info: string) => {
 const WaitingDriver = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { pickup: pickupData } = useBooking();
+  const { pickup: pickupData, setPickup } = useBooking();
   const [status, setStatus] = useState<WaitingStatus>('waiting');
   const [timeLeft, setTimeLeft] = useState(180); // 3 minutes
   const [driver, setDriver] = useState<any>(location.state?.driver || null);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const [rideDetails, setRideDetails] = useState<any>(null);
+  const statusRef = useRef(status);
+
+  useEffect(() => {
+    statusRef.current = status;
+  }, [status]);
+
+  // Fetch ride details if pickup coordinates are missing to restore them
+  useEffect(() => {
+    const fetchRideDetails = async () => {
+      const rideId = location.state?.rideId || sessionStorage.getItem('active_ride_id');
+      if (!rideId) return;
+      try {
+        const token = sessionStorage.getItem('authToken') || localStorage.getItem('authToken');
+        const response = await fetch(`${API_BASE_URL}/api/rides/${rideId}`, {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+        const res = await response.json();
+        if (res.success && res.data) {
+          setRideDetails(res.data);
+          if (res.data.driver) {
+            const mappedDriver = {
+              id: res.data.driver.id,
+              name: res.data.driver.fullName || '...',
+              avatar: res.data.driver.avatar || res.data.driver.driverProfile?.avatarPicture || '',
+              rating: res.data.driver.driverProfile?.averageRating ? String(res.data.driver.driverProfile.averageRating) : '...',
+              car: res.data.driver.driverProfile?.vehicleInfor || '...',
+              vehicleType: res.data.driver.driverProfile?.vehicleType || '...',
+              licensePlate: (() => {
+                const info = res.data.driver.driverProfile?.vehicleInfor;
+                if (!info) return '...';
+                try {
+                  return JSON.parse(info).plate || '...';
+                } catch (e) {
+                  return '...';
+                }
+              })()
+            };
+            setDriver(mappedDriver);
+          }
+          if (!pickupData?.coords && res.data.startLat && res.data.startLng) {
+            setPickup({
+              address: res.data.start_address || res.data.startAddress || '乗車場所',
+              coords: { lat: Number(res.data.startLat), lng: Number(res.data.startLng) }
+            });
+          }
+        }
+      } catch (err) {
+        console.error('Error fetching ride details in WaitingDriver:', err);
+      }
+    };
+    fetchRideDetails();
+  }, [location.state?.rideId, pickupData?.coords, setPickup]);
+
+  // If coordinates are missing but we have rideId, show loading while useEffect fetches and restores them
+  const rideId = location.state?.rideId || sessionStorage.getItem('active_ride_id');
+  if (!pickupData?.coords && rideId) {
+    return (
+      <div style={{ display: 'flex', height: '100vh', alignItems: 'center', justifyContent: 'center', background: '#F4FBF1', flexDirection: 'column', gap: '12px' }}>
+        <div style={{ width: '40px', height: '40px', border: '4px solid #EFF6EC', borderTopColor: '#006D37', borderRadius: '50%', animation: 'spin 1s linear infinite' }} />
+        <div style={{ color: '#3D4A3F', fontSize: '14px', fontWeight: 'bold' }}>乗車情報を読み込み中...</div>
+        <style>{`@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }`}</style>
+      </div>
+    );
+  }
 
   const pickup = pickupData?.coords || { lat: 21.0285, lng: 105.8542 };
 
@@ -116,9 +183,10 @@ const WaitingDriver = () => {
     navigate('/passenger/booking-options');
   };
 
-  const handleGoHome = async () => {
+  const handleCancelRide = async () => {
     try {
-      if (location.state?.rideId && status === 'waiting') {
+      const activeRideId = location.state?.rideId || sessionStorage.getItem('active_ride_id');
+      if (activeRideId) {
         const token = sessionStorage.getItem('authToken') || localStorage.getItem('authToken');
         await fetch(`${API_BASE_URL}/api/rides/cancel`, {
           method: 'POST',
@@ -126,14 +194,38 @@ const WaitingDriver = () => {
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${token}`
           },
-          body: JSON.stringify({ rideId: location.state.rideId })
+          body: JSON.stringify({ rideId: activeRideId })
         });
+        sessionStorage.removeItem('active_ride_id');
+        sessionStorage.removeItem('active_driver');
+        sessionStorage.removeItem('active_fare');
       }
     } catch (e) {
       console.error('Error cancelling ride:', e);
     }
+  };
+
+  const handleBack = async () => {
+    await handleCancelRide();
+    navigate(-1);
+  };
+
+  const handleGoHome = async () => {
+    await handleCancelRide();
     navigate('/passenger');
   };
+
+  useEffect(() => {
+    const handlePopState = () => {
+      if (statusRef.current === 'waiting') {
+        handleCancelRide();
+      }
+    };
+    window.addEventListener('popstate', handlePopState);
+    return () => {
+      window.removeEventListener('popstate', handlePopState);
+    };
+  }, []);
 
   return (
     <div className="waiting-driver-page">
@@ -141,7 +233,7 @@ const WaitingDriver = () => {
         variant="passenger"
         showBackButton={status === 'waiting'}
         title="ドライバー選択"
-        onBackClick={() => navigate(-1)}
+        onBackClick={handleBack}
         hideBrandName={true}
         hideLanguageToggle={true}
       />

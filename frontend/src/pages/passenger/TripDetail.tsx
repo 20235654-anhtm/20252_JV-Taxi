@@ -87,10 +87,12 @@ const TripDetail: React.FC = () => {
     if (!info) return '...';
     try {
       const parsed = JSON.parse(info);
-      return `${parsed.brand || ''} ${parsed.model || ''} • ${parsed.plateNumber || ''}`.trim() || '...';
+      const model = parsed.model || parsed.brand || '';
+      const plate = parsed.plate || parsed.plateNumber || '';
+      if (model && plate) return `${model} • ${plate}`;
+      return model || info;
     } catch (e) {
-      const parts = info.split(' • ');
-      return parts[0] || info;
+      return info;
     }
   };
 

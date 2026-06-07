@@ -402,6 +402,95 @@ router.get('/passenger/history', authMiddleware as any, async (req: AuthRequest,
 });
 
 /**
+ * GET /api/rides/active/current
+ * Fetch the current active ride (PENDING or ACCEPTED) for passenger or driver.
+ */
+router.get('/active/current', authMiddleware as any, async (req: AuthRequest, res: Response) => {
+  try {
+    const userId = req.user?.userId;
+    if (!userId) {
+      res.status(401).json({ success: false, message: 'Unauthorized' });
+      return;
+    }
+
+    const ride = await prisma.ride.findFirst({
+      where: {
+        OR: [
+          { passengerId: userId },
+          { driverId: userId }
+        ],
+        status: {
+          in: ['PENDING', 'ACCEPTED']
+        }
+      },
+      include: {
+        payment: true,
+        driver: {
+          include: {
+            driverProfile: true
+          }
+        },
+        passenger: true,
+      },
+      orderBy: {
+        createdAt: 'desc'
+      }
+    }) as any;
+
+    if (!ride) {
+      res.status(200).json({ success: true, data: null });
+      return;
+    }
+
+    try {
+      const rideCoords = await prisma.$queryRaw<any[]>`
+        SELECT 
+          ST_X(start_location::geometry) as start_lng,
+          ST_Y(start_location::geometry) as start_lat,
+          ST_X(end_location::geometry) as end_lng,
+          ST_Y(end_location::geometry) as end_lat
+        FROM "rides"
+        WHERE "id" = ${ride.id}::uuid
+      `;
+      if (rideCoords && rideCoords.length > 0) {
+        ride.startLat = rideCoords[0].start_lat;
+        ride.startLng = rideCoords[0].start_lng;
+        ride.endLat = rideCoords[0].end_lat;
+        ride.endLng = rideCoords[0].end_lng;
+      }
+    } catch (err) {
+      console.error('Error fetching coords for active ride:', err);
+    }
+
+    if (ride.driverId && ride.driver && ride.driver.driverProfile) {
+      try {
+        const coords = await prisma.$queryRaw<any[]>`
+          SELECT 
+            ST_X(current_location::geometry) as lng,
+            ST_Y(current_location::geometry) as lat
+          FROM "driver_profiles"
+          WHERE "user_id" = ${ride.driverId}::uuid
+        `;
+        if (coords && coords.length > 0) {
+          ride.driver.driverProfile.lat = coords[0].lat;
+          ride.driver.driverProfile.lng = coords[0].lng;
+        }
+      } catch (err) {
+        console.error('Error fetching driver current location:', err);
+      }
+    }
+
+    res.status(200).json({
+      success: true,
+      data: ride
+    });
+  } catch (error) {
+    console.error('Error fetching active ride:', error);
+    res.status(500).json({ success: false, message: 'Server error while fetching active ride.' });
+  }
+});
+
+/**
  * GET /api/rides/:id
  * Get details of a specific ride by its ID (includes payment details)
  */
