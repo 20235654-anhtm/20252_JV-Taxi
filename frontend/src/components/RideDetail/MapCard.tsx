@@ -4,7 +4,26 @@ import { MapView } from '../features/MapView';
 import type { MapCardProps } from '../../types/TripDetail';
 import { LocationMarker } from '../features/LocationMarker';
 
-export const MapCard: React.FC<MapCardProps> = ({ pickupPosition, destinationPosition }) => {
+export const MapCard: React.FC<MapCardProps> = ({ pickupPosition, destinationPosition, status }) => {
+  const getBadgeStyle = () => {
+    switch (status?.trim()) {
+      case '保留中':
+        return { text: '#FEA520', icon: null }; // Orange
+      case '受付済':
+        return { text: '#2D9CDB', icon: IconEmptyTick }; // Blue
+      case '完了':
+        return { text: '#171D17', icon: IconEmptyTick }; // Dark Green/Black
+      case '拒否':
+        return { text: '#EB5757', icon: null }; // Red
+      case 'キャンセル済':
+        return { text: '#8C998E', icon: null }; // Gray
+      default:
+        return { text: '#171D17', icon: IconEmptyTick };
+    }
+  };
+
+  const badge = getBadgeStyle();
+
   return (
     <div className="w-full h-[256px] relative bg-[#DDE5DB] shadow-[0px_1px_2px_rgba(0,0,0,0.05)] overflow-hidden rounded-[24px] flex flex-col justify-center items-start">
       {/* Bản đồ thật */}
@@ -42,11 +61,18 @@ export const MapCard: React.FC<MapCardProps> = ({ pickupPosition, destinationPos
       {/* Overlay và Huy hiệu */}
       <div className="w-full h-[80px] absolute left-0 top-0 bg-gradient-to-b from-[rgba(6,78,59,0.30)] to-transparent pointer-events-none z-10" />
       <div className="absolute top-[26px] right-[16px] px-[16px] py-[8px] bg-white rounded-full flex justify-start items-center gap-[8px] shadow-[0px_4px_6px_-4px_rgba(0,0,0,0.10),0px_10px_15px_-3px_rgba(0,0,0,0.10)] z-20 pointer-events-auto">
+        {badge.icon && (
+          <div className="flex flex-col justify-start items-start">
+            <img src={badge.icon} alt="Status Icon" className="w-[20px] h-[20px]" />
+          </div>
+        )}
         <div className="flex flex-col justify-start items-start">
-          <img src={IconEmptyTick} alt="Tick" className="w-[20px] h-[20px]" />
-        </div>
-        <div className="flex flex-col justify-start items-start">
-          <div className="h-[20px] flex flex-col justify-center text-[#171D17] text-[14px] font-['Plus_Jakarta_Sans',sans-serif] font-[700] leading-[20px] break-words">完了</div>
+          <div 
+            className="flex flex-col justify-center text-[14px] font-['Plus_Jakarta_Sans',sans-serif] font-[700] leading-[20px] break-words"
+            style={{ color: badge.text }}
+          >
+            {status}
+          </div>
         </div>
       </div>
     </div>

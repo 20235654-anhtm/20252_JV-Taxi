@@ -6,6 +6,7 @@ export interface LatLng {
 export interface MapCardProps {
   pickupPosition?: LatLng;
   destinationPosition?: LatLng;
+  status: string;
 }
 
 export interface DriverInfoCardProps {
@@ -59,4 +60,5 @@ export interface TripDetailData {
   pickupPosition?: LatLng;
   destinationPosition?: LatLng;
   driverAvatar: string;
+  status: string;
 }
