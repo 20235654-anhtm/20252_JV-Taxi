@@ -57,3 +57,64 @@ export const getReviewsByDriver = async (req: Request, res: Response) => {
     });
   }
 };
+
+/**
+ * GET /api/reviews/driver/:driverId/paginated?page=1&limit=5&star=5
+ * Returns paginated reviews with optional star filter
+ */
+export const getReviewsByDriverPaginated = async (req: Request, res: Response) => {
+  try {
+    const { driverId } = req.params;
+
+    if (!driverId || typeof driverId !== 'string') {
+      return res.status(400).json({ success: false, message: 'Driver ID is required' });
+    }
+
+    const page = Math.max(1, parseInt(req.query.page as string) || 1);
+    const limit = Math.min(50, Math.max(1, parseInt(req.query.limit as string) || 5));
+    const starParam = req.query.star as string | undefined;
+    const starFilter = starParam ? parseInt(starParam) : undefined;
+
+    if (starFilter !== undefined && (isNaN(starFilter) || starFilter < 1 || starFilter > 5)) {
+      return res.status(400).json({ success: false, message: 'star must be between 1 and 5' });
+    }
+
+    const result = await reviewService.getReviewsByDriverIdPaginated(driverId, page, limit, starFilter);
+
+    res.status(200).json({
+      success: true,
+      data: result.reviews,
+      meta: {
+        total: result.total,
+        page: result.page,
+        limit: result.limit,
+        hasMore: result.hasMore,
+      },
+    });
+  } catch (error: any) {
+    res.status(500).json({ success: false, message: error.message || 'Failed to fetch reviews' });
+  }
+};
+
+/**
+ * GET /api/reviews/driver/:driverId/star-counts
+ * Returns count of reviews grouped by star rating (1-5)
+ */
+export const getStarCountsByDriver = async (req: Request, res: Response) => {
+  try {
+    const { driverId } = req.params;
+
+    if (!driverId || typeof driverId !== 'string') {
+      return res.status(400).json({ success: false, message: 'Driver ID is required' });
+    }
+
+    const result = await reviewService.getStarCountsByDriverId(driverId);
+
+    res.status(200).json({
+      success: true,
+      data: result,
+    });
+  } catch (error: any) {
+    res.status(500).json({ success: false, message: error.message || 'Failed to fetch star counts' });
+  }
+};

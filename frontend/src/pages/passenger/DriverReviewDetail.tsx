@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Header } from '../../components/layout/Header';
 import { API_BASE_URL } from '../../config/api';
@@ -27,6 +27,17 @@ interface DriverReviewDetailData extends DriverSummary {
   jlpt?: string | null;
 }
 
+interface ReviewItem {
+  id: string;
+  starReview: number;
+  commentReview: string;
+  createdAt: string;
+  reviewer?: {
+    fullName?: string;
+    avatar?: string;
+  };
+}
+
 const formatVehicleText = (infoStr: string) => {
   try {
     const parsed = JSON.parse(infoStr);
@@ -39,6 +50,8 @@ const formatVehicleText = (infoStr: string) => {
   }
 };
 
+const LIMIT = 5;
+
 const DriverReviewDetail = () => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -47,15 +60,29 @@ const DriverReviewDetail = () => {
   const [driver, setDriver] = useState<DriverReviewDetailData | undefined>(initialDriver);
   const [loading, setLoading] = useState<boolean>(!!initialDriver);
   const [error, setError] = useState<string | undefined>();
-  const [realReviews, setRealReviews] = useState<any[]>([]);
 
+  // Reviews state
+  const [reviews, setReviews] = useState<ReviewItem[]>([]);
+  const [starCounts, setStarCounts] = useState<Record<number, number>>({ 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 });
+  const [totalReviews, setTotalReviews] = useState(0);
+  const [selectedStar, setSelectedStar] = useState<number | null>(null);
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(false);
+  const [reviewsLoading, setReviewsLoading] = useState(false);
+  const [reviewsLoadingMore, setReviewsLoadingMore] = useState(false);
+
+  // Infinite scroll sentinel
+  const sentinelRef = useRef<HTMLDivElement>(null);
+  const observerRef = useRef<IntersectionObserver | null>(null);
+
+  // Fetch driver detail + star counts on mount
   useEffect(() => {
     if (!initialDriver?.id) {
       setLoading(false);
       return;
     }
 
-    const fetchDriverReviewDetail = async () => {
+    const fetchDriverDetail = async () => {
       setLoading(true);
       setError(undefined);
 
@@ -78,11 +105,12 @@ const DriverReviewDetail = () => {
           jlpt: (prev ?? initialDriver).jlpt ?? null,
         }));
 
-        // Fetch reviews
-        const reviewRes = await fetch(`${API_BASE_URL}/api/reviews/driver/${initialDriver.id}`);
-        const reviewData = await reviewRes.json();
-        if (reviewData.success) {
-          setRealReviews(reviewData.data);
+        // Fetch star counts
+        const starRes = await fetch(`${API_BASE_URL}/api/reviews/driver/${initialDriver.id}/star-counts`);
+        const starData = await starRes.json();
+        if (starData.success) {
+          setStarCounts(starData.data.counts);
+          setTotalReviews(starData.data.total);
         }
       } catch (err) {
         console.error('[DriverReviewDetail] fetch error:', err);
@@ -92,9 +120,69 @@ const DriverReviewDetail = () => {
       }
     };
 
-    fetchDriverReviewDetail();
+    fetchDriverDetail();
   }, [initialDriver?.id]);
 
+  // Fetch reviews whenever selectedStar or page changes
+  const fetchReviews = useCallback(async (pageNum: number, star: number | null, replace: boolean) => {
+    if (!initialDriver?.id) return;
+    replace ? setReviewsLoading(true) : setReviewsLoadingMore(true);
+
+    try {
+      const starParam = star !== null ? `&star=${star}` : '';
+      const res = await fetch(
+        `${API_BASE_URL}/api/reviews/driver/${initialDriver.id}/paginated?page=${pageNum}&limit=${LIMIT}${starParam}`
+      );
+      const data = await res.json();
+      if (data.success) {
+        setReviews(prev => replace ? data.data : [...prev, ...data.data]);
+        setHasMore(data.meta.hasMore);
+      }
+    } catch (err) {
+      console.error('[DriverReviewDetail] review fetch error:', err);
+    } finally {
+      setReviewsLoading(false);
+      setReviewsLoadingMore(false);
+    }
+  }, [initialDriver?.id]);
+
+  // Reset and fetch page 1 when filter changes
+  useEffect(() => {
+    setReviews([]);
+    setPage(1);
+    setHasMore(false);
+    fetchReviews(1, selectedStar, true);
+  }, [selectedStar, fetchReviews]);
+
+  // Fetch next page when page increments
+  useEffect(() => {
+    if (page > 1) {
+      fetchReviews(page, selectedStar, false);
+    }
+  }, [page]);
+
+  // Infinite scroll observer using callback ref
+  const lastElementRef = useCallback((node: HTMLDivElement) => {
+    if (reviewsLoading || reviewsLoadingMore) return;
+    if (observerRef.current) observerRef.current.disconnect();
+
+    observerRef.current = new IntersectionObserver(
+      entries => {
+        if (entries[0].isIntersecting && hasMore) {
+          setPage(prev => prev + 1);
+        }
+      },
+      { 
+        root: null, // Default is viewport
+        rootMargin: '100px', // Load before it fully enters
+        threshold: 0
+      }
+    );
+
+    if (node) observerRef.current.observe(node);
+  }, [reviewsLoading, reviewsLoadingMore, hasMore]);
+
+  // ── Loading / error states ──────────────────────────────────────────────────
   if (loading) {
     return (
       <div className="driver-detail-page">
@@ -123,8 +211,11 @@ const DriverReviewDetail = () => {
   }
 
   const handleSelectDriver = () => {
-    // Chuyển sang màn hình thanh toán
     navigate('/passenger/booking-confirmation', { state: { driver, mode: 'designated', fare: passedFare } });
+  };
+
+  const handleStarFilter = (star: number) => {
+    setSelectedStar(prev => (prev === star ? null : star));
   };
 
   return (
@@ -183,34 +274,92 @@ const DriverReviewDetail = () => {
 
         {/* RECENT REVIEWS SECTION */}
         <div className="dd-reviews-section">
-          <h3 className="dd-reviews-title">最近のレビュー</h3>
+          <div className="dd-reviews-header">
+            <h3 className="dd-reviews-title">最近のレビュー</h3>
+            {totalReviews > 0 && (
+              <span className="dd-reviews-total">{totalReviews}件</span>
+            )}
+          </div>
 
-          {realReviews.map(review => (
-            <div key={review.id} className="dd-review-card">
-              <div className="dd-review-header">
-                <div className="dd-reviewer-info">
-                  <Avatar 
-                    src={review.reviewer?.avatar} 
-                    name={review.reviewer?.fullName} 
-                    className="dd-reviewer-avatar text-[11px]" 
-                    borderColor="none" 
-                  />
-                  <div>
-                    <h4 className="dd-reviewer-name">{review.reviewer?.fullName || 'ユーザー'}</h4>
-                    <div className="dd-review-stars">
-                      {[...Array(5)].map((_, i) => (
-                        <span key={i} style={{ color: i < (review.starReview || 0) ? '#006D37' : '#DDE5DB' }}>★</span>
-                      ))}
-                    </div>
+          {/* STAR FILTER PILLS */}
+          <div className="dd-star-filter">
+            {[5, 4, 3, 2, 1].map(star => {
+              const count = starCounts[star] ?? 0;
+              const isActive = selectedStar === star;
+              return (
+                <button
+                  key={star}
+                  className={`dd-star-pill${isActive ? ' dd-star-pill--active' : ''}${count === 0 ? ' dd-star-pill--empty' : ''}`}
+                  onClick={() => handleStarFilter(star)}
+                  aria-pressed={isActive}
+                >
+                  <span className="dd-star-pill-star">★</span>
+                  <span className="dd-star-pill-num">{star}</span>
+                  <span className="dd-star-pill-count">({count})</span>
+                </button>
+              );
+            })}
+          </div>
+
+          {/* REVIEW LIST */}
+          {reviewsLoading ? (
+            <div className="dd-reviews-skeleton">
+              {[1, 2, 3].map(i => (
+                <div key={i} className="dd-review-skeleton-card">
+                  <div className="dd-skeleton-line dd-skeleton-avatar" />
+                  <div style={{ flex: 1 }}>
+                    <div className="dd-skeleton-line" style={{ width: '55%', height: 14, marginBottom: 8 }} />
+                    <div className="dd-skeleton-line" style={{ width: '35%', height: 10 }} />
                   </div>
                 </div>
-                <span className="dd-review-date">{new Date(review.createdAt).toLocaleDateString('ja-JP')}</span>
-              </div>
-              <p className="dd-review-text">{review.commentReview}</p>
+              ))}
             </div>
-          ))}
-          {realReviews.length === 0 && (
-            <p style={{ textAlign: 'center', color: '#8C998E', padding: '20px' }}>レビューはまだありません。</p>
+          ) : reviews.length === 0 ? (
+            <div className="dd-reviews-empty">
+              <span className="dd-reviews-empty-icon">📭</span>
+              <p>{selectedStar !== null ? `${selectedStar}星のレビューはありません。` : 'レビューはまだありません。'}</p>
+            </div>
+          ) : (
+            <>
+              {reviews.map(review => (
+                <div key={review.id} className="dd-review-card">
+                  <div className="dd-review-header">
+                    <div className="dd-reviewer-info">
+                      <Avatar 
+                        src={review.reviewer?.avatar} 
+                        name={review.reviewer?.fullName} 
+                        className="dd-reviewer-avatar text-[11px]" 
+                        borderColor="none" 
+                      />
+                      <div>
+                        <h4 className="dd-reviewer-name">{review.reviewer?.fullName || 'ユーザー'}</h4>
+                        <div className="dd-review-stars">
+                          {[...Array(5)].map((_, i) => (
+                            <span key={i} style={{ color: i < (review.starReview || 0) ? '#006D37' : '#DDE5DB' }}>★</span>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                    <span className="dd-review-date">{new Date(review.createdAt).toLocaleDateString('ja-JP')}</span>
+                  </div>
+                  <p className="dd-review-text">{review.commentReview}</p>
+                </div>
+              ))}
+
+              {/* Infinite scroll sentinel */}
+              <div ref={lastElementRef} className="dd-scroll-sentinel" />
+
+              {reviewsLoadingMore && (
+                <div style={{ display: 'flex', justifyContent: 'center', padding: '20px 0' }}>
+                  <div style={{ width: '40px', height: '40px', border: '4px solid #EFF6EC', borderTopColor: '#006D37', borderRadius: '50%', animation: 'spin 1s linear infinite' }} />
+                  <style>{`@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }`}</style>
+                </div>
+              )}
+
+              {!hasMore && reviews.length > 0 && (
+                <p className="dd-reviews-end">これ以上レビューはありません</p>
+              )}
+            </>
           )}
         </div>
       </div>
