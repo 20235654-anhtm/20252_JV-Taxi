@@ -708,7 +708,9 @@ router.get('/driver/history', authMiddleware as any, async (req: AuthRequest, re
 
     const whereClause = {
       driverId,
-      status: 'COMPLETED' as const,
+      status: {
+        in: ['COMPLETED', 'CANCELLED', 'REJECTED']
+      },
       ...dateFilter
     };
 

@@ -67,6 +67,14 @@ const TripHistory = () => {
             return parts[0].trim();
           };
 
+          const statusMap: Record<string, string> = {
+            PENDING: '保留中',
+            ACCEPTED: '受付済',
+            REJECTED: '拒否',
+            COMPLETED: '支払済',
+            CANCELLED: 'キャンセル済',
+          };
+
           return {
             id: ride.id,
             date: dateStr,
@@ -74,7 +82,7 @@ const TripHistory = () => {
             pickupLocation: getLocDetails(ride.startAddress),
             destination: getLocDetails(ride.endAddress),
             price: ride.payment?.totalAmount ? Number(ride.payment.totalAmount) : (ride.matchFee ? Number(ride.matchFee) : 0),
-            status: '支払済'
+            status: statusMap[ride.status] || ride.status
           };
         });
 
