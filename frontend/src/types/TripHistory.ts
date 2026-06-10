@@ -23,7 +23,7 @@ export interface TripCardProps {
   onClick?: () => void;
 }
 
-export type FilterType = 'today' | 'week';
+export type FilterType = 'today' | 'week' | 'all';
 
 export interface TripHistoryState {
   filter: FilterType;

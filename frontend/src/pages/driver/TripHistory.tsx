@@ -15,7 +15,7 @@ const TripHistory = () => {
   
   // Khởi tạo state từ cache nếu có
   const cachedState = React.useMemo(() => getCache<any>(CACHE_KEYS.TRIP_HISTORY_STATE), []);
-  const [filter, setFilter] = useState<FilterType>(cachedState?.filter || 'today');
+  const [filter, setFilter] = useState<FilterType>(cachedState?.filter || 'all');
   const [page, setPage] = useState<number>(cachedState?.page || 1);
   const itemsPerPage = 3;
 
