@@ -1,12 +1,18 @@
 import React from 'react';
 import IconEmptyBlackMess from '../../assets/IconEmptyBlackMess.svg';
 import type { PassengerInfoProps } from '../../types/TripSummaryDetail';
+import { Avatar } from '../ui/Avatar';
 
 const PassengerInfo: React.FC<PassengerInfoProps> = ({ passenger, timeline, onClickMessage }) => {
   return (
     <div style={{alignSelf: 'stretch', padding: 24, background: '#EFF6EC', borderRadius: 40, flexDirection: 'column', justifyContent: 'flex-start', alignItems: 'flex-start', gap: 24, display: 'flex', width: '100%'}}>
       <div style={{alignSelf: 'stretch', justifyContent: 'flex-start', alignItems: 'center', gap: 16, display: 'flex'}}>
-        <img style={{width: 56, height: 56, maxWidth: 310, position: 'relative', borderRadius: 32, objectFit: 'cover'}} src={passenger.avatarUrl} alt="passenger avatar" />
+        <Avatar 
+          src={passenger.avatarUrl} 
+          name={passenger.name} 
+          className="w-14 h-14 rounded-full text-xl" 
+          borderColor="none" 
+        />
         <div style={{flexDirection: 'column', justifyContent: 'flex-start', alignItems: 'flex-start', display: 'flex', flex: 1}}>
           <div style={{alignSelf: 'stretch', flexDirection: 'column', justifyContent: 'flex-start', alignItems: 'flex-start', display: 'flex'}}>
             <div style={{height: 24, justifyContent: 'center', display: 'flex', flexDirection: 'column', color: '#171D17', fontSize: 16, fontFamily: 'Plus Jakarta Sans', fontWeight: '700', lineHeight: '24px', wordWrap: 'break-word'}}>{passenger.name}</div>

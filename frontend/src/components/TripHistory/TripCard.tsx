@@ -7,6 +7,26 @@ const TripCard: React.FC<TripCardProps> = ({ trip, onClick }) => {
     return new Intl.NumberFormat('en-US').format(val);
   };
 
+  const getStatusStyle = (statusLabel: string) => {
+    switch (statusLabel?.trim()) {
+      case '保留中': // PENDING
+        return { bg: 'rgba(254, 165, 32, 0.15)', text: '#FEA520' }; // Orange
+      case '受付済': // ACCEPTED
+        return { bg: 'rgba(45, 156, 219, 0.15)', text: '#2D9CDB' }; // Blue
+      case '支払済': // COMPLETED (Paid)
+      case '完了':
+        return { bg: 'rgba(39, 174, 96, 0.15)', text: '#27AE60' }; // Green
+      case '拒否': // REJECTED
+        return { bg: 'rgba(235, 87, 87, 0.15)', text: '#EB5757' }; // Red
+      case 'キャンセル済': // CANCELLED
+        return { bg: 'rgba(140, 153, 142, 0.15)', text: '#8C998E' }; // Gray
+      default:
+        return { bg: 'rgba(39, 174, 96, 0.15)', text: '#27AE60' };
+    }
+  };
+
+  const statusStyle = getStatusStyle(trip.status);
+
   return (
     <div onClick={onClick} style={{alignSelf: 'stretch', padding: 20, background: '#EFF6EC', borderRadius: 24, flexDirection: 'column', justifyContent: 'flex-start', alignItems: 'flex-start', gap: 16, display: 'flex', width: '100%', cursor: onClick ? 'pointer' : 'default'}}>
       <div style={{alignSelf: 'stretch', justifyContent: 'space-between', alignItems: 'flex-start', display: 'flex'}}>
@@ -26,8 +46,8 @@ const TripCard: React.FC<TripCardProps> = ({ trip, onClick }) => {
           <div style={{flexDirection: 'column', justifyContent: 'flex-start', alignItems: 'flex-end', display: 'flex'}}>
             <div style={{height: 28, textAlign: 'right', justifyContent: 'center', display: 'flex', flexDirection: 'column', color: '#006D37', fontSize: 18, fontFamily: 'Plus Jakarta Sans', fontWeight: '800', lineHeight: '28px', wordWrap: 'break-word'}}>₫{formatCurrency(trip.price)}</div>
           </div>
-          <div style={{paddingLeft: 8, paddingRight: 8, paddingTop: 2, paddingBottom: 2, background: '#DCFCE7', borderRadius: 9999, justifyContent: 'center', alignItems: 'center', display: 'inline-flex'}}>
-            <div style={{textAlign: 'right', color: '#166534', fontSize: 10, fontFamily: 'Plus Jakarta Sans', fontWeight: '700', textTransform: 'uppercase', lineHeight: '15px', wordWrap: 'break-word'}}>{trip.status}</div>
+          <div style={{paddingLeft: 8, paddingRight: 8, paddingTop: 2, paddingBottom: 2, background: statusStyle.bg, borderRadius: 9999, justifyContent: 'center', alignItems: 'center', display: 'inline-flex'}}>
+            <div style={{textAlign: 'center', color: statusStyle.text, fontSize: 10, fontFamily: 'Plus Jakarta Sans', fontWeight: '700', textTransform: 'uppercase', lineHeight: '15px', wordWrap: 'break-word'}}>{trip.status}</div>
           </div>
         </div>
       </div>

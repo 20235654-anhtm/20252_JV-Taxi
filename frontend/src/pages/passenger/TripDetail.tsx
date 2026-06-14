@@ -87,10 +87,12 @@ const TripDetail: React.FC = () => {
     if (!info) return '...';
     try {
       const parsed = JSON.parse(info);
-      return `${parsed.brand || ''} ${parsed.model || ''} • ${parsed.plateNumber || ''}`.trim() || '...';
+      const model = parsed.model || parsed.brand || '';
+      const plate = parsed.plate || parsed.plateNumber || '';
+      if (model && plate) return `${model} • ${plate}`;
+      return model || info;
     } catch (e) {
-      const parts = info.split(' • ');
-      return parts[0] || info;
+      return info;
     }
   };
 
@@ -167,6 +169,16 @@ const TripDetail: React.FC = () => {
     });
   };
 
+  // Mapped status
+  const statusMap: Record<string, string> = {
+    PENDING: '保留中',
+    ACCEPTED: '受付済',
+    REJECTED: '拒否',
+    COMPLETED: '完了',
+    CANCELLED: 'キャンセル済',
+  };
+  const mappedStatus = statusMap[ride.status] || ride.status;
+
   return (
     <div className="pp-container bg-[#f4fbf1] relative min-h-screen">
       <Header 
@@ -183,6 +195,7 @@ const TripDetail: React.FC = () => {
           <MapCard 
             pickupPosition={pickupPosition}
             destinationPosition={destinationPosition}
+            status={mappedStatus}
           />
 
           {/* 2. Driver Info */}

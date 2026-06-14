@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { CheckCircle, MoreVertical, ChevronLeft, ChevronRight } from 'lucide-react';
 import { API_BASE_URL } from '../../config/api';
 import { useLanguage } from '../../context/LanguageContext';
+import { Avatar } from '../../components/ui/Avatar';
 import './DriverApproval.css';
 import AdminBottomNavBar from '../../components/layout/AdminBottomNavBar';
 
@@ -289,10 +290,11 @@ const DriverApproval = () => {
                   <div className="driver-card-top">
                     {/* Avatar Container with Badge */}
                     <div className="driver-avatar-container">
-                      <img
-                        src={driver.avatarPicture || "https://placehold.co/100x100?text=Driver"}
-                        alt={driver.profile.fullName}
-                        className="driver-card-avatar"
+                      <Avatar
+                        src={driver.avatarPicture}
+                        name={driver.profile.fullName}
+                        className="driver-card-avatar text-2xl"
+                        borderColor="none"
                       />
                       {jlpt && (
                         <span className="driver-jlpt-badge">

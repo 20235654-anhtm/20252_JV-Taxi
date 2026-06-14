@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { API_BASE_URL } from '../../config/api';
+import { Avatar } from '../../components/ui/Avatar';
 import './DriverManagement.css';
 
 // Lucide React Icons
@@ -135,9 +136,7 @@ const DriverManagement: React.FC = () => {
               rating: user.driverProfile?.averageRating ? parseFloat(Number(user.driverProfile.averageRating).toFixed(2)) : null,
               vehicleName: vehicleModel || "未登録",
               status: status,
-              avatar: user.avatar || (user.fullName?.toLowerCase().includes('thi') 
-                ? `https://avatar.iran.liara.run/public/girl?username=${user.id}` 
-                : `https://avatar.iran.liara.run/public/boy?username=${user.id}`),
+              avatar: user.avatar || null,
               japaneseCert: jlpt,
               destination: destination,
               lastActive: lastActiveStr,
@@ -347,10 +346,11 @@ const DriverManagement: React.FC = () => {
                 {/* Top Section */}
                 <div className="driver-card-top-row">
                   <div className="driver-avatar-wrapper">
-                    <img
+                    <Avatar
                       src={driver.avatar}
-                      alt={driver.fullName}
-                      className="driver-squircle-avatar"
+                      name={driver.fullName}
+                      className="driver-squircle-avatar text-xl"
+                      borderColor="none"
                     />
                     <span className={`driver-status-dot-badge ${driver.status}`} />
                   </div>

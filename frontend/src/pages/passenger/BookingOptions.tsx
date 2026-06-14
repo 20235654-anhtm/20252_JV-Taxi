@@ -6,6 +6,7 @@ import { MapView } from '../../components/features/MapView';
 import { useBooking } from '../../contexts/BookingContext';
 import { API_BASE_URL } from '../../config/api';
 import { showToast } from '../../components/ui/Toast';
+import { Avatar } from '../../components/ui/Avatar';
 import './BookingOptions.css';
 
 const CarIcon = ({ size = 24, color = 'currentColor' }) => (
@@ -81,6 +82,7 @@ const BookingOptions = () => {
         const data = await response.json();
         if (data.success && data.data) {
           setFareAmount(data.data.fare.totalFare);
+          sessionStorage.setItem('estimated_fare', String(data.data.fare.totalFare));
         }
       } catch (error) {
         console.error('Error fetching fare estimation', error);
@@ -213,14 +215,12 @@ const BookingOptions = () => {
             <div className="bo-badges">
               <div className="bo-avatars">
                 {nearbyDrivers.slice(0, 2).map((driver, index) => (
-                  <div 
+                  <Avatar 
                     key={driver.id || index} 
-                    className="bo-avt" 
-                    style={driver.avatar ? { 
-                      backgroundImage: `url(${driver.avatar})`,
-                      backgroundSize: 'cover',
-                      backgroundPosition: 'center'
-                    } : {}}
+                    src={driver.avatar} 
+                    name={driver.name} 
+                    className="w-[24px] h-[24px] min-w-[24px] min-h-[24px] bo-avt text-[8px] flex items-center justify-center" 
+                    borderColor="white"
                   />
                 ))}
                 {nearbyDrivers.length > 2 && (

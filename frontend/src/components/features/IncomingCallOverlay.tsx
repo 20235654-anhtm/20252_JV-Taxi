@@ -6,6 +6,7 @@ import { socketService } from '../../services/socketService';
 import type { IncomingCallData } from '../../services/socketService';
 import { Phone, PhoneOff, Mic, MicOff, Wifi, WifiOff, X, BadgeCheck } from 'lucide-react';
 import { MapView } from './MapView';
+import { Avatar } from '../ui/Avatar';
 import '../../pages/passenger/CallDriver.css';
 
 const formatVehicleText = (infoStr: string | null) => {
@@ -74,11 +75,12 @@ function InCallScreen({ callerData, userId, onEnd }: {
             <div className="call-content">
                 <div className="call-header">
                     <div className="call-avatar-container">
-                        {callerData.callerAvatar ? (
-                            <img src={callerData.callerAvatar} alt={callerData.callerName} className="call-avatar" />
-                        ) : (
-                            <div className="call-avatar" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#ccc', fontSize: 40 }}>🚗</div>
-                        )}
+                        <Avatar 
+                            src={callerData.callerAvatar} 
+                            name={callerData.callerName} 
+                            className="call-avatar text-4xl" 
+                            borderColor="none" 
+                        />
                         <div className="call-badge">
                             <BadgeCheck size={18} color="#519A64" fill="white" strokeWidth={2.5} />
                         </div>
@@ -270,14 +272,14 @@ export default function IncomingCallOverlay() {
                         width: 88, height: 88, borderRadius: '50%',
                         overflow: 'hidden', margin: '0 auto 16px',
                         boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
-                        background: '#f3f4f6',
                         display: 'flex', alignItems: 'center', justifyContent: 'center',
                     }}>
-                        {incomingCall.callerAvatar ? (
-                            <img src={incomingCall.callerAvatar} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                        ) : (
-                            <span style={{ fontSize: 32, color: 'white' }}>🚗</span>
-                        )}
+                        <Avatar 
+                            src={incomingCall.callerAvatar} 
+                            name={incomingCall.callerName} 
+                            className="w-full h-full text-4xl" 
+                            borderColor="none" 
+                        />
                     </div>
 
                     <div style={{ fontSize: '22px', fontWeight: '800', color: '#111', fontFamily: 'Plus Jakarta Sans, sans-serif' }}>

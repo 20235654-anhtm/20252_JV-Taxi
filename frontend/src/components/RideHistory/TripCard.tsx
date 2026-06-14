@@ -4,6 +4,7 @@ import type { TripData } from '../../types/RideHistory';
 import IconBrownLocation from '../../assets/IconBrownLocation.svg';
 import IconNext from '../../assets/IconNext.svg';
 import IconFab from '../../assets/IconFab.svg';
+import { Avatar } from '../ui/Avatar';
 
 export const TripCard: React.FC<TripData> = ({
   id,
@@ -19,13 +20,38 @@ export const TripCard: React.FC<TripData> = ({
   time,
 }) => {
   const navigate = useNavigate();
+
+  const getStatusStyle = (statusLabel: string) => {
+    switch (statusLabel?.trim()) {
+      case '保留中': // PENDING
+        return { bg: 'rgba(254, 165, 32, 0.15)', text: '#FEA520' }; // Orange
+      case '受付済': // ACCEPTED
+        return { bg: 'rgba(45, 156, 219, 0.15)', text: '#2D9CDB' }; // Blue
+      case '完了': // COMPLETED
+        return { bg: 'rgba(39, 174, 96, 0.15)', text: '#27AE60' }; // Green
+      case '拒否': // REJECTED
+        return { bg: 'rgba(235, 87, 87, 0.15)', text: '#EB5757' }; // Red
+      case 'キャンセル済': // CANCELLED
+        return { bg: 'rgba(140, 153, 142, 0.15)', text: '#8C998E' }; // Gray
+      default:
+        return { bg: 'rgba(39, 174, 96, 0.15)', text: '#27AE60' };
+    }
+  };
+
+  const statusStyle = getStatusStyle(status);
+
   return (
     <div className="w-full p-[24px] bg-white rounded-[24px] flex flex-col justify-start items-start gap-[24px]">
       {/* Header */}
       <div className="w-full flex justify-between items-start">
         <div className="flex-1 flex justify-start items-center gap-[16px] mr-[16px] min-w-0">
-          <div className="w-[52px] h-[56px] bg-[#E9F0E6] overflow-hidden rounded-full flex justify-center items-center shrink-0">
-            <img className="w-full h-full object-cover" src={driverAvatar} alt="Driver" />
+          <div className="w-[52px] h-[56px] overflow-hidden rounded-full flex justify-center items-center shrink-0">
+            <Avatar 
+              src={driverAvatar} 
+              name={driverName} 
+              className="w-full h-full text-lg" 
+              borderColor="none" 
+            />
           </div>
           <div className="flex-1">
             <div className="text-[#171D17] text-[18px] font-[700] leading-[28px] break-words">
@@ -35,8 +61,16 @@ export const TripCard: React.FC<TripData> = ({
         </div>
         <div className="flex flex-col justify-center items-end shrink-0">
           <div className="text-[#006D37] text-[20px] font-[800] leading-[28px]">{price}</div>
-          <div className="px-[12px] py-[4px] bg-[rgba(39,174,96,0.10)] rounded-full flex justify-start items-center mt-[4px]">
-            <div className="text-[#27AE60] text-[10px] font-[700] uppercase leading-[15px] tracking-[1px] text-right">{status}</div>
+          <div 
+            className="px-[12px] py-[4px] rounded-full flex justify-center items-center mt-[4px]"
+            style={{ backgroundColor: statusStyle.bg }}
+          >
+            <div 
+              className="text-[10px] font-[700] uppercase leading-[15px] text-center"
+              style={{ color: statusStyle.text }}
+            >
+              {status}
+            </div>
           </div>
         </div>
       </div>

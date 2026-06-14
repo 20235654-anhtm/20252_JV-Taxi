@@ -4,6 +4,7 @@ import { Header } from '../../components/layout/Header';
 import { MapView } from '../../components/features/MapView';
 import { Banknote, CreditCard, Check, MapPin, Flag, Send, XCircle } from 'lucide-react';
 import { useBooking } from '../../contexts/BookingContext';
+import { Avatar } from '../../components/ui/Avatar';
 import { useStripe, useElements, CardElement } from '@stripe/react-stripe-js';
 import { paymentService } from '../../services/paymentService';
 import { API_BASE_URL } from '../../config/api';
@@ -261,7 +262,12 @@ const BookingConfirmation = () => {
         <div className="bc-info-row">
           <div className="bc-driver-card">
             <div className="bc-driver-avatar-wrapper">
-              <img src={driver.avatar} alt={driver.name} className="bc-driver-avatar" />
+              <Avatar 
+                src={driver.avatar} 
+                name={driver.name} 
+                className="bc-driver-avatar text-xl" 
+                borderColor="none" 
+              />
               <div className="bc-driver-rating">{driver.rating && driver.rating !== '...' && !isNaN(Number(driver.rating)) ? Number(driver.rating).toFixed(1) : driver.rating} ★</div>
             </div>
             <div className="bc-driver-details">

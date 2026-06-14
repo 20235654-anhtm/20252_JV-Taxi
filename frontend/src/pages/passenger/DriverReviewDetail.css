@@ -1,3 +1,7 @@
+/* ════════════════════════════════════════
+   DRIVER REVIEW DETAIL PAGE
+   ════════════════════════════════════════ */
+
 .driver-detail-page {
   width: 100%;
   max-width: 390px;
@@ -19,6 +23,7 @@
   padding: 80px 20px 140px;
 }
 
+/* ─── MAIN DRIVER CARD ───────────────────────────────────── */
 .dd-main-card {
   background: white;
   border-radius: 40px;
@@ -95,7 +100,7 @@
 }
 
 .dd-badge-rating { background: #EEF6EA; color: #006D37; }
-.dd-badge-lang { background: #EEF6EA; color: #006D37; }
+.dd-badge-lang   { background: #EEF6EA; color: #006D37; }
 
 .dd-vehicle-box {
   background: #F4FBF1;
@@ -131,24 +136,119 @@
   color: #171D17;
 }
 
-/* REVIEWS */
+/* ─── REVIEWS SECTION ────────────────────────────────────── */
 .dd-reviews-section {
   padding: 0 4px;
+}
+
+.dd-reviews-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
 }
 
 .dd-reviews-title {
   font-size: 14px;
   font-weight: 800;
   color: #6B7A6C;
-  margin-bottom: 16px;
+  margin: 0;
 }
 
-.dd-review-card {
+.dd-reviews-total {
+  font-size: 12px;
+  font-weight: 700;
+  color: #8C998E;
+  background: #EEF6EA;
+  padding: 3px 10px;
+  border-radius: 20px;
+}
+
+/* ─── STAR FILTER PILLS ──────────────────────────────────── */
+.dd-star-filter {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 18px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+  /* Hide scrollbar but keep scroll */
+  scrollbar-width: none;
+}
+.dd-star-filter::-webkit-scrollbar { display: none; }
+
+.dd-star-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 7px 12px;
+  border-radius: 20px;
+  border: 1.5px solid #DDE5DB;
+  background: white;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  color: #6B7A6C;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.18s ease;
+  flex-shrink: 0;
+}
+
+.dd-star-pill:hover {
+  border-color: #006D37;
+  color: #006D37;
   background: #F4FBF1;
-  border: 1px solid rgba(255,255,255,0.5);
+}
+
+.dd-star-pill--active {
+  background: #006D37;
+  border-color: #006D37;
+  color: white;
+  box-shadow: 0 4px 12px rgba(0, 109, 55, 0.25);
+}
+
+.dd-star-pill--active .dd-star-pill-star {
+  color: #FFDE68;
+}
+
+.dd-star-pill--empty {
+  opacity: 0.45;
+  cursor: default;
+}
+.dd-star-pill--empty:hover {
+  border-color: #DDE5DB;
+  color: #6B7A6C;
+  background: white;
+}
+
+.dd-star-pill-star {
+  color: #F5A623;
+  font-size: 13px;
+  line-height: 1;
+}
+
+.dd-star-pill--active .dd-star-pill-count {
+  opacity: 0.85;
+}
+
+.dd-star-pill-count {
+  font-size: 11px;
+  font-weight: 600;
+  opacity: 0.7;
+}
+
+/* ─── REVIEW CARDS ───────────────────────────────────────── */
+.dd-review-card {
+  background: white;
+  border: 1px solid #EEF6EA;
   border-radius: 24px;
   padding: 20px;
-  margin-bottom: 16px;
+  margin-bottom: 12px;
+  transition: box-shadow 0.15s ease;
+}
+
+.dd-review-card:hover {
+  box-shadow: 0 4px 20px rgba(0, 109, 55, 0.07);
 }
 
 .dd-review-header {
@@ -177,7 +277,7 @@
 }
 
 .dd-reviewer-name {
-  font-size: 16px;
+  font-size: 14px;
   font-weight: 800;
   color: #171D17;
   margin-bottom: 4px;
@@ -186,23 +286,123 @@
 .dd-review-stars {
   display: flex;
   gap: 2px;
-  color: #FEA520;
-  font-size: 12px;
+  font-size: 13px;
 }
 
 .dd-review-date {
-  font-size: 12px;
-  color: #6B7A6C;
+  font-size: 11px;
+  color: #8C998E;
   font-weight: 600;
+  flex-shrink: 0;
+  padding-top: 2px;
 }
 
 .dd-review-text {
   font-size: 14px;
-  line-height: 1.6;
+  line-height: 1.65;
   color: #3D4A3F;
+  margin: 0;
 }
 
-/* ACTION BUTTON */
+/* ─── SKELETON LOADING ───────────────────────────────────── */
+.dd-reviews-skeleton {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.dd-review-skeleton-card {
+  background: white;
+  border-radius: 24px;
+  padding: 20px;
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  overflow: hidden;
+}
+
+.dd-skeleton-line {
+  background: linear-gradient(90deg, #EEF6EA 25%, #DDE5DB 50%, #EEF6EA 75%);
+  background-size: 200% 100%;
+  animation: dd-shimmer 1.4s infinite;
+  border-radius: 8px;
+  height: 12px;
+}
+
+.dd-skeleton-avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+@keyframes dd-shimmer {
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* ─── EMPTY / END STATES ─────────────────────────────────── */
+.dd-reviews-empty {
+  text-align: center;
+  padding: 40px 20px;
+  color: #8C998E;
+}
+
+.dd-reviews-empty-icon {
+  font-size: 40px;
+  display: block;
+  margin-bottom: 12px;
+}
+
+.dd-reviews-empty p {
+  font-size: 14px;
+  font-weight: 600;
+  margin: 0;
+}
+
+.dd-reviews-end {
+  text-align: center;
+  font-size: 12px;
+  color: #8C998E;
+  font-weight: 600;
+  margin: 8px 0 24px;
+}
+
+.dd-scroll-sentinel {
+  height: 1px;
+}
+
+/* ─── LOADING MORE DOTS ──────────────────────────────────── */
+.dd-loading-more {
+  display: flex;
+  justify-content: center;
+  padding: 16px 0;
+}
+
+.dd-loading-dots {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.dd-loading-dots span {
+  width: 8px;
+  height: 8px;
+  background: #006D37;
+  border-radius: 50%;
+  display: block;
+  animation: dd-bounce 1.2s infinite ease-in-out;
+}
+
+.dd-loading-dots span:nth-child(2) { animation-delay: 0.2s; }
+.dd-loading-dots span:nth-child(3) { animation-delay: 0.4s; }
+
+@keyframes dd-bounce {
+  0%, 80%, 100% { transform: scale(0.7); opacity: 0.4; }
+  40%            { transform: scale(1);   opacity: 1;   }
+}
+
+/* ─── ACTION BUTTON FOOTER ───────────────────────────────── */
 .dd-footer {
   position: absolute;
   bottom: 0;
@@ -230,6 +430,13 @@
   gap: 12px;
   cursor: pointer;
   box-shadow: 0 12px 24px rgba(255, 171, 45, 0.2);
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  transition: transform 0.12s ease, box-shadow 0.12s ease;
+}
+
+.dd-confirm-btn:active {
+  transform: scale(0.98);
+  box-shadow: 0 6px 14px rgba(255, 171, 45, 0.25);
 }
 
 .dd-btn-icon {

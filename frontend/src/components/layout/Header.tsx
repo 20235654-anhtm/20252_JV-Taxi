@@ -1,5 +1,6 @@
 import React from 'react';
 import { ArrowLeft } from 'lucide-react';
+import { Avatar } from '../ui/Avatar';
 
 interface HeaderProps {
   variant?: 'passenger' | 'driver' | 'guest' | 'auth';
@@ -102,19 +103,14 @@ export const Header: React.FC<HeaderProps> = ({
           {variant === 'auth' && (
             <button 
               onClick={onAvatarClick}
-              className="w-9 h-9 rounded-full border-2 border-[#1a4d2e] p-0.5 hover:scale-105 transition-transform overflow-hidden"
+              className="w-9 h-9 rounded-full border-2 border-[#1a4d2e] p-0.5 hover:scale-105 transition-transform overflow-hidden flex items-center justify-center"
             >
-              {(userAvatar && !userAvatar.includes('pravatar.cc')) ? (
-                <img 
-                  src={userAvatar} 
-                  alt="Avatar" 
-                  className="w-full h-full rounded-full object-cover"
-                />
-              ) : (
-                <div className="w-full h-full rounded-full bg-gradient-to-br from-[#006d37] to-[#21a45d] text-white flex items-center justify-center font-black text-sm">
-                  {userName.charAt(0).toUpperCase()}
-                </div>
-              )}
+              <Avatar 
+                src={userAvatar} 
+                name={userName} 
+                className="w-full h-full text-xs" 
+                borderColor="none" 
+              />
             </button>
           )}
 

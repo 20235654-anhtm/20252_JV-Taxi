@@ -241,6 +241,7 @@ const ChatwithDriver: React.FC = () => {
               <div className="relative">
                 <Avatar 
                   src={driver.avatar} 
+                  name={driver.name}
                   borderColor="transparent"
                 />
                 <div className="absolute bottom-0 right-0 w-[12px] h-[12px] bg-[#27AE60] border-2 border-[#F4FBF1] rounded-full"></div>

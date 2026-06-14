@@ -9,6 +9,7 @@ import { Header } from "../../components/layout/Header";
 import { BottomNavBar, type NavTab } from "../../components/layout/BottomNavBar";
 import { API_BASE_URL } from "../../config/api";
 import { socketService } from "../../services/socketService";
+import { Avatar } from "../../components/ui/Avatar";
 import "./Profile.css";
 
 export default function DriverProfile() {
@@ -66,10 +67,11 @@ export default function DriverProfile() {
         {/* MAIN PROFILE CARD */}
         <div className="dp-main-card">
           <div className="dp-avatar-wrapper">
-            <img 
-              src={user.avatar || "https://randomuser.me/api/portraits/men/32.jpg"} 
-              alt="Avatar" 
-              className="dp-avatar"
+            <Avatar 
+              src={user.avatar} 
+              name={user.fullName || "山本 健二"} 
+              className="dp-avatar text-4xl" 
+              borderColor="none" 
             />
           </div>
           <h1 className="dp-name">{(user.fullName || "山本 健二").split('(')[0].trim()}</h1>

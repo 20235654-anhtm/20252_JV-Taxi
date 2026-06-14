@@ -2,6 +2,7 @@ import React from 'react';
 import IconEmptyMess from '../../assets/IconEmptyMess.svg';
 import IconBrownStar from '../../assets/IconBrownStar.svg';
 import type { DriverInfoCardProps } from '../../types/TripDetail';
+import { Avatar } from '../ui/Avatar';
 
 export const DriverInfoCard: React.FC<DriverInfoCardProps> = ({
   driverName,
@@ -14,7 +15,12 @@ export const DriverInfoCard: React.FC<DriverInfoCardProps> = ({
     <div className="w-full p-[24px] bg-white shadow-[0px_1px_2px_rgba(0,0,0,0.05)] rounded-[24px] flex justify-between items-center">
       <div className="flex justify-start items-center gap-[16px]">
         <div className="relative flex flex-col justify-start items-start">
-          <img className="w-[62px] h-[64px] relative rounded-[16px] object-cover" src={driverAvatar} alt={driverName} />
+          <Avatar 
+            src={driverAvatar} 
+            name={driverName} 
+            className="w-[62px] h-[64px] rounded-[16px] text-lg" 
+            borderColor="none" 
+          />
           <div className="absolute right-[-8px] bottom-[-4px] p-[4px] bg-[#FEA520] rounded-[8px] flex flex-col justify-start items-start shadow-sm">
             <img src={IconBrownStar} alt="Star" className="w-[10px] h-[10px]" />
           </div>

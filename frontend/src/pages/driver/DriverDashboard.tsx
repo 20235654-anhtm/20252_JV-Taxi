@@ -28,6 +28,8 @@ const DriverDashboard = () => {
   const [showCanceledPopup, setShowCanceledPopup] = useState(false);
   const [currentRequest, setCurrentRequest] = useState<any>(null);
   const [driverData, setDriverData] = useState<any>(() => getCache(CACHE_KEYS.DRIVER_PROFILE) || null);
+  const [activeRide, setActiveRide] = useState<any>(null);
+  const [isExpanded, setIsExpanded] = useState(true);
   const [revenueData, setRevenueData] = useState<any>({
     dailyEarnings: 0,
     weeklyTotal: 0,
@@ -81,8 +83,63 @@ const DriverDashboard = () => {
       }
     };
 
+    const fetchActiveRide = async () => {
+      try {
+        const response = await fetch(`${API_BASE_URL}/api/rides/active/current`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (response.ok) {
+          const res = await response.json();
+          if (res.success && res.data) {
+            const ride = res.data;
+            if (ride.status === 'PENDING') {
+              const mappedRequest = {
+                rideId: ride.id,
+                passengerId: ride.passenger?.id || ride.passengerId,
+                passengerName: ride.passenger?.fullName || '...',
+                passengerAvatar: ride.passenger?.avatar || '',
+                pickupLocation: ride.start_address || ride.startAddress,
+                destinationLocation: ride.end_address || ride.endAddress,
+                startLat: Number(ride.startLat),
+                startLng: Number(ride.startLng),
+                endLat: Number(ride.endLat),
+                endLng: Number(ride.endLng),
+                distanceToPickup: '1.2 km',
+                estimatedFare: `${Math.round(Number(ride.match_fee || ride.matchFee) / 1000)}k VND`,
+                duration: '約25分',
+                paymentMethod: ride.payment?.paymentType === 'CARD' ? 'クレジットカード' : '現金'
+              };
+              setCurrentRequest(mappedRequest);
+              setShowPopup(true);
+              setActiveRide(null);
+            } else {
+              setActiveRide(ride);
+              
+              // Save active ride details in sessionStorage for DriverInTrip screen
+              sessionStorage.setItem('active_ride_id', ride.id);
+              sessionStorage.setItem('active_passenger_id', ride.passenger?.id || '');
+              sessionStorage.setItem('active_passenger_name', ride.passenger?.fullName || '');
+              sessionStorage.setItem('active_passenger_avatar', ride.passenger?.avatar || '');
+              sessionStorage.setItem('active_pickup_location', ride.start_address || ride.startAddress);
+              sessionStorage.setItem('active_destination_location', ride.end_address || ride.endAddress);
+              sessionStorage.setItem('active_start_lat', String(ride.startLat));
+              sessionStorage.setItem('active_start_lng', String(ride.startLng));
+              sessionStorage.setItem('active_end_lat', String(ride.endLat));
+              sessionStorage.setItem('active_end_lng', String(ride.endLng));
+              sessionStorage.setItem('active_fare', `${Math.round(Number(ride.match_fee || ride.matchFee) / 1000)}k VND`);
+            }
+          } else {
+            setActiveRide(null);
+          }
+        }
+      } catch (err) {
+        console.error('Error fetching active ride for driver:', err);
+      }
+    };
+
     fetchProfile();
     fetchRevenue();
+    fetchActiveRide();
   }, []);
 
   // Print geolocation changes for debugging
@@ -305,45 +362,160 @@ const DriverDashboard = () => {
         />
       </div>
 
-      {/* INCOME CARD */}
-      <div className="dd-income-card">
-        <div className="dd-income-header">
-          <div>
-            <div className="dd-income-title">日次収益</div>
-            <div className="dd-income-amount">
-              {formatCurrency(revenueData.dailyEarnings)}<span className="dd-income-currency">₫</span>
-            </div>
+      {/* INCOME CARD OR ACTIVE RIDE POPUP */}
+      {activeRide ? (
+        /* ACTIVE RIDE POPUP FOR DRIVER */
+        <div style={sheetStyles.container}>
+          {/* Drag handle */}
+          <div 
+            style={sheetStyles.dragHandle} 
+            onClick={() => setIsExpanded(!isExpanded)}
+          />
+          
+          {/* Header */}
+          <div 
+            style={sheetStyles.header}
+            onClick={() => setIsExpanded(!isExpanded)}
+          >
+            <span style={sheetStyles.title}>進行中の乗車</span>
+            {!isExpanded && (
+              <span style={sheetStyles.expandHint}>タップして詳細を表示</span>
+            )}
           </div>
-          <div className="dd-wallet-icon" role="button" aria-label="Wallet">
-            <div className="h-[18px] relative shrink-0 w-[19px]" data-name="Container">
-              <svg className="absolute block inset-0 size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 19 18">
-                <g id="Container">
-                  <path d={svgPaths.p3f8e080} fill="var(--fill-0, #27AE60)" id="Icon" />
-                </g>
-              </svg>
-            </div>
-          </div>
-        </div>
 
-        <div className="dd-chart-container">
-          {weeklyDataWithHighlight.map((d: any, i: number) => {
-            const maxWeeklyVal = Math.max(...revenueData.weeklyData.map((w: any) => w.value), 1);
-            const barHeightPercent = d.value > 0 ? (d.value / maxWeeklyVal) * 70 + 15 : 0;
-            return (
-              <div key={i} className="dd-chart-column">
-                <div 
-                  className={`dd-chart-bar ${d.highlight ? 'highlight' : ''}`} 
-                  style={{ height: `${barHeightPercent}%` }} 
-                />
-                <div className={`dd-chart-day ${d.highlight ? 'highlight' : ''}`}>
-                  {d.day}
+          {isExpanded && (
+            <div style={sheetStyles.expandedContent}>
+              {/* Pickup Row */}
+              <div style={sheetStyles.locationRow}>
+                <div style={sheetStyles.iconContainerGreen}>
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#006D37" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+                    <circle cx="12" cy="10" r="3" />
+                  </svg>
+                </div>
+                <div style={sheetStyles.locationInfo}>
+                  <div style={sheetStyles.locationLabel}>乗車場所</div>
+                  <div style={sheetStyles.locationValue}>{activeRide.start_address || activeRide.startAddress}</div>
                 </div>
               </div>
-            );
-          })}
+
+              {/* Destination Row */}
+              <div style={sheetStyles.locationRow}>
+                <div style={sheetStyles.iconContainerRed}>
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#C62828" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z" />
+                    <line x1="4" y1="22" x2="4" y2="15" />
+                  </svg>
+                </div>
+                <div style={sheetStyles.locationInfo}>
+                  <div style={sheetStyles.locationLabel}>目的地</div>
+                  <div style={sheetStyles.locationValue}>{activeRide.end_address || activeRide.endAddress}</div>
+                </div>
+              </div>
+
+              {/* Passenger Profile Block */}
+              {activeRide.passenger && (
+                <div style={sheetStyles.profileCard}>
+                  <div style={sheetStyles.avatarWrapper}>
+                    {activeRide.passenger.avatar ? (
+                      <img 
+                        src={activeRide.passenger.avatar} 
+                        alt="Passenger avatar" 
+                        style={sheetStyles.avatarImg}
+                      />
+                    ) : (
+                      <div style={sheetStyles.avatarPlaceholder}>
+                        {activeRide.passenger.fullName ? activeRide.passenger.fullName.charAt(0).toUpperCase() : 'P'}
+                      </div>
+                    )}
+                  </div>
+                  
+                  <div style={sheetStyles.profileInfo}>
+                    <div style={sheetStyles.nameRow}>
+                      <span style={sheetStyles.profileName}>{activeRide.passenger.fullName}</span>
+                    </div>
+                    {activeRide.passenger.phone && (
+                      <div style={sheetStyles.carDetails}>
+                        {activeRide.passenger.phone}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Show Map Button */}
+          <button 
+            onClick={() => {
+              navigate('/driver/in-trip', { 
+                state: { 
+                  passengerId: activeRide.passenger?.id || '',
+                  passengerName: activeRide.passenger?.fullName || '', 
+                  passengerAvatar: activeRide.passenger?.avatar || '',
+                  rideId: activeRide.id,
+                  pickupLocation: activeRide.start_address || activeRide.startAddress,
+                  destinationLocation: activeRide.end_address || activeRide.endAddress,
+                  startLat: activeRide.startLat,
+                  startLng: activeRide.startLng,
+                  endLat: activeRide.endLat,
+                  endLng: activeRide.endLng,
+                  distanceToPickup: '1.2 km',
+                  duration: '約25分',
+                  estimatedFare: `${Math.round(Number(activeRide.match_fee || activeRide.matchFee) / 1000)}k VND`,
+                  paymentMethod: 'クレジットカード'
+                } 
+              });
+            }}
+            style={sheetStyles.button}
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: '8px' }}>
+              <polygon points="3 6 9 3 15 6 21 3 21 18 15 21 9 18 3 21" />
+              <line x1="9" y1="3" x2="9" y2="18" />
+              <line x1="15" y1="6" x2="15" y2="21" />
+            </svg>
+            <span>地図を表示</span>
+          </button>
         </div>
-        
-      </div>
+      ) : (
+        <div className="dd-income-card">
+          <div className="dd-income-header">
+            <div>
+              <div className="dd-income-title">日次収益</div>
+              <div className="dd-income-amount">
+                {formatCurrency(revenueData.dailyEarnings)}<span className="dd-income-currency">₫</span>
+              </div>
+            </div>
+            <div className="dd-wallet-icon" role="button" aria-label="Wallet">
+              <div className="h-[18px] relative shrink-0 w-[19px]" data-name="Container">
+                <svg className="absolute block inset-0 size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 19 18">
+                  <g id="Container">
+                    <path d={svgPaths.p3f8e080} fill="var(--fill-0, #27AE60)" id="Icon" />
+                  </g>
+                </svg>
+              </div>
+            </div>
+          </div>
+
+          <div className="dd-chart-container">
+            {weeklyDataWithHighlight.map((d: any, i: number) => {
+              const maxWeeklyVal = Math.max(...revenueData.weeklyData.map((w: any) => w.value), 1);
+              const barHeightPercent = d.value > 0 ? (d.value / maxWeeklyVal) * 70 + 15 : 0;
+              return (
+                <div key={i} className="dd-chart-column">
+                  <div 
+                    className={`dd-chart-bar ${d.highlight ? 'highlight' : ''}`} 
+                    style={{ height: `${barHeightPercent}%` }} 
+                  />
+                  <div className={`dd-chart-day ${d.highlight ? 'highlight' : ''}`}>
+                    {d.day}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       {/* BOTTOM NAV */}
       <BottomNavBar
@@ -382,6 +554,175 @@ const DriverDashboard = () => {
       )}
     </div>
   );
+};
+
+const sheetStyles: Record<string, React.CSSProperties> = {
+  container: {
+    position: 'absolute',
+    bottom: '96px',
+    left: '16px',
+    right: '16px',
+    background: '#ffffff',
+    borderRadius: '32px 32px 24px 24px',
+    boxShadow: '0px 10px 30px rgba(0, 0, 0, 0.12)',
+    padding: '24px',
+    zIndex: 1011,
+    display: 'flex',
+    flexDirection: 'column',
+    fontFamily: '"Plus Jakarta Sans", "Noto Sans JP", sans-serif',
+    boxSizing: 'border-box',
+    border: '1px solid rgba(0, 109, 55, 0.08)',
+  },
+  dragHandle: {
+    width: '40px',
+    height: '5px',
+    background: '#E5E9E5',
+    borderRadius: '9999px',
+    margin: '0 auto 16px auto',
+    cursor: 'pointer',
+  },
+  header: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    cursor: 'pointer',
+    marginBottom: '16px',
+  },
+  title: {
+    fontSize: '20px',
+    fontWeight: '800',
+    color: '#006D37',
+  },
+  expandHint: {
+    fontSize: '12px',
+    color: '#71717A',
+    fontWeight: '600',
+  },
+  expandedContent: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '16px',
+    marginBottom: '16px',
+  },
+  locationRow: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '12px',
+  },
+  iconContainerGreen: {
+    width: '40px',
+    height: '40px',
+    background: '#EFF6EC',
+    borderRadius: '50%',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexShrink: 0,
+  },
+  iconContainerRed: {
+    width: '40px',
+    height: '40px',
+    background: '#FDF2F2',
+    borderRadius: '50%',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexShrink: 0,
+  },
+  locationInfo: {
+    display: 'flex',
+    flexDirection: 'column',
+    minWidth: 0,
+    flex: 1,
+  },
+  locationLabel: {
+    fontSize: '11px',
+    fontWeight: '600',
+    color: '#71717A',
+    marginBottom: '2px',
+  },
+  locationValue: {
+    fontSize: '14px',
+    fontWeight: '700',
+    color: '#171D17',
+    whiteSpace: 'nowrap',
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
+  },
+  profileCard: {
+    background: '#EFF6EC',
+    borderRadius: '16px',
+    padding: '12px 16px',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '12px',
+    marginTop: '4px',
+  },
+  avatarWrapper: {
+    width: '48px',
+    height: '48px',
+    borderRadius: '50%',
+    overflow: 'hidden',
+    flexShrink: 0,
+  },
+  avatarImg: {
+    width: '100%',
+    height: '100%',
+    objectFit: 'cover',
+  },
+  avatarPlaceholder: {
+    width: '100%',
+    height: '100%',
+    background: '#006D37',
+    color: '#ffffff',
+    fontSize: '18px',
+    fontWeight: '700',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  profileInfo: {
+    display: 'flex',
+    flexDirection: 'column',
+    flex: 1,
+    minWidth: 0,
+  },
+  nameRow: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    width: '100%',
+    marginBottom: '2px',
+  },
+  profileName: {
+    fontSize: '16px',
+    fontWeight: '800',
+    color: '#171D17',
+    whiteSpace: 'nowrap',
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
+  },
+  carDetails: {
+    fontSize: '14px',
+    fontWeight: '600',
+    color: '#3D4A3F',
+  },
+  button: {
+    width: '100%',
+    background: '#006D37',
+    color: '#ffffff',
+    border: 'none',
+    borderRadius: '24px',
+    padding: '14px 0',
+    fontSize: '16px',
+    fontWeight: '800',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    cursor: 'pointer',
+    boxShadow: '0px 8px 24px rgba(0, 109, 55, 0.22)',
+    transition: 'background 0.2s ease',
+  }
 };
 
 export default DriverDashboard;

@@ -82,6 +82,7 @@ const IncomingRequestPopup = ({
             <Avatar 
               src={request.passengerAvatar} 
               alt={request.passengerName} 
+              name={request.passengerName}
               size="md"
               borderColor="transparent"
             />

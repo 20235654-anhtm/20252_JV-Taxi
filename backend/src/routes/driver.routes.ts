@@ -74,6 +74,7 @@ router.get('/nearby', async (req: Request, res: Response) => {
       time: `${Math.max(1, Math.ceil(Number(driver.distance) / 500))} min`,
       rating: Number(driver.average_rating),
       avatar: getAvatarUrl(driver.avatar_picture),
+      jlpt: driver.japanese_cer_infor || null,
       // Calculate estimated price based on distance
       price: calculateEstimatedPrice(Number(driver.distance)),
     }));
@@ -114,6 +115,7 @@ router.get('/', async (req: Request, res: Response) => {
       time: driver.distance > 0 ? `${Math.max(1, Math.ceil(driver.distance / 500))} min` : '--',
       rating: Number(driver.average_rating),
       avatar: getAvatarUrl(driver.avatar_picture),
+      jlpt: driver.japanese_cer_infor || null,
       price: calculateEstimatedPrice(driver.distance > 0 ? driver.distance : 5000), // Default 5km for price if no distance
     }));
 
@@ -403,6 +405,35 @@ router.put('/status', authMiddleware as any, async (req: AuthRequest, res: Respo
     if (!userId) {
       res.status(401).json({ success: false, message: 'Unauthorized' });
       return;
+    }
+
+    // Verify user role and check if DriverProfile exists
+    const profile = await prisma.profile.findUnique({
+      where: { id: userId },
+      include: { driverProfile: true }
+    });
+
+    if (!profile || profile.role !== 'DRIVER') {
+      res.status(403).json({
+        success: false,
+        message: 'Forbidden: User is not a driver.'
+      });
+      return;
+    }
+
+    if (!profile.driverProfile) {
+      console.log(`[DriverStatus] DriverProfile missing for user ${userId}. Auto-creating default profile.`);
+      // Auto-create a default driver profile for testing if it doesn't exist
+      await prisma.driverProfile.create({
+        data: {
+          userId: userId,
+          drivingLicenseInfor: 'Auto-generated for testing',
+          vehicleInfor: JSON.stringify({ model: 'Standard Sedan', plate: 'TEST-8888' }),
+          vehicleType: 'Car',
+          isApproved: true,
+          isOnline: true,
+        }
+      });
     }
 
     const { isOnline, lat, lng } = req.body;
