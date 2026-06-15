@@ -82,8 +82,8 @@ export const BottomNavBar: React.FC<BottomNavBarProps> = ({
   }
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 bg-white z-[1020] rounded-tl-[24px] rounded-tr-[24px] drop-shadow-[0px_-8px_12px_rgba(0,0,0,0.04)]">
-      <div className="flex items-center justify-around pb-[10px] pt-[8px] px-[16px] max-w-[1280px] mx-auto">
+    <nav className="fixed bottom-0 left-0 right-0 bg-white z-[1020] rounded-tl-[24px] rounded-tr-[24px] drop-shadow-[0px_-8px_12px_rgba(0,0,0,0.04)]" style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
+      <div className="flex items-center justify-around pb-[16px] pt-[10px] px-[16px] max-w-[1280px] mx-auto">
         {/* Home Tab */}
         <button
           onClick={() => handleTabClick('home')}
@@ -97,9 +97,9 @@ export const BottomNavBar: React.FC<BottomNavBarProps> = ({
             className={activeTab === 'home' ? 'text-[#1a4d2e]' : 'text-[#a1a1aa]'}
           />
           <div className="flex flex-col items-start pt-[6px]">
-            <div className={`flex flex-col font-['Plus_Jakarta_Sans:Medium','Noto_Sans_JP:Medium',sans-serif] font-extrabold h-[15px] justify-center leading-[0] text-[12px] tracking-[0.5px] uppercase ${activeTab === 'home' ? 'text-[#1a4d2e]' : 'text-[#a1a1aa]'
+            <div className={`flex flex-col font-['Plus_Jakarta_Sans:Medium','Noto_Sans_JP:Medium',sans-serif] font-extrabold justify-center text-[12px] tracking-[0.5px] uppercase ${activeTab === 'home' ? 'text-[#1a4d2e]' : 'text-[#a1a1aa]'
               }`}>
-              <p className="leading-[15px]">ホーム</p>
+              <p className="leading-tight">ホーム</p>
             </div>
           </div>
         </button>
@@ -117,9 +117,9 @@ export const BottomNavBar: React.FC<BottomNavBarProps> = ({
             className={activeTab === 'history' ? 'text-[#1a4d2e]' : 'text-[#a1a1aa]'}
           />
           <div className="flex flex-col items-start pt-[6px]">
-            <div className={`flex flex-col font-['Plus_Jakarta_Sans:Medium','Noto_Sans_JP:Medium',sans-serif] font-extrabold h-[15px] justify-center leading-[0] text-[12px] tracking-[0.5px] uppercase ${activeTab === 'history' ? 'text-[#1a4d2e]' : 'text-[#a1a1aa]'
+            <div className={`flex flex-col font-['Plus_Jakarta_Sans:Medium','Noto_Sans_JP:Medium',sans-serif] font-extrabold justify-center text-[12px] tracking-[0.5px] uppercase ${activeTab === 'history' ? 'text-[#1a4d2e]' : 'text-[#a1a1aa]'
               }`}>
-              <p className="leading-[15px]">履歴</p>
+              <p className="leading-tight">履歴</p>
             </div>
           </div>
         </button>
@@ -137,9 +137,9 @@ export const BottomNavBar: React.FC<BottomNavBarProps> = ({
             className={activeTab === 'profile' ? 'text-[#1a4d2e]' : 'text-[#a1a1aa]'}
           />
           <div className="flex flex-col items-start pt-[6px]">
-            <div className={`flex flex-col font-['Plus_Jakarta_Sans:Medium','Noto_Sans_JP:Medium',sans-serif] font-extrabold h-[15px] justify-center leading-[0] text-[12px] tracking-[0.5px] uppercase ${activeTab === 'profile' ? 'text-[#1a4d2e]' : 'text-[#a1a1aa]'
+            <div className={`flex flex-col font-['Plus_Jakarta_Sans:Medium','Noto_Sans_JP:Medium',sans-serif] font-extrabold justify-center text-[12px] tracking-[0.5px] uppercase ${activeTab === 'profile' ? 'text-[#1a4d2e]' : 'text-[#a1a1aa]'
               }`}>
-              <p className="leading-[15px]">プロフィール</p>
+              <p className="leading-tight">プロフィール</p>
             </div>
           </div>
         </button>

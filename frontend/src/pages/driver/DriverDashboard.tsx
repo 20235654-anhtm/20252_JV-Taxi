@@ -360,7 +360,7 @@ const DriverDashboard = () => {
         onClick={() => setRecenterKey(k => k + 1)}
         ariaLabel="現在地に戻る"
         className="absolute right-4"
-        style={{ bottom: activeRide ? '400px' : '310px', zIndex: 1010 }} 
+        style={{ top: '50%', transform: 'translateY(-50%)', zIndex: 1010 }} 
       />
 
       {/* INCOME CARD OR ACTIVE RIDE POPUP */}

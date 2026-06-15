@@ -314,7 +314,8 @@ const styles: Record<string, React.CSSProperties> = {
   pageWrapper: {
     position: 'relative',
     width: '100vw',
-    height: '100vh',
+    height: '100vh', // Fallback for older browsers
+    minHeight: '100dvh',
     overflow: 'hidden',
   },
   mapWrapper: {

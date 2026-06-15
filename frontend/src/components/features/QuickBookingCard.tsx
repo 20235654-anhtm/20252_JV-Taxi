@@ -60,7 +60,7 @@ export const QuickBookingCard: React.FC<QuickBookingCardProps> = ({
     <div
       className={`
         fixed left-0 right-0 z-[1050] transition-all duration-500 ease-out
-        ${mode === 'half' ? 'bottom-[88px] px-4' : 'top-16 bottom-0 px-0'}
+        ${mode === 'half' ? 'bottom-[104px] px-4' : 'top-16 bottom-0 px-0'}
       `}
     >
       <Card
