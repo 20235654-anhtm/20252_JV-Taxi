@@ -54,7 +54,7 @@ export const BottomNavBar: React.FC<BottomNavBarProps> = ({
               <img src={activeTab === 'home' ? GreenDoashboard : GrayDoashboard} style={{ width: 16.5, height: 16.5 }} alt="Home" />
             </div>
             <div style={{ height: 17, paddingTop: 4, flexDirection: 'column', justifyContent: 'flex-start', alignItems: 'flex-start', display: 'flex' }}>
-              <div style={{ width: 99, height: 17, textAlign: 'center', justifyContent: 'center', display: 'flex', flexDirection: 'column', color: activeTab === 'home' ? '#15803D' : '#A1A1AA', fontSize: 11, fontFamily: 'Plus Jakarta Sans', fontWeight: '500', textTransform: 'uppercase', lineHeight: '16.5px', letterSpacing: 0.55, wordWrap: 'break-word' }}>ダッシュボード</div>
+              <div style={{ width: 99, height: 17, textAlign: 'center', justifyContent: 'center', display: 'flex', flexDirection: 'column', color: activeTab === 'home' ? '#15803D' : '#A1A1AA', fontSize: 13, fontFamily: 'Plus Jakarta Sans', fontWeight: '800', textTransform: 'uppercase', lineHeight: '16.5px', letterSpacing: 0.55, wordWrap: 'break-word' }}>ダッシュボード</div>
             </div>
           </div>
 
@@ -63,16 +63,16 @@ export const BottomNavBar: React.FC<BottomNavBarProps> = ({
               <img src={activeTab === 'history' ? GreenHistory : GrayHistory} style={{ width: 16.5, height: 16.5 }} alt="History" />
             </div>
             <div style={{ paddingTop: 4, flexDirection: 'column', justifyContent: 'flex-start', alignItems: 'flex-start', display: 'flex' }}>
-              <div style={{ width: 51.03, height: 17, textAlign: 'center', justifyContent: 'center', display: 'flex', flexDirection: 'column', color: activeTab === 'history' ? '#15803D' : '#A1A1AA', fontSize: 11, fontFamily: 'Plus Jakarta Sans', fontWeight: '500', textTransform: 'uppercase', lineHeight: '16.5px', letterSpacing: 0.55, wordWrap: 'break-word' }}>履歴</div>
+              <div style={{ width: 51.03, height: 17, textAlign: 'center', justifyContent: 'center', display: 'flex', flexDirection: 'column', color: activeTab === 'history' ? '#15803D' : '#A1A1AA', fontSize: 13, fontFamily: 'Plus Jakarta Sans', fontWeight: '800', textTransform: 'uppercase', lineHeight: '16.5px', letterSpacing: 0.55, wordWrap: 'break-word' }}>履歴</div>
             </div>
           </div>
 
-          <div onClick={() => handleTabClick('profile')} style={{ width: 93, paddingLeft: 20, paddingRight: 20, paddingTop: 8, paddingBottom: 8, left: 267, top: 20, position: 'absolute', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', display: 'inline-flex', cursor: 'pointer' }}>
+          <div onClick={() => handleTabClick('profile')} style={{ width: 100, paddingLeft: 10, paddingRight: 10, paddingTop: 8, paddingBottom: 8, right: 15, top: 20, position: 'absolute', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', display: 'inline-flex', cursor: 'pointer' }}>
             <div style={{ flexDirection: 'column', justifyContent: 'flex-start', alignItems: 'flex-start', display: 'flex' }}>
               <img src={activeTab === 'profile' ? GreenPeople : GrayPeople} style={{ width: 16, height: 16 }} alt="Profile" />
             </div>
             <div style={{ paddingTop: 4, flexDirection: 'column', justifyContent: 'flex-start', alignItems: 'flex-start', display: 'flex' }}>
-              <div style={{ width: 68, height: 15, justifyContent: 'center', display: 'flex', flexDirection: 'column', color: activeTab === 'profile' ? '#15803D' : '#A1A1AA', fontSize: 10, fontFamily: 'Plus Jakarta Sans', fontWeight: '500', textTransform: 'uppercase', lineHeight: '15px', letterSpacing: 0.50, wordWrap: 'break-word' }}>プロフィール</div>
+              <div style={{ whiteSpace: 'nowrap', height: 15, justifyContent: 'center', display: 'flex', flexDirection: 'column', color: activeTab === 'profile' ? '#15803D' : '#A1A1AA', fontSize: 11, fontFamily: 'Plus Jakarta Sans', fontWeight: '800', textTransform: 'uppercase', lineHeight: '15px', letterSpacing: 0.50 }}>プロフィール</div>
             </div>
           </div>
 
@@ -82,8 +82,8 @@ export const BottomNavBar: React.FC<BottomNavBarProps> = ({
   }
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 bg-white z-[1020] rounded-tl-[24px] rounded-tr-[24px] drop-shadow-[0px_-8px_12px_rgba(0,0,0,0.04)]">
-      <div className="flex items-center justify-around pb-[10px] pt-[8px] px-[16px] max-w-[1280px] mx-auto">
+    <nav className="fixed bottom-0 left-0 right-0 bg-white z-[1020] rounded-tl-[24px] rounded-tr-[24px] drop-shadow-[0px_-8px_12px_rgba(0,0,0,0.04)]" style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
+      <div className="flex items-center justify-around pb-[16px] pt-[10px] px-[16px] max-w-[1280px] mx-auto">
         {/* Home Tab */}
         <button
           onClick={() => handleTabClick('home')}
@@ -92,13 +92,14 @@ export const BottomNavBar: React.FC<BottomNavBarProps> = ({
           aria-label="ホーム"
         >
           <Home
-            size={22}
+            size={26}
+            strokeWidth={activeTab === 'home' ? 2.5 : 2}
             className={activeTab === 'home' ? 'text-[#1a4d2e]' : 'text-[#a1a1aa]'}
           />
-          <div className="flex flex-col items-start pt-[4px]">
-            <div className={`flex flex-col font-['Plus_Jakarta_Sans:Medium','Noto_Sans_JP:Medium',sans-serif] font-medium h-[15px] justify-center leading-[0] text-[10px] tracking-[0.5px] uppercase ${activeTab === 'home' ? 'text-[#1a4d2e]' : 'text-[#a1a1aa]'
+          <div className="flex flex-col items-start pt-[6px]">
+            <div className={`flex flex-col font-['Plus_Jakarta_Sans:Medium','Noto_Sans_JP:Medium',sans-serif] font-extrabold justify-center text-[12px] tracking-[0.5px] uppercase ${activeTab === 'home' ? 'text-[#1a4d2e]' : 'text-[#a1a1aa]'
               }`}>
-              <p className="leading-[15px]">ホーム</p>
+              <p className="leading-tight">ホーム</p>
             </div>
           </div>
         </button>
@@ -111,13 +112,14 @@ export const BottomNavBar: React.FC<BottomNavBarProps> = ({
           aria-label="履歴"
         >
           <Clock
-            size={20}
+            size={24}
+            strokeWidth={activeTab === 'history' ? 2.5 : 2}
             className={activeTab === 'history' ? 'text-[#1a4d2e]' : 'text-[#a1a1aa]'}
           />
-          <div className="flex flex-col items-start pt-[4px]">
-            <div className={`flex flex-col font-['Plus_Jakarta_Sans:Medium','Noto_Sans_JP:Medium',sans-serif] font-medium h-[15px] justify-center leading-[0] text-[10px] tracking-[0.5px] uppercase ${activeTab === 'history' ? 'text-[#1a4d2e]' : 'text-[#a1a1aa]'
+          <div className="flex flex-col items-start pt-[6px]">
+            <div className={`flex flex-col font-['Plus_Jakarta_Sans:Medium','Noto_Sans_JP:Medium',sans-serif] font-extrabold justify-center text-[12px] tracking-[0.5px] uppercase ${activeTab === 'history' ? 'text-[#1a4d2e]' : 'text-[#a1a1aa]'
               }`}>
-              <p className="leading-[15px]">履歴</p>
+              <p className="leading-tight">履歴</p>
             </div>
           </div>
         </button>
@@ -130,13 +132,14 @@ export const BottomNavBar: React.FC<BottomNavBarProps> = ({
           aria-label="プロフィール"
         >
           <User
-            size={18}
+            size={24}
+            strokeWidth={activeTab === 'profile' ? 2.5 : 2}
             className={activeTab === 'profile' ? 'text-[#1a4d2e]' : 'text-[#a1a1aa]'}
           />
-          <div className="flex flex-col items-start pt-[4px]">
-            <div className={`flex flex-col font-['Plus_Jakarta_Sans:Medium','Noto_Sans_JP:Medium',sans-serif] font-medium h-[15px] justify-center leading-[0] text-[10px] tracking-[0.5px] uppercase ${activeTab === 'profile' ? 'text-[#1a4d2e]' : 'text-[#a1a1aa]'
+          <div className="flex flex-col items-start pt-[6px]">
+            <div className={`flex flex-col font-['Plus_Jakarta_Sans:Medium','Noto_Sans_JP:Medium',sans-serif] font-extrabold justify-center text-[12px] tracking-[0.5px] uppercase ${activeTab === 'profile' ? 'text-[#1a4d2e]' : 'text-[#a1a1aa]'
               }`}>
-              <p className="leading-[15px]">プロフィール</p>
+              <p className="leading-tight">プロフィール</p>
             </div>
           </div>
         </button>

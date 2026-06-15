@@ -22,7 +22,12 @@ const PassengerHome = () => {
   const [activeRide, setActiveRide] = useState<any>(null);
   const [isExpanded, setIsExpanded] = useState(true);
   
-  const user = getCache<any>(CACHE_KEYS.USER_PROFILE) || JSON.parse(sessionStorage.getItem('user') || 'null');
+  let parsedUser = null;
+  try {
+    const userStr = sessionStorage.getItem('user');
+    parsedUser = userStr && userStr !== 'undefined' ? JSON.parse(userStr) : null;
+  } catch (e) {}
+  const user = getCache<any>(CACHE_KEYS.USER_PROFILE) || parsedUser;
   
   const [destinationInput, setDestinationInput] = useState(destination?.address || '');
 
@@ -309,7 +314,8 @@ const styles: Record<string, React.CSSProperties> = {
   pageWrapper: {
     position: 'relative',
     width: '100vw',
-    height: '100vh',
+    height: '100vh', // Fallback for older browsers
+    minHeight: '100dvh',
     overflow: 'hidden',
   },
   mapWrapper: {

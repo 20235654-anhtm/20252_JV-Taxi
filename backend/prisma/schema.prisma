@@ -62,6 +62,9 @@ model Profile {
 model DriverProfile {
   userId               String   @id @map("user_id") @db.Uuid
   averageRating        Decimal? @default(0.00) @map("average_rating") @db.Decimal(3, 2)
+  communicationAverage Decimal? @default(0.00) @map("communication_average") @db.Decimal(3, 2)
+  attitudeAverage      Decimal? @default(0.00) @map("attitude_average") @db.Decimal(3, 2)
+  safetyAverage        Decimal? @default(0.00) @map("safety_average") @db.Decimal(3, 2)
   isOnline             Boolean? @default(false) @map("is_online")
   isBusy               Boolean? @default(false) @map("is_busy")
   isApproved           Boolean? @default(false) @map("is_approved")
@@ -126,6 +129,9 @@ model Review {
   reviewerId    String?  @map("reviewer_id") @db.Uuid
   driverId      String?  @map("driver_id") @db.Uuid
   starReview    Int?     @map("star_review")
+  communicationStar Int? @map("communication_star")
+  attitudeStar  Int?     @map("attitude_star")
+  safetyStar    Int?     @map("safety_star")
   commentReview String?  @map("comment_review") @db.Text
   createdAt     DateTime @default(now()) @map("created_at")
 

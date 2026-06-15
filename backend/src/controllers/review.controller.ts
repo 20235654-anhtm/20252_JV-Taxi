@@ -4,11 +4,20 @@ import { reviewService } from '../services/review.service';
 export const createReview = async (req: Request, res: Response) => {
   try {
     console.log('Received review request:', req.body); // In ra để xem dữ liệu nhận được
-    const { rating, comment, driverId, rideId, reviewerId } = req.body;
+    console.log('Backend restarted with new Prisma Client');
+    const { rating, comment, driverId, rideId, reviewerId, communicationStar, attitudeStar, safetyStar } = req.body;
+
+    let computedStar = Number(rating);
+    if (!computedStar && communicationStar && attitudeStar && safetyStar) {
+      computedStar = Math.round((Number(communicationStar) + Number(attitudeStar) + Number(safetyStar)) / 3);
+    }
 
     // Build the data object for Prisma with type safety
     const data: any = {
-      starReview: Number(rating) || 0,
+      starReview: computedStar || 0,
+      communicationStar: Number(communicationStar) || 0,
+      attitudeStar: Number(attitudeStar) || 0,
+      safetyStar: Number(safetyStar) || 0,
       commentReview: comment || '',
     };
 

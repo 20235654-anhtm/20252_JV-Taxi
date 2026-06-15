@@ -337,7 +337,7 @@ const DriverDashboard = () => {
       </div>
 
       {/* TOP CONTROLS */}
-      <div className="dd-top-controls">
+      <div className="dd-top-controls" style={{ justifyContent: 'center' }}>
         <div className="dd-toggle-container">
           <button 
             className={`dd-toggle-btn ${isOnline ? 'active' : 'inactive'}`}
@@ -354,13 +354,14 @@ const DriverDashboard = () => {
             オフライン
           </button>
         </div>
-
-        <FAB 
-          onClick={() => setRecenterKey(k => k + 1)}
-          ariaLabel="現在地に戻る"
-          style={{ position: 'static' }} 
-        />
       </div>
+
+      <FAB 
+        onClick={() => setRecenterKey(k => k + 1)}
+        ariaLabel="現在地に戻る"
+        className="absolute right-4"
+        style={{ top: '50%', transform: 'translateY(-50%)', zIndex: 1010 }} 
+      />
 
       {/* INCOME CARD OR ACTIVE RIDE POPUP */}
       {activeRide ? (

@@ -77,7 +77,10 @@ const TripSummaryDetail: React.FC = () => {
 
           // Rating
           const driverReview = ride.reviews?.find((r: any) => r.driverId === ride.driverId);
-          const rating = driverReview?.starReview || 5.0;
+          const rating = driverReview?.starReview || 0.0;
+          const communicationStar = driverReview?.communicationStar;
+          const attitudeStar = driverReview?.attitudeStar;
+          const safetyStar = driverReview?.safetyStar;
 
           // Status mapping
           const statusMap: Record<string, string> = {
@@ -102,6 +105,9 @@ const TripSummaryDetail: React.FC = () => {
             totalIncome: total,
             tip: 0,
             rating,
+            communicationStar,
+            attitudeStar,
+            safetyStar,
             passenger: {
               id: ride.passenger?.id || '',
               name: ride.passenger?.fullName || 'Passenger',
@@ -182,6 +188,9 @@ const TripSummaryDetail: React.FC = () => {
           totalIncome={tripDetail.totalIncome}
           tip={tripDetail.tip}
           rating={tripDetail.rating}
+          communicationStar={tripDetail.communicationStar}
+          attitudeStar={tripDetail.attitudeStar}
+          safetyStar={tripDetail.safetyStar}
         />
 
         <PassengerInfo 

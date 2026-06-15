@@ -2,7 +2,7 @@ import React from 'react';
 import IconEmotyBrownStar from '../../assets/IconEmotyBrownStar.svg';
 import type { TotalIncomeCardProps } from '../../types/TripSummaryDetail';
 
-const TotalIncomeCard: React.FC<TotalIncomeCardProps> = ({ totalIncome, tip, rating }) => {
+const TotalIncomeCard: React.FC<TotalIncomeCardProps> = ({ totalIncome, tip, rating, communicationStar, attitudeStar, safetyStar }) => {
   const formatCurrency = (val: number) => {
     return new Intl.NumberFormat('en-US').format(val);
   };
@@ -39,6 +39,35 @@ const TotalIncomeCard: React.FC<TotalIncomeCardProps> = ({ totalIncome, tip, rat
           </div>
         </div>
       </div>
+
+      {(communicationStar != null || attitudeStar != null || safetyStar != null) && (
+        <div style={{marginTop: 16, zIndex: 10, alignSelf: 'stretch', padding: 20, background: '#F4FBF1', borderRadius: 24, display: 'flex', flexDirection: 'column', gap: 12}}>
+          <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
+            <span style={{fontSize: 13, fontWeight: 700, color: '#3D4A3F'}}>コミュニケーション</span>
+            <div style={{display: 'flex', gap: 2, fontSize: 16}}>
+              {[...Array(5)].map((_, i) => (
+                <span key={i} style={{ color: i < (communicationStar || 0) ? '#FEA520' : '#DDE5DB' }}>★</span>
+              ))}
+            </div>
+          </div>
+          <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
+            <span style={{fontSize: 13, fontWeight: 700, color: '#3D4A3F'}}>接客態度</span>
+            <div style={{display: 'flex', gap: 2, fontSize: 16}}>
+              {[...Array(5)].map((_, i) => (
+                <span key={i} style={{ color: i < (attitudeStar || 0) ? '#FEA520' : '#DDE5DB' }}>★</span>
+              ))}
+            </div>
+          </div>
+          <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
+            <span style={{fontSize: 13, fontWeight: 700, color: '#3D4A3F'}}>安全性</span>
+            <div style={{display: 'flex', gap: 2, fontSize: 16}}>
+              {[...Array(5)].map((_, i) => (
+                <span key={i} style={{ color: i < (safetyStar || 0) ? '#FEA520' : '#DDE5DB' }}>★</span>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

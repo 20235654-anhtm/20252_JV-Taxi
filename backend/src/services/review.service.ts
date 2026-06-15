@@ -31,14 +31,25 @@ export class ReviewService {
       where: { driverId },
       _avg: {
         starReview: true,
+        communicationStar: true,
+        attitudeStar: true,
+        safetyStar: true,
       }
     });
 
     const averageRating = agg._avg.starReview || 0;
+    const communicationAverage = agg._avg.communicationStar || 0;
+    const attitudeAverage = agg._avg.attitudeStar || 0;
+    const safetyAverage = agg._avg.safetyStar || 0;
 
     await prisma.driverProfile.update({
       where: { userId: driverId },
-      data: { averageRating },
+      data: { 
+        averageRating,
+        communicationAverage,
+        attitudeAverage,
+        safetyAverage
+      },
     });
   }
 

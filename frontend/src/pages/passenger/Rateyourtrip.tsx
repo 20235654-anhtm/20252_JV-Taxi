@@ -17,7 +17,9 @@ const API_BASE_URL = `${API_HOST}/api`;
 const Rateyourtrip: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const [rating, setRating] = useState<number>(0); // Initial rating 0
+  const [communicationRating, setCommunicationRating] = useState<number>(0);
+  const [attitudeRating, setAttitudeRating] = useState<number>(0);
+  const [safetyRating, setSafetyRating] = useState<number>(0);
   const [comment, setComment] = useState<string>('');
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [realDriver, setRealDriver] = useState<any>(null);
@@ -75,21 +77,20 @@ const Rateyourtrip: React.FC = () => {
     fetchDriverDetails();
   }, [driver]);
 
-  const handleRating = (index: number) => {
-    setRating(index + 1);
-  };
 
   const handleBack = () => {
-    setRating(0);
+    setCommunicationRating(0);
+    setAttitudeRating(0);
+    setSafetyRating(0);
     setComment('');
     navigate('/passenger');
   };
 
   const handleSubmit = async () => {
-    if (rating === 0) return;
+    if (communicationRating === 0 || attitudeRating === 0 || safetyRating === 0) return;
 
     setIsSubmitting(true);
-    
+
     try {
       const userStr = sessionStorage.getItem('user') || localStorage.getItem('user') || '{}';
       const user = JSON.parse(userStr);
@@ -103,7 +104,9 @@ const Rateyourtrip: React.FC = () => {
           'Authorization': token ? `Bearer ${token}` : ''
         },
         body: JSON.stringify({
-          rating,
+          communicationStar: communicationRating,
+          attitudeStar: attitudeRating,
+          safetyStar: safetyRating,
           comment,
           driverId: driver?.userId || driver?.id || undefined,
           rideId: rideId || undefined,
@@ -114,7 +117,7 @@ const Rateyourtrip: React.FC = () => {
       if (!response.ok) {
         throw new Error('Failed to submit rating');
       }
-      
+
       // Navigate to Home
       navigate('/passenger');
     } catch (error) {
@@ -128,10 +131,10 @@ const Rateyourtrip: React.FC = () => {
   return (
     <div className="rate-trip-container">
       {/* Header */}
-      <Header 
-        showBackButton={true} 
-        title="評価" 
-        onBackClick={handleBack} 
+      <Header
+        showBackButton={true}
+        title="評価"
+        onBackClick={handleBack}
         hideBrandName={true}
         hideLanguageToggle={true}
       />
@@ -149,8 +152,8 @@ const Rateyourtrip: React.FC = () => {
           {/* Driver Card */}
           <Card padding="sm" rounded="lg">
             <div className="driver-info-content">
-              <Avatar 
-                src={realDriver?.driverProfile?.avatarPicture || driver?.avatar || ""} 
+              <Avatar
+                src={realDriver?.driverProfile?.avatarPicture || driver?.avatar || ""}
                 name={realDriver?.fullName || driver?.name}
                 className="!w-[64px] !h-[64px]"
                 borderColor="transparent"
@@ -224,22 +227,63 @@ const Rateyourtrip: React.FC = () => {
           <div className="rating-question">
             <Heading level={2} className="!text-[18px]">いかがでしたか？</Heading>
           </div>
-          
-          <div className="stars-container">
-            {[...Array(5)].map((_, index) => (
-              <Star
-                key={index}
-                size={30}
-                className="star-icon"
-                fill={index < rating ? "#FEA520" : "transparent"}
-                color={index < rating ? "#FEA520" : "#BCCABC"}
-                onClick={() => handleRating(index)}
-              />
-            ))}
+
+          <div className="stars-group">
+            <Text variant="body" weight="bold" color="secondary" className="!text-[14px] mb-0">
+              コミュニケーション
+            </Text>
+            <div className="stars-container">
+              {[...Array(5)].map((_, index) => (
+                <Star
+                  key={`comm-${index}`}
+                  size={24}
+                  className="star-icon"
+                  fill={index < communicationRating ? "#FEA520" : "transparent"}
+                  color={index < communicationRating ? "#FEA520" : "#BCCABC"}
+                  onClick={() => setCommunicationRating(index + 1)}
+                />
+              ))}
+            </div>
+          </div>
+
+          <div className="stars-group">
+            <Text variant="body" weight="bold" color="secondary" className="!text-[14px] mb-0">
+              接客態度
+            </Text>
+            <div className="stars-container">
+              {[...Array(5)].map((_, index) => (
+                <Star
+                  key={`att-${index}`}
+                  size={24}
+                  className="star-icon"
+                  fill={index < attitudeRating ? "#FEA520" : "transparent"}
+                  color={index < attitudeRating ? "#FEA520" : "#BCCABC"}
+                  onClick={() => setAttitudeRating(index + 1)}
+                />
+              ))}
+            </div>
+          </div>
+
+          <div className="stars-group">
+            <Text variant="body" weight="bold" color="secondary" className="!text-[14px] mb-0">
+              安全性
+            </Text>
+            <div className="stars-container">
+              {[...Array(5)].map((_, index) => (
+                <Star
+                  key={`safe-${index}`}
+                  size={24}
+                  className="star-icon"
+                  fill={index < safetyRating ? "#FEA520" : "transparent"}
+                  color={index < safetyRating ? "#FEA520" : "#BCCABC"}
+                  onClick={() => setSafetyRating(index + 1)}
+                />
+              ))}
+            </div>
           </div>
 
           <div className="comment-section">
-            <Text variant="label" weight="bold" color="secondary" className="!text-[12px] !tracking-[1.2px] text-center">
+            <Text variant="body" weight="bold" color="secondary" className="!text-[16px] text-center">
               追加コメント (任意)
             </Text>
             <div className="comment-input-wrapper">
@@ -253,21 +297,21 @@ const Rateyourtrip: React.FC = () => {
             </div>
           </div>
         </section>
-
-        {/* Submit Button */}
-        <div className="submit-button-container">
-          <Button 
-            variant="accent" 
-            fullWidth 
-            size="lg"
-            className="submit-button"
-            onClick={handleSubmit}
-            disabled={rating === 0 || isSubmitting}
-          >
-            {isSubmitting ? '送信中...' : '送信する'}
-          </Button>
-        </div>
       </main>
+
+      {/* Fixed Submit Button */}
+      <div className="submit-button-container">
+        <Button
+          variant="accent"
+          fullWidth
+          size="lg"
+          className="submit-button"
+          onClick={handleSubmit}
+          disabled={communicationRating === 0 || attitudeRating === 0 || safetyRating === 0 || isSubmitting}
+        >
+          {isSubmitting ? '送信中...' : '送信する'}
+        </Button>
+      </div>
     </div>
   );
 };

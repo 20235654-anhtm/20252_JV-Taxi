@@ -25,11 +25,17 @@ interface DriverReviewDetailData extends DriverSummary {
   vehicleInfor?: string;
   parsedVehicleInfor?: Record<string, any>;
   jlpt?: string | null;
+  communicationAverage?: number;
+  attitudeAverage?: number;
+  safetyAverage?: number;
 }
 
 interface ReviewItem {
   id: string;
   starReview: number;
+  communicationStar?: number;
+  attitudeStar?: number;
+  safetyStar?: number;
   commentReview: string;
   createdAt: string;
   reviewer?: {
@@ -43,7 +49,14 @@ const formatVehicleText = (infoStr: string) => {
     const parsed = JSON.parse(infoStr);
     const model = parsed.model || '';
     const secondary = parsed.color || parsed.plate || '';
-    if (model && secondary) return `${model} • ${secondary}`;
+    if (model && secondary) {
+      return (
+        <div className="flex flex-col gap-1">
+          <span>{model}</span>
+          <span>{secondary}</span>
+        </div>
+      );
+    }
     return model || infoStr;
   } catch (e) {
     return infoStr;
@@ -103,6 +116,9 @@ const DriverReviewDetail = () => {
           vehicleInfor: data.data.driverProfile?.vehicleInfor || (prev ?? initialDriver).car,
           parsedVehicleInfor: data.data.driverProfile?.parsedVehicleInfor || {},
           jlpt: (prev ?? initialDriver).jlpt ?? null,
+          communicationAverage: data.data.driverProfile?.communicationAverage,
+          attitudeAverage: data.data.driverProfile?.attitudeAverage,
+          safetyAverage: data.data.driverProfile?.safetyAverage,
         }));
 
         // Fetch star counts
@@ -248,7 +264,7 @@ const DriverReviewDetail = () => {
 
           <div className="dd-badges-row">
             <div className="dd-badge dd-badge-rating">
-              <span style={{ color: '#006D37' }}>★</span> {driver.rating && !isNaN(Number(driver.rating)) ? Number(driver.rating).toFixed(1) : driver.rating}
+              <span className="dd-badge-star">★</span> {driver.rating && !isNaN(Number(driver.rating)) ? Number(driver.rating).toFixed(1) : driver.rating}
             </div>
             {driver.jlpt && driver.jlpt !== 'N/A' && driver.jlpt.trim() !== '' && (
               <div className="dd-badge dd-badge-lang">
@@ -257,17 +273,53 @@ const DriverReviewDetail = () => {
             )}
           </div>
 
-          <div className="dd-vehicle-box">
-            <div className="dd-car-icon-box">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="#006D37" xmlns="http://www.w3.org/2000/svg">
-                <path d="M18.92 6.01C18.72 5.42 18.16 5 17.5 5H6.5C5.84 5 5.28 5.42 5.08 6.01L3 12V20C3 20.55 3.45 21 4 21H5C5.55 21 6 20.55 6 20V19H18V20C18 20.55 18.45 21 19 21H20C20.55 21 21 20.55 21 20V12L18.92 6.01ZM6.85 7H17.15L18.22 10.12H5.78L6.85 7ZM19 17H5V12H19V17Z" />
-                <circle cx="7.5" cy="14.5" r="1.5" />
-                <circle cx="16.5" cy="14.5" r="1.5" />
-              </svg>
+          <div className="dd-vehicle-box items-center">
+            <div className="w-[80px] h-[56px] rounded-xl overflow-hidden shrink-0 border-2 border-white shadow-sm">
+              <img 
+                src={driver.parsedVehicleInfor?.image || '/bmw_car.png'} 
+                alt="Vehicle" 
+                className="w-full h-full object-cover"
+              />
             </div>
             <div className="dd-vehicle-info">
-              <div className="dd-vehicle-label">車両情報</div>
               <div className="dd-vehicle-text">{formatVehicleText(driver.vehicleInfor || driver.car)}</div>
+            </div>
+          </div>
+
+          {/* CRITERIA AVERAGES SECTION */}
+          <div className="dd-criteria-box">
+            <div className="dd-criteria-row">
+                <span className="dd-criteria-label">コミュニケーション</span>
+                <div className="dd-criteria-score">
+                  <span className="dd-criteria-num">{driver.communicationAverage ? Number(driver.communicationAverage).toFixed(1) : '0.0'}</span>
+                  <div className="dd-criteria-stars">
+                    {[...Array(5)].map((_, i) => (
+                      <span key={i} style={{ color: i < Math.round(Number(driver.communicationAverage || 0)) ? '#FEA520' : '#DDE5DB' }}>★</span>
+                    ))}
+                  </div>
+                </div>
+              </div>
+              <div className="dd-criteria-row">
+                <span className="dd-criteria-label">接客態度</span>
+                <div className="dd-criteria-score">
+                  <span className="dd-criteria-num">{driver.attitudeAverage ? Number(driver.attitudeAverage).toFixed(1) : '0.0'}</span>
+                  <div className="dd-criteria-stars">
+                    {[...Array(5)].map((_, i) => (
+                      <span key={i} style={{ color: i < Math.round(Number(driver.attitudeAverage || 0)) ? '#FEA520' : '#DDE5DB' }}>★</span>
+                    ))}
+                  </div>
+                </div>
+              </div>
+              <div className="dd-criteria-row">
+                <span className="dd-criteria-label">安全性</span>
+                <div className="dd-criteria-score">
+                  <span className="dd-criteria-num">{driver.safetyAverage ? Number(driver.safetyAverage).toFixed(1) : '0.0'}</span>
+                  <div className="dd-criteria-stars">
+                    {[...Array(5)].map((_, i) => (
+                      <span key={i} style={{ color: i < Math.round(Number(driver.safetyAverage || 0)) ? '#FEA520' : '#DDE5DB' }}>★</span>
+                    ))}
+                  </div>
+                </div>
             </div>
           </div>
         </div>
@@ -335,13 +387,44 @@ const DriverReviewDetail = () => {
                         <h4 className="dd-reviewer-name">{review.reviewer?.fullName || 'ユーザー'}</h4>
                         <div className="dd-review-stars">
                           {[...Array(5)].map((_, i) => (
-                            <span key={i} style={{ color: i < (review.starReview || 0) ? '#006D37' : '#DDE5DB' }}>★</span>
+                            <span key={i} style={{ color: i < (review.starReview || 0) ? '#FEA520' : '#DDE5DB' }}>★</span>
                           ))}
                         </div>
                       </div>
                     </div>
                     <span className="dd-review-date">{new Date(review.createdAt).toLocaleDateString('ja-JP')}</span>
                   </div>
+
+                  {/* CRITERIA FOR THIS REVIEW */}
+                  {(review.communicationStar != null || review.attitudeStar != null || review.safetyStar != null) && (
+                    <div className="dd-review-criteria-mini">
+                      <div className="dd-review-criteria-item-mini">
+                        <span>コミュニケーション</span>
+                        <div className="dd-criteria-stars-mini">
+                          {[...Array(5)].map((_, i) => (
+                            <span key={i} style={{ color: i < (review.communicationStar || 0) ? '#FEA520' : '#DDE5DB' }}>★</span>
+                          ))}
+                        </div>
+                      </div>
+                      <div className="dd-review-criteria-item-mini">
+                        <span>接客態度</span>
+                        <div className="dd-criteria-stars-mini">
+                          {[...Array(5)].map((_, i) => (
+                            <span key={i} style={{ color: i < (review.attitudeStar || 0) ? '#FEA520' : '#DDE5DB' }}>★</span>
+                          ))}
+                        </div>
+                      </div>
+                      <div className="dd-review-criteria-item-mini">
+                        <span>安全性</span>
+                        <div className="dd-criteria-stars-mini">
+                          {[...Array(5)].map((_, i) => (
+                            <span key={i} style={{ color: i < (review.safetyStar || 0) ? '#FEA520' : '#DDE5DB' }}>★</span>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
                   <p className="dd-review-text">{review.commentReview}</p>
                 </div>
               ))}
