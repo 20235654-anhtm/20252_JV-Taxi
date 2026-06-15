@@ -355,11 +355,7 @@ export const register = async (req: Request, res: Response) => {
           japaneseCerInfor: jlpt || 'N/A',
           identityCard: cccd || 'N/A',
           avatarPicture: carImageUrl,
-          isApproved: false,
-          drivingLicenseImage: req.body.drivingLicenseImage || null,
-          japaneseCerImage: req.body.japaneseCerImage || null,
-          identityCardFrontImage: req.body.identityCardFrontImage || null,
-          identityCardBackImage: req.body.identityCardBackImage || null,
+          isApproved: false
         }
       });
 
@@ -401,7 +397,7 @@ export const register = async (req: Request, res: Response) => {
 export const updateProfile = async (req: any, res: Response) => {
   try {
     const userId = req.user.userId;
-    let { fullName, phone, email, vehicleType, model, plate, year, japaneseCerInfor, drivingLicenseInfor, identityCard, drivingLicenseImage, japaneseCerImage, identityCardFrontImage, identityCardBackImage } = req.body;
+    let { fullName, phone, email, vehicleType, model, plate, year, japaneseCerInfor, drivingLicenseInfor, identityCard } = req.body;
     
     if (email) email = email.trim().toLowerCase();
     if (phone) phone = phone.trim();
@@ -503,10 +499,6 @@ export const updateProfile = async (req: any, res: Response) => {
           identityCard: identityCard || profile.driverProfile?.identityCard || null,
           vehicleInfor: vehicleInforJson,
           avatarPicture: avatarImageUrl || profile.driverProfile?.avatarPicture || null,
-          drivingLicenseImage: drivingLicenseImage || profile.driverProfile?.drivingLicenseImage || null,
-          japaneseCerImage: japaneseCerImage || profile.driverProfile?.japaneseCerImage || null,
-          identityCardFrontImage: identityCardFrontImage || profile.driverProfile?.identityCardFrontImage || null,
-          identityCardBackImage: identityCardBackImage || profile.driverProfile?.identityCardBackImage || null,
         }
       });
     }

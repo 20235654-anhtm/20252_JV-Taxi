@@ -10,10 +10,6 @@ export interface CreateDriverProfileInput {
   avatarPicture?: string;
   lng?: number; // Kinh độ
   lat?: number; // Vĩ độ
-  drivingLicenseImage?: string;
-  japaneseCerImage?: string;
-  identityCardFrontImage?: string;
-  identityCardBackImage?: string;
 }
 
 export interface UpdateDriverProfileInput {
@@ -28,10 +24,6 @@ export interface UpdateDriverProfileInput {
   avatarPicture?: string;
   lng?: number;
   lat?: number;
-  drivingLicenseImage?: string;
-  japaneseCerImage?: string;
-  identityCardFrontImage?: string;
-  identityCardBackImage?: string;
 }
 
 export class DriverProfileService {
@@ -46,8 +38,7 @@ export class DriverProfileService {
           INSERT INTO "driver_profiles" (
             "user_id", "driving_license_infor", "vehicle_infor", 
             "vehicle_type", "japanese_cer_infor", "avatar_picture", 
-            "current_location", "driving_license_image", "japanese_cer_image",
-            "identity_card_front_image", "identity_card_back_image"
+            "current_location"
           ) VALUES (
             ${data.userId}::uuid,
             ${data.drivingLicenseInfor},
@@ -55,11 +46,7 @@ export class DriverProfileService {
             ${data.vehicleType ? data.vehicleType : Prisma.sql`NULL`},
             ${data.japaneseCerInfor ? data.japaneseCerInfor : Prisma.sql`NULL`},
             ${data.avatarPicture ? data.avatarPicture : Prisma.sql`NULL`},
-            ST_SetSRID(ST_MakePoint(${data.lng}, ${data.lat}), 4326)::geography,
-            ${data.drivingLicenseImage ? data.drivingLicenseImage : Prisma.sql`NULL`},
-            ${data.japaneseCerImage ? data.japaneseCerImage : Prisma.sql`NULL`},
-            ${data.identityCardFrontImage ? data.identityCardFrontImage : Prisma.sql`NULL`},
-            ${data.identityCardBackImage ? data.identityCardBackImage : Prisma.sql`NULL`}
+            ST_SetSRID(ST_MakePoint(${data.lng}, ${data.lat}), 4326)::geography
           ) RETURNING *;
         `;
         return drivers[0];
@@ -73,10 +60,6 @@ export class DriverProfileService {
             vehicleType: data.vehicleType ?? null,
             japaneseCerInfor: data.japaneseCerInfor ?? null,
             avatarPicture: data.avatarPicture ?? null,
-            drivingLicenseImage: data.drivingLicenseImage ?? null,
-            japaneseCerImage: data.japaneseCerImage ?? null,
-            identityCardFrontImage: data.identityCardFrontImage ?? null,
-            identityCardBackImage: data.identityCardBackImage ?? null,
           }
         });
       }

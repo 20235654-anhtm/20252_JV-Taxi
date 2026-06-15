@@ -158,14 +158,14 @@ router.get('/revenue', authMiddleware as any, async (req: AuthRequest, res: Resp
       }
     });
 
-    // Shift current time to Hanoi local time (GMT+7) to be timezone-independent
-    const nowHanoi = new Date(new Date().getTime() + 7 * 60 * 60 * 1000);
-    const todayStartHanoi = new Date(Date.UTC(nowHanoi.getUTCFullYear(), nowHanoi.getUTCMonth(), nowHanoi.getUTCDate()));
+    const now = new Date();
+    // Start of today in local date
+    const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
 
-    // Start of the current week (Monday) in Hanoi time
-    const currentDayHanoi = nowHanoi.getUTCDay(); // 0 is Sunday, 1 is Monday, etc.
-    const distanceToMonday = currentDayHanoi === 0 ? -6 : 1 - currentDayHanoi;
-    const mondayStartHanoi = new Date(todayStartHanoi.getTime() + distanceToMonday * 24 * 60 * 60 * 1000);
+    // Start of the current week (Monday)
+    const currentDay = now.getDay(); // 0 is Sunday, 1 is Monday, etc.
+    const distanceToMonday = currentDay === 0 ? -6 : 1 - currentDay;
+    const mondayStart = new Date(todayStart.getTime() + distanceToMonday * 24 * 60 * 60 * 1000);
 
     let dailyEarnings = 0;
     let totalEarnings = 0;
@@ -194,18 +194,18 @@ router.get('/revenue', authMiddleware as any, async (req: AuthRequest, res: Resp
 
       totalEarnings += rideAmount;
 
-      const rideDateHanoi = new Date(ride.createdAt.getTime() + 7 * 60 * 60 * 1000);
+      const rideDate = new Date(ride.createdAt);
 
       // Check if ride was today
-      if (rideDateHanoi >= todayStartHanoi) {
+      if (rideDate >= todayStart) {
         dailyEarnings += rideAmount;
       }
 
       // Check if ride was this week (starting from Monday)
-      if (rideDateHanoi >= mondayStartHanoi) {
+      if (rideDate >= mondayStart) {
         weeklyTotal += rideAmount;
-        // Determine day of the week index (Monday is 0, Sunday is 6) in Hanoi time
-        const dayOfWeek = rideDateHanoi.getUTCDay(); // 0 is Sunday, 1 is Monday, etc.
+        // Determine day of the week index (Monday is 0, Sunday is 6)
+        const dayOfWeek = rideDate.getDay(); // 0 is Sunday, 1 is Monday, etc.
         const index = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
         weeklyData[index]!.value += rideAmount;
       }

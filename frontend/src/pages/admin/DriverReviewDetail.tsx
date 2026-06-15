@@ -41,25 +41,12 @@ interface Driver {
   drivingLicenseInfor: string;
   japaneseCerInfor: string;
   avatarPicture: string | null;
-  drivingLicenseImage?: string | null;
-  japaneseCerImage?: string | null;
-  identityCardFrontImage?: string | null;
-  identityCardBackImage?: string | null;
   profile: {
     fullName: string;
     email: string;
     phone: string;
   };
 }
-
-const getDocumentUrl = (pic: string | null | undefined): string | null => {
-  if (!pic) return null;
-  if (pic.startsWith('http://') || pic.startsWith('https://')) return pic;
-  if (pic.startsWith('data:image/')) return pic;
-  const host = API_BASE_URL.endsWith('/') ? API_BASE_URL.slice(0, -1) : API_BASE_URL;
-  const path = pic.startsWith('/') ? pic : `/${pic}`;
-  return `${host}${path}`;
-};
 
 const TRANSLATIONS = {
   JP: {
@@ -170,10 +157,6 @@ const DriverReviewDetail = () => {
             drivingLicenseInfor: d.driverProfile?.drivingLicenseInfor || '',
             japaneseCerInfor: d.driverProfile?.japaneseCerInfor || '',
             avatarPicture: d.driverProfile?.avatarPicture || null,
-            drivingLicenseImage: d.driverProfile?.drivingLicenseImage || null,
-            japaneseCerImage: d.driverProfile?.japaneseCerImage || null,
-            identityCardFrontImage: d.driverProfile?.identityCardFrontImage || null,
-            identityCardBackImage: d.driverProfile?.identityCardBackImage || null,
             profile: {
               fullName: d.fullName || '',
               email: d.email || '',
@@ -364,13 +347,7 @@ const DriverReviewDetail = () => {
             </button>
           </div>
           <div className="card-image-wrapper">
-            {getDocumentUrl(driver.drivingLicenseImage) ? (
-              <img src={getDocumentUrl(driver.drivingLicenseImage)!} alt="Driving License" className="card-image" />
-            ) : (
-              <div className="document-not-found">
-                <span>404 Not Found</span>
-              </div>
-            )}
+            <img src="/cccd_front_card.png" alt="Driving License" className="card-image" />
           </div>
         </section>
 
@@ -386,13 +363,7 @@ const DriverReviewDetail = () => {
             </button>
           </div>
           <div className="card-image-wrapper">
-            {getDocumentUrl(driver.japaneseCerImage) ? (
-              <img src={getDocumentUrl(driver.japaneseCerImage)!} alt="JLPT N2 Certificate" className="card-image" />
-            ) : (
-              <div className="document-not-found">
-                <span>404 Not Found</span>
-              </div>
-            )}
+            <img src="/jlpt_n2_cert.png" alt="JLPT N2 Certificate" className="card-image" />
           </div>
         </section>
 
@@ -409,22 +380,10 @@ const DriverReviewDetail = () => {
           </div>
           <div className="card-image-stacked">
             <div className="card-image-wrapper">
-              {getDocumentUrl(driver.identityCardFrontImage) ? (
-                <img src={getDocumentUrl(driver.identityCardFrontImage)!} alt="ID Card Front" className="card-image" />
-              ) : (
-                <div className="document-not-found">
-                  <span>404 Not Found</span>
-                </div>
-              )}
+              <img src="/cccd_front_card.png" alt="ID Card Front" className="card-image" />
             </div>
             <div className="card-image-wrapper">
-              {getDocumentUrl(driver.identityCardBackImage) ? (
-                <img src={getDocumentUrl(driver.identityCardBackImage)!} alt="ID Card Back" className="card-image" />
-              ) : (
-                <div className="document-not-found">
-                  <span>404 Not Found</span>
-                </div>
-              )}
+              <img src="/cccd_back_card.png" alt="ID Card Back" className="card-image" />
             </div>
           </div>
         </section>
