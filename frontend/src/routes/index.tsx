@@ -60,7 +60,12 @@ interface ProtectedRouteProps {
 const ProtectedRoute = ({ children, allowedRole }: ProtectedRouteProps) => {
   const userStr = sessionStorage.getItem('user') || localStorage.getItem('user');
   const token = sessionStorage.getItem('authToken') || localStorage.getItem('authToken');
-  const user = userStr ? JSON.parse(userStr) : null;
+  let user = null;
+  try {
+    user = userStr && userStr !== 'undefined' ? JSON.parse(userStr) : null;
+  } catch (e) {
+    console.error('Failed to parse user from storage', e);
+  }
 
   if (!token || !user) {
     return <Navigate to="/login" replace />;
@@ -88,7 +93,12 @@ interface GuestRouteProps {
 const GuestRoute = ({ children }: GuestRouteProps) => {
   const userStr = sessionStorage.getItem('user') || localStorage.getItem('user');
   const token = sessionStorage.getItem('authToken') || localStorage.getItem('authToken');
-  const user = userStr ? JSON.parse(userStr) : null;
+  let user = null;
+  try {
+    user = userStr && userStr !== 'undefined' ? JSON.parse(userStr) : null;
+  } catch (e) {
+    console.error('Failed to parse user from storage', e);
+  }
 
   if (token && user) {
     const userRole = user.role?.toUpperCase();

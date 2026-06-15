@@ -6,6 +6,9 @@ export interface TripSummaryDetailType {
   totalIncome: number;
   tip: number;
   rating: number;
+  communicationStar?: number;
+  attitudeStar?: number;
+  safetyStar?: number;
   passenger: {
     id: string;
     name: string;
@@ -42,6 +45,9 @@ export interface TotalIncomeCardProps {
   totalIncome: number;
   tip: number;
   rating: number;
+  communicationStar?: number;
+  attitudeStar?: number;
+  safetyStar?: number;
 }
 
 export interface PassengerInfoProps {
