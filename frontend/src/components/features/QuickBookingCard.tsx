@@ -4,7 +4,7 @@ import { Heading } from '../ui/Heading';
 import { Text } from '../ui/Text';
 import { SearchInput } from '../ui/SearchInput';
 import { Button } from '../ui/Button';
-import { Clock, ArrowRight, History, MapPin } from 'lucide-react';
+import { Clock, ArrowRight, History, MapPin, Car, Bike } from 'lucide-react';
 import { useLocationSuggestions } from '../../hooks/useLocationSuggestions';
 import { useRecentDestinations } from '../../hooks/useRecentDestinations';
 
@@ -24,6 +24,7 @@ export const QuickBookingCard: React.FC<QuickBookingCardProps> = ({
   setDestinationValue,
 }) => {
   const [mode, setMode] = useState<'half' | 'expanded'>('half');
+  const [vehicle, setVehicle] = useState<'car' | 'bike'>('car');
   const touchStartY = useRef<number | null>(null);
 
   // --- SỬ DỤNG HOOK TÌM KIẾM THẬT ---
@@ -86,11 +87,11 @@ export const QuickBookingCard: React.FC<QuickBookingCardProps> = ({
           {/* HALF MODE CONTENT */}
           {mode === 'half' && (
             <div className="flex flex-col gap-4 animate-in fade-in duration-300">
-              <div className="flex flex-col gap-0 mt-1">
-                <Text variant="body" color="medium" className="font-semibold text-[14px]">
+              <div className="flex flex-col gap-1.5 mt-2 mb-1">
+                <Text variant="body" color="primary" className="!font-black text-[17px] text-[#3d4a3f]">
                   {isGuest ? 'こんにちは' : `${userName}さん、こんにちは`}
                 </Text>
-                <Heading level={1} className="text-[23px] font-black tracking-tight leading-tight">
+                <Heading level={1} className="text-[28px] font-black tracking-tight leading-tight">
                   行き先は？
                 </Heading>
               </div>
@@ -104,7 +105,27 @@ export const QuickBookingCard: React.FC<QuickBookingCardProps> = ({
                   onFocus={() => setMode('expanded')}
                   error={destinationValue.length > 100}
                   maxLength={100}
+                  className="!text-[18px] !font-bold"
                 />
+                
+                {/* Vehicle Toggle */}
+                <div className="flex gap-3 my-1">
+                  <div 
+                    className={`flex-1 flex flex-col items-center justify-center gap-1.5 py-3.5 rounded-2xl cursor-pointer transition-all duration-300 border-2 ${vehicle === 'car' ? 'bg-[#f0fdf4] border-[#006d37] text-[#006d37] shadow-[0_4px_12px_rgba(0,109,55,0.1)]' : 'bg-[#f8fafc] border-transparent text-[#64748b] hover:bg-[#f1f5f9]'}`}
+                    onClick={() => setVehicle('car')}
+                  >
+                    <Car size={32} strokeWidth={2.5} />
+                    <span className="text-[16px] font-black tracking-wide">自動車</span>
+                  </div>
+                  <div 
+                    className={`flex-1 flex flex-col items-center justify-center gap-1.5 py-3.5 rounded-2xl cursor-pointer transition-all duration-300 border-2 ${vehicle === 'bike' ? 'bg-[#f0fdf4] border-[#006d37] text-[#006d37] shadow-[0_4px_12px_rgba(0,109,55,0.1)]' : 'bg-[#f8fafc] border-transparent text-[#64748b] hover:bg-[#f1f5f9]'}`}
+                    onClick={() => setVehicle('bike')}
+                  >
+                    <Bike size={32} strokeWidth={2.5} />
+                    <span className="text-[16px] font-black tracking-wide">バイク</span>
+                  </div>
+                </div>
+
                 <Button
                   variant="primary"
                   size="md"
@@ -112,7 +133,7 @@ export const QuickBookingCard: React.FC<QuickBookingCardProps> = ({
                   icon={ArrowRight}
                   iconPosition="right"
                   onClick={onBookNow}
-                  className="text-[16px] font-bold h-[50px]"
+                  className="text-[18px] font-black h-[56px]"
                 >
                   今すぐ呼ぶ
                 </Button>
@@ -123,7 +144,7 @@ export const QuickBookingCard: React.FC<QuickBookingCardProps> = ({
           {/* EXPANDED MODE CONTENT */}
           {mode === 'expanded' && (
             <div className="flex flex-col gap-6 h-full animate-in slide-in-from-bottom-4 duration-300">
-              <Heading level={2} className="text-[20px]">どこへ行きますか？</Heading>
+              <Heading level={2} className="text-[24px] font-black">どこへ行きますか？</Heading>
 
               <div className="relative">
                 <SearchInput
@@ -133,6 +154,7 @@ export const QuickBookingCard: React.FC<QuickBookingCardProps> = ({
                   autoFocus
                   error={destinationValue.length > 100}
                   maxLength={100}
+                  className="!text-[18px] !font-bold"
                 />
                 {isLoading && (
                   <div className="absolute right-3 top-1/2 -translate-y-1/2">
@@ -144,7 +166,7 @@ export const QuickBookingCard: React.FC<QuickBookingCardProps> = ({
               <div className="flex flex-col gap-4 overflow-y-auto">
                 {/* Chỉ hiện nhãn nếu có kết quả tìm kiếm hoặc có lịch sử (và lịch sử không trống) */}
                 {((destinationValue.length >= 2) || (!isGuest && suggestions.length > 0)) && (
-                  <Text variant="label" color="tertiary" className="text-[11px] font-bold">
+                  <Text variant="label" color="tertiary" className="text-[14px] font-extrabold !leading-[20px]">
                     {destinationValue.length >= 2 ? '検索結果' : '最近の履歴'}
                   </Text>
                 )}
@@ -165,9 +187,9 @@ export const QuickBookingCard: React.FC<QuickBookingCardProps> = ({
                           : <History size={18} className="text-[#64748b]" />
                         }
                       </div>
-                      <div className="flex flex-col overflow-hidden">
-                        <Text variant="body" weight="bold" color="primary" className="truncate">{item.name}</Text>
-                        <Text variant="small" color="medium" className="truncate text-[12px]">{item.address}</Text>
+                      <div className="flex flex-col overflow-hidden gap-0.5">
+                        <Text variant="body" weight="bold" color="primary" className="truncate text-[18px] !leading-[24px] pb-0.5">{item.name}</Text>
+                        <Text variant="small" color="medium" className="truncate text-[14px] font-semibold !leading-[20px] pb-0.5">{item.address}</Text>
                       </div>
                     </div>
                   ))

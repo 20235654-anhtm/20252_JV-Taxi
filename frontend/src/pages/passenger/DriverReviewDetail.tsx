@@ -49,7 +49,14 @@ const formatVehicleText = (infoStr: string) => {
     const parsed = JSON.parse(infoStr);
     const model = parsed.model || '';
     const secondary = parsed.color || parsed.plate || '';
-    if (model && secondary) return `${model} • ${secondary}`;
+    if (model && secondary) {
+      return (
+        <div className="flex flex-col gap-1">
+          <span>{model}</span>
+          <span>{secondary}</span>
+        </div>
+      );
+    }
     return model || infoStr;
   } catch (e) {
     return infoStr;
@@ -266,16 +273,15 @@ const DriverReviewDetail = () => {
             )}
           </div>
 
-          <div className="dd-vehicle-box">
-            <div className="dd-car-icon-box">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="#006D37" xmlns="http://www.w3.org/2000/svg">
-                <path d="M18.92 6.01C18.72 5.42 18.16 5 17.5 5H6.5C5.84 5 5.28 5.42 5.08 6.01L3 12V20C3 20.55 3.45 21 4 21H5C5.55 21 6 20.55 6 20V19H18V20C18 20.55 18.45 21 19 21H20C20.55 21 21 20.55 21 20V12L18.92 6.01ZM6.85 7H17.15L18.22 10.12H5.78L6.85 7ZM19 17H5V12H19V17Z" />
-                <circle cx="7.5" cy="14.5" r="1.5" />
-                <circle cx="16.5" cy="14.5" r="1.5" />
-              </svg>
+          <div className="dd-vehicle-box items-center">
+            <div className="w-[80px] h-[56px] rounded-xl overflow-hidden shrink-0 border-2 border-white shadow-sm">
+              <img 
+                src={driver.parsedVehicleInfor?.image || '/bmw_car.png'} 
+                alt="Vehicle" 
+                className="w-full h-full object-cover"
+              />
             </div>
             <div className="dd-vehicle-info">
-              <div className="dd-vehicle-label">車両情報</div>
               <div className="dd-vehicle-text">{formatVehicleText(driver.vehicleInfor || driver.car)}</div>
             </div>
           </div>
