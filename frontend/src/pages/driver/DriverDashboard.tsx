@@ -496,17 +496,33 @@ const DriverDashboard = () => {
               </div>
             </div>
           </div>
-
           <div className="dd-chart-container">
             {weeklyDataWithHighlight.map((d: any, i: number) => {
               const maxWeeklyVal = Math.max(...revenueData.weeklyData.map((w: any) => w.value), 1);
-              const barHeightPercent = d.value > 0 ? (d.value / maxWeeklyVal) * 70 + 15 : 0;
+              const level = d.value > 0 ? Math.ceil((d.value / maxWeeklyVal) * 7) : 0;
+              const barHeightPercent = level > 0 ? ((level - 1) / 6) * 70 + 15 : 0;
+
+              const barColors = [
+                '#52D191', // Mon: Mint Green
+                '#25B867', // Tue: Medium Green
+                '#00A389', // Wed: Emerald/Teal
+                '#0096B1', // Thu: Dark Teal
+                '#0084C8', // Fri: Ocean Blue
+                '#5F6CAF', // Sat: Soft Blue-Purple
+                '#8E5CB5'  // Sun: Amethyst Purple
+              ];
+
               return (
                 <div key={i} className="dd-chart-column">
-                  <div 
-                    className={`dd-chart-bar ${d.highlight ? 'highlight' : ''}`} 
-                    style={{ height: `${barHeightPercent}%` }} 
-                  />
+                  <div className="dd-chart-bar-wrapper">
+                    <div 
+                      className={`dd-chart-bar ${d.highlight ? 'highlight' : ''}`} 
+                      style={{ 
+                        height: `${barHeightPercent}%`,
+                        backgroundColor: d.value > 0 ? barColors[i] : undefined
+                      }} 
+                    />
+                  </div>
                   <div className={`dd-chart-day ${d.highlight ? 'highlight' : ''}`}>
                     {d.day}
                   </div>
