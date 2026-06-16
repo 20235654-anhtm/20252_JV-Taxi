@@ -8,6 +8,7 @@ import BillSection from '../../components/TripSummaryDetail/BillSection';
 import ButtonAction from '../../components/TripSummaryDetail/ButtonAction';
 import type { TripSummaryDetailType } from '../../types/TripSummaryDetail';
 import { API_BASE_URL } from '../../config/api';
+import { removeVietnameseTones } from '../../utils/stringUtils';
 
 const getDistanceFromLatLonInKm = (lat1: number, lon1: number, lat2: number, lon2: number) => {
   const R = 6371; // Earth radius in km
@@ -93,8 +94,12 @@ const TripSummaryDetail: React.FC = () => {
 
           const getLocDetails = (addr: string) => {
             if (!addr) return '...';
+            addr = removeVietnameseTones(addr);
             const parts = addr.split(',');
-            return parts[0].trim();
+            if (parts.length > 1) {
+              return parts[0].trim();
+            }
+            return addr;
           };
 
           const mappedDetail: TripSummaryDetailType = {
