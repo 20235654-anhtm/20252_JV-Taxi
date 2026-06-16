@@ -8,6 +8,7 @@ import TripCard from '../../components/TripHistory/TripCard';
 import type { Trip, Summary, FilterType } from '../../types/TripHistory';
 import { getCache, setCache, CACHE_KEYS } from '../../services/cacheService';
 import { API_BASE_URL } from '../../config/api';
+import { removeVietnameseTones } from '../../utils/stringUtils';
 
 const TripHistory = () => {
   const navigate = useNavigate();
@@ -63,6 +64,7 @@ const TripHistory = () => {
           
           const getLocDetails = (addr: string) => {
             if (!addr) return '...';
+            addr = removeVietnameseTones(addr);
             const parts = addr.split(',');
             return parts[0].trim();
           };

@@ -5,6 +5,7 @@ import { TripCard } from '../../components/RideHistory/TripCard';
 import type { TripData } from '../../types/RideHistory';
 import IconCalendar from '../../assets/IconCalendar.svg';
 import { API_BASE_URL } from '../../config/api';
+import { removeVietnameseTones } from '../../utils/stringUtils';
 import './Profile.css';
 
 export const ALL_MOCK_TRIPS: TripData[] = [];
@@ -60,6 +61,7 @@ export default function RideHistory() {
           };
           const getLocDetails = (addr: string) => {
             if (!addr) return { name: '...', address: '...' };
+            addr = removeVietnameseTones(addr);
             const parts = addr.split(',');
             if (parts.length > 1) {
               return {

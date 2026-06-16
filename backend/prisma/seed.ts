@@ -12,8 +12,14 @@ const jpLastNames = ['佐藤', '鈴木', '高橋', '田中', '渡辺', '伊藤',
 const jpFirstNames = ['健太', '大樹', '翔太', 'さくら', '結衣', '陽菜', '直樹', '太郎', '一郎', '美咲'];
 const getJpName = () => `${jpLastNames[Math.floor(Math.random() * jpLastNames.length)]} ${jpFirstNames[Math.floor(Math.random() * jpFirstNames.length)]}`;
 
-// Helper for Vietnamese/Japanese driver names
-const vnNames = ['Nguyen Van A', 'Tran Thi B', 'Le Van C', 'Pham Minh D', 'Hoang Quoc E'];
+// Helper for Vietnamese driver names
+const vnNames = [
+  'Nguyễn Văn An', 'Trần Thị Bình', 'Lê Văn Cường', 'Phạm Minh Đức', 'Hoàng Quốc Ân',
+  'Đặng Thu Hà', 'Bùi Văn Tiến', 'Đỗ Thị Mai', 'Hồ Quang Hải', 'Ngô Thanh Tùng',
+  'Dương Tuấn Anh', 'Lý Hải Đăng', 'Vũ Hồng Phong', 'Phan Hữu Dũng', 'Vương Đình Đạt',
+  'Trịnh Xuân Lộc', 'Đinh Trọng Thủy', 'Đoàn Văn Hậu', 'Trương Tuấn Khanh', 'Nguyễn Tiến Minh'
+];
+const getVnName = () => vnNames[Math.floor(Math.random() * vnNames.length)]!;
 
 // Japanese positive review comments
 const positiveReviews = [
@@ -30,7 +36,7 @@ const positiveReviews = [
 
 async function main() {
   console.log('Starting seed...');
-  
+
   // 1. CLEAR EXISTING DATA
   console.log('Clearing old data...');
   await prisma.message.deleteMany();
@@ -89,7 +95,7 @@ async function main() {
         email: `driver${i}@example.com`,
         phone: `090200${i.toString().padStart(4, '0')}`,
         passwordHash,
-        fullName: i % 2 === 0 ? getJpName() : (vnNames[i % vnNames.length] || ''),
+        fullName: getVnName(),
         avatar: `https://avatar.iran.liara.run/public/${50 + i}`,
         role: Role.DRIVER,
         status: ProfileStatus.ACTIVE,
@@ -108,9 +114,37 @@ async function main() {
     drivers.push(driver);
   }
 
+  // 4.5 CREATE PENDING DRIVERS (5)
+  console.log('Creating 5 pending drivers...');
+  const pendingDrivers = [];
+  for (let i = 0; i < 5; i++) {
+    const driver = await prisma.profile.create({
+      data: {
+        email: `pendingdriver${i}@example.com`,
+        phone: `090400${i.toString().padStart(4, '0')}`,
+        passwordHash,
+        fullName: getVnName(),
+        avatar: `https://avatar.iran.liara.run/public/${80 + i}`,
+        role: Role.DRIVER,
+        status: ProfileStatus.ACTIVE,
+        driverProfile: {
+          create: {
+            isApproved: false,
+            vehicleType: '4_SEAT',
+            japaneseCerInfor: 'N3',
+            drivingLicenseInfor: 'Pending License Check',
+            vehicleInfor: `Honda City 30H-${20000 + i}`,
+            avatarPicture: `https://avatar.iran.liara.run/public/${80 + i}`
+          }
+        }
+      }
+    });
+    pendingDrivers.push(driver);
+  }
+
   // 5. CREATE DEMO ACCOUNTS
   console.log('Creating Demo Driver & Passenger...');
-  
+
   const demoDriver = await prisma.profile.create({
     data: {
       email: 'demodriver@jvtaxi.com',
@@ -154,22 +188,38 @@ async function main() {
   console.log('Seeding rides and reviews for normal drivers...');
   const startDate = new Date('2026-05-15T00:00:00Z');
   const endDate = new Date('2026-06-15T00:00:00Z'); // "Today"
-  
-  // Helpers for coordinates around Hanoi
-  const baseLat = 21.0285;
-  const baseLng = 105.8542;
+
+  // Helpers for locations around Hanoi
+  const hanoiLocations = [
+    { name: 'Hoàn Kiếm, Hà Nội', lat: 21.0285, lng: 105.8542 },
+    { name: 'Ba Đình, Hà Nội', lat: 21.0362, lng: 105.8335 },
+    { name: 'Cầu Giấy, Hà Nội', lat: 21.0315, lng: 105.7946 },
+    { name: 'Đống Đa, Hà Nội', lat: 21.0180, lng: 105.8242 },
+    { name: 'Hai Bà Trưng, Hà Nội', lat: 21.0084, lng: 105.8517 },
+    { name: 'Thanh Xuân, Hà Nội', lat: 20.9937, lng: 105.8055 },
+    { name: 'Hoàng Mai, Hà Nội', lat: 20.9754, lng: 105.8427 },
+    { name: 'Long Biên, Hà Nội', lat: 21.0423, lng: 105.8926 },
+    { name: 'Hà Đông, Hà Nội', lat: 20.9701, lng: 105.7725 },
+    { name: 'Tây Hồ, Hà Nội', lat: 21.0664, lng: 105.8252 },
+  ];
 
   for (const driver of drivers) {
     let totalStar = 0, commStar = 0, attStar = 0, safStar = 0;
-    
+
     for (let i = 0; i < 20; i++) {
       const passenger = passengers[Math.floor(Math.random() * passengers.length)]!;
       const rideDate = randomDate(startDate, endDate);
-      
-      const sLat = baseLat + (Math.random() - 0.5) * 0.1;
-      const sLng = baseLng + (Math.random() - 0.5) * 0.1;
-      const eLat = baseLat + (Math.random() - 0.5) * 0.1;
-      const eLng = baseLng + (Math.random() - 0.5) * 0.1;
+
+      const startLoc = hanoiLocations[Math.floor(Math.random() * hanoiLocations.length)]!;
+      let endLoc = hanoiLocations[Math.floor(Math.random() * hanoiLocations.length)]!;
+      while (endLoc.name === startLoc.name) {
+        endLoc = hanoiLocations[Math.floor(Math.random() * hanoiLocations.length)]!;
+      }
+
+      const sLat = startLoc.lat + (Math.random() - 0.5) * 0.05;
+      const sLng = startLoc.lng + (Math.random() - 0.5) * 0.05;
+      const eLat = endLoc.lat + (Math.random() - 0.5) * 0.05;
+      const eLng = endLoc.lng + (Math.random() - 0.5) * 0.05;
 
       // Create Ride via raw to inject postgis
       const rideId = crypto.randomUUID();
@@ -179,8 +229,8 @@ async function main() {
           ${rideId}::uuid, 
           ${passenger.id}::uuid, 
           ${driver.id}::uuid, 
-          'Hoan Kiem, Hanoi', 
-          'Ba Dinh, Hanoi', 
+          ${startLoc.name}, 
+          ${endLoc.name}, 
           ST_SetSRID(ST_MakePoint(${sLng}, ${sLat}), 4326), 
           ST_SetSRID(ST_MakePoint(${eLng}, ${eLat}), 4326), 
           ${Math.floor(Math.random() * 100000) + 50000}, 
@@ -243,7 +293,7 @@ async function main() {
 
   // 7. SEED RIDES FOR DEMO ACCOUNTS
   console.log('Seeding rides and reviews for Demo Driver...');
-  
+
   let totalStarD = 0, commStarD = 0, attStarD = 0, safStarD = 0;
   const demoRideCount = 50;
 
@@ -251,11 +301,17 @@ async function main() {
     // 10 rides are with demoPassenger, rest with random passengers
     const passenger = i < 10 ? demoPassenger : passengers[Math.floor(Math.random() * passengers.length)]!;
     const rideDate = randomDate(startDate, endDate);
-    
-    const sLat = baseLat + (Math.random() - 0.5) * 0.1;
-    const sLng = baseLng + (Math.random() - 0.5) * 0.1;
-    const eLat = baseLat + (Math.random() - 0.5) * 0.1;
-    const eLng = baseLng + (Math.random() - 0.5) * 0.1;
+
+    const startLoc = hanoiLocations[Math.floor(Math.random() * hanoiLocations.length)]!;
+    let endLoc = hanoiLocations[Math.floor(Math.random() * hanoiLocations.length)]!;
+    while (endLoc.name === startLoc.name) {
+      endLoc = hanoiLocations[Math.floor(Math.random() * hanoiLocations.length)]!;
+    }
+
+    const sLat = startLoc.lat + (Math.random() - 0.5) * 0.05;
+    const sLng = startLoc.lng + (Math.random() - 0.5) * 0.05;
+    const eLat = endLoc.lat + (Math.random() - 0.5) * 0.05;
+    const eLng = endLoc.lng + (Math.random() - 0.5) * 0.05;
 
     const rideId = crypto.randomUUID();
     await prisma.$executeRaw`
@@ -264,8 +320,8 @@ async function main() {
         ${rideId}::uuid, 
         ${passenger.id}::uuid, 
         ${demoDriver.id}::uuid, 
-        'Hoan Kiem, Hanoi', 
-        'Ba Dinh, Hanoi', 
+        ${startLoc.name}, 
+        ${endLoc.name}, 
         ST_SetSRID(ST_MakePoint(${sLng}, ${sLat}), 4326), 
         ST_SetSRID(ST_MakePoint(${eLng}, ${eLat}), 4326), 
         ${Math.floor(Math.random() * 200000) + 50000}, 
@@ -287,11 +343,11 @@ async function main() {
     });
 
     let overall, s1, s2, s3, comment;
-    
+
     // The ONE funny bad review (at i == 15)
     if (i === 15) {
-      s1 = 1; s2 = 1; s3 = 2;
-      overall = 1;
+      s1 = 1; s2 = 2; s3 = 2;
+      overall = 2;
       comment = '今日は気分が悪いので低評価にします。運転手さんに問題はありません。'; // "I'm in a bad mood today, so I'll give a low rating. There's no problem with the driver."
     } else {
       s1 = 5; s2 = 5; s3 = 5;

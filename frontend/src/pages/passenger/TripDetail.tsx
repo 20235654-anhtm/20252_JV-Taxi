@@ -8,6 +8,7 @@ import { TripStatsCard } from '../../components/RideDetail/TripStatsCard';
 import { ReceiptCard } from '../../components/RideDetail/ReceiptCard';
 import { ReviewCard } from '../../components/RideDetail/ReviewCard';
 import { API_BASE_URL } from '../../config/api';
+import { removeVietnameseTones } from '../../utils/stringUtils';
 import './Profile.css';
 
 const TripDetail: React.FC = () => {
@@ -73,6 +74,7 @@ const TripDetail: React.FC = () => {
   // Helper mappings
   const getLocDetails = (addr: string) => {
     if (!addr) return { name: '...', address: '...' };
+    addr = removeVietnameseTones(addr);
     const parts = addr.split(',');
     if (parts.length > 1) {
       return {
