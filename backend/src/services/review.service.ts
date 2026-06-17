@@ -146,9 +146,12 @@ export class ReviewService {
       // Build a map: star (1-5) -> count
       const result: Record<number, number> = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
       for (const row of counts) {
-        const star = row.starReview;
-        if (star !== null && star >= 1 && star <= 5) {
-          result[star] = row._count.starReview;
+        const starValue = row.starReview;
+        if (starValue !== null) {
+          const star = Number(starValue);
+          if (!isNaN(star) && star >= 1 && star <= 5) {
+            result[star] = row._count.starReview;
+          }
         }
       }
 

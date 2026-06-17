@@ -11,6 +11,7 @@ import svgPaths from './svg-paths';
 import { socketService } from '../../services/socketService';
 import { showToast } from '../../components/ui/Toast';
 import { getCache, setCache, CACHE_KEYS } from '../../services/cacheService';
+import { reverseGeocode } from '../../hooks/useLocationSuggestions';
 import './DriverDashboard.css';
 
 const formatCurrency = (value: number) => {
@@ -30,6 +31,7 @@ const DriverDashboard = () => {
   const [driverData, setDriverData] = useState<any>(() => getCache(CACHE_KEYS.DRIVER_PROFILE) || null);
   const [activeRide, setActiveRide] = useState<any>(null);
   const [isExpanded, setIsExpanded] = useState(true);
+  const [viAddresses, setViAddresses] = useState<{ pickup: string; dest: string }>({ pickup: '', dest: '' });
   const [revenueData, setRevenueData] = useState<any>({
     dailyEarnings: 0,
     weeklyTotal: 0,
@@ -92,14 +94,29 @@ const DriverDashboard = () => {
           const res = await response.json();
           if (res.success && res.data) {
             const ride = res.data;
+
+            // Reverse geocode tọa độ sang tiếng Việt cho driver
+            let pickupVi = ride.start_address || ride.startAddress;
+            let destVi = ride.end_address || ride.endAddress;
+            try {
+              if (ride.startLat && ride.startLng) {
+                pickupVi = await reverseGeocode(Number(ride.startLat), Number(ride.startLng), 'vi');
+              }
+              if (ride.endLat && ride.endLng) {
+                destVi = await reverseGeocode(Number(ride.endLat), Number(ride.endLng), 'vi');
+              }
+            } catch (e) {
+              console.error('Error reverse geocoding to Vietnamese:', e);
+            }
+
             if (ride.status === 'PENDING') {
               const mappedRequest = {
                 rideId: ride.id,
                 passengerId: ride.passenger?.id || ride.passengerId,
                 passengerName: ride.passenger?.fullName || '...',
                 passengerAvatar: ride.passenger?.avatar || '',
-                pickupLocation: ride.start_address || ride.startAddress,
-                destinationLocation: ride.end_address || ride.endAddress,
+                pickupLocation: pickupVi,
+                destinationLocation: destVi,
                 startLat: Number(ride.startLat),
                 startLng: Number(ride.startLng),
                 endLat: Number(ride.endLat),
@@ -114,14 +131,15 @@ const DriverDashboard = () => {
               setActiveRide(null);
             } else {
               setActiveRide(ride);
+              setViAddresses({ pickup: pickupVi, dest: destVi });
               
               // Save active ride details in sessionStorage for DriverInTrip screen
               sessionStorage.setItem('active_ride_id', ride.id);
               sessionStorage.setItem('active_passenger_id', ride.passenger?.id || '');
               sessionStorage.setItem('active_passenger_name', ride.passenger?.fullName || '');
               sessionStorage.setItem('active_passenger_avatar', ride.passenger?.avatar || '');
-              sessionStorage.setItem('active_pickup_location', ride.start_address || ride.startAddress);
-              sessionStorage.setItem('active_destination_location', ride.end_address || ride.endAddress);
+              sessionStorage.setItem('active_pickup_location', pickupVi);
+              sessionStorage.setItem('active_destination_location', destVi);
               sessionStorage.setItem('active_start_lat', String(ride.startLat));
               sessionStorage.setItem('active_start_lng', String(ride.startLng));
               sessionStorage.setItem('active_end_lat', String(ride.endLat));
@@ -209,8 +227,19 @@ const DriverDashboard = () => {
       socketService.connect(user.id);
     }
 
-    socketService.onIncomingBooking((data) => {
+    socketService.onIncomingBooking(async (data) => {
       console.log('📡 Received incoming booking request:', data);
+      // Reverse geocode tọa độ sang tiếng Việt cho driver
+      try {
+        if (data.startLat && data.startLng) {
+          data.pickupLocation = await reverseGeocode(Number(data.startLat), Number(data.startLng), 'vi');
+        }
+        if (data.endLat && data.endLng) {
+          data.destinationLocation = await reverseGeocode(Number(data.endLat), Number(data.endLng), 'vi');
+        }
+      } catch (e) {
+        console.error('Error reverse geocoding incoming booking:', e);
+      }
       setCurrentRequest(data);
       setShowPopup(true);
     });
@@ -253,8 +282,8 @@ const DriverDashboard = () => {
         sessionStorage.setItem('active_passenger_id', currentRequest.passengerId || '');
         sessionStorage.setItem('active_passenger_name', currentRequest.passengerName);
         sessionStorage.setItem('active_passenger_avatar', currentRequest.passengerAvatar);
-        sessionStorage.setItem('active_pickup_location', currentRequest.pickupLocation || '高島屋サイゴン（1区）');
-        sessionStorage.setItem('active_destination_location', currentRequest.destinationLocation || 'タンソンニャット空港第2ターミナル');
+        sessionStorage.setItem('active_pickup_location', currentRequest.pickupLocation || '');
+        sessionStorage.setItem('active_destination_location', currentRequest.destinationLocation || '');
         sessionStorage.setItem('active_start_lat', String(currentRequest.startLat || ''));
         sessionStorage.setItem('active_start_lng', String(currentRequest.startLng || ''));
         sessionStorage.setItem('active_end_lat', String(currentRequest.endLat || ''));
@@ -396,7 +425,7 @@ const DriverDashboard = () => {
                 </div>
                 <div style={sheetStyles.locationInfo}>
                   <div style={sheetStyles.locationLabel}>乗車場所</div>
-                  <div style={sheetStyles.locationValue}>{activeRide.start_address || activeRide.startAddress}</div>
+                  <div style={sheetStyles.locationValue}>{viAddresses.pickup || activeRide.start_address || activeRide.startAddress}</div>
                 </div>
               </div>
 
@@ -410,7 +439,7 @@ const DriverDashboard = () => {
                 </div>
                 <div style={sheetStyles.locationInfo}>
                   <div style={sheetStyles.locationLabel}>目的地</div>
-                  <div style={sheetStyles.locationValue}>{activeRide.end_address || activeRide.endAddress}</div>
+                  <div style={sheetStyles.locationValue}>{viAddresses.dest || activeRide.end_address || activeRide.endAddress}</div>
                 </div>
               </div>
 

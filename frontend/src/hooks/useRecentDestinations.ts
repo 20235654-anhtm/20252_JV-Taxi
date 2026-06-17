@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import type { HistoryItem } from '../components/SearchLocation/RecentHistory';
+import { formatAddressToJapanese } from '../utils/stringUtils';
 
 import { API_BASE_URL as API_HOST } from '../config/api';
 
@@ -30,8 +31,8 @@ export const useRecentDestinations = (userId: string | undefined) => {
           // Chuyển đổi dữ liệu từ API sang định dạng HistoryItem của Frontend
           const formattedData: HistoryItem[] = result.data.map((item: any, index: number) => ({
             id: `recent-${index}`,
-            name: item.endAddress, // Vì đây là lịch sử địa chỉ, ta dùng địa chỉ làm tên luôn
-            address: item.endAddress,
+            name: formatAddressToJapanese(item.endAddress), // Vì đây là lịch sử địa chỉ, ta dùng địa chỉ làm tên luôn
+            address: formatAddressToJapanese(item.endAddress),
             coords: item.latitude && item.longitude ? { lat: Number(item.latitude), lng: Number(item.longitude) } : null
           }));
           
