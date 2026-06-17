@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { formatAddressToJapanese } from '../utils/stringUtils';
 
 interface LatLng {
   lat: number;
@@ -45,8 +46,8 @@ export const useLocationSuggestions = (query: string) => {
           const name = addr.building || addr.amenity || addr.tourism || addr.shop || addr.road || item.display_name.split(',')[0] || '名前のない場所';
           return {
             id: item.place_id + '-' + Math.random().toString(36).substr(2, 9),
-            name: name,
-            address: item.display_name,
+            name: formatAddressToJapanese(name),
+            address: formatAddressToJapanese(item.display_name),
             coordinates: [parseFloat(item.lon), parseFloat(item.lat)] as [number, number],
           };
         });
