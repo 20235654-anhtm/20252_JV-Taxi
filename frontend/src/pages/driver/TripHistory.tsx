@@ -9,6 +9,7 @@ import type { Trip, Summary, FilterType } from '../../types/TripHistory';
 import { getCache, setCache, CACHE_KEYS } from '../../services/cacheService';
 import { API_BASE_URL } from '../../config/api';
 import { removeVietnameseTones } from '../../utils/stringUtils';
+import { reverseGeocode } from '../../hooks/useLocationSuggestions';
 
 const TripHistory = () => {
   const navigate = useNavigate();
@@ -84,14 +85,43 @@ const TripHistory = () => {
             pickupLocation: getLocDetails(ride.startAddress),
             destination: getLocDetails(ride.endAddress),
             price: ride.payment?.totalAmount ? Number(ride.payment.totalAmount) : (ride.matchFee ? Number(ride.matchFee) : 0),
-            status: statusMap[ride.status] || ride.status
+            status: statusMap[ride.status] || ride.status,
+            // Lưu tọa độ để reverse geocode
+            _startLat: ride.startLat,
+            _startLng: ride.startLng,
+            _endLat: ride.endLat,
+            _endLng: ride.endLng,
           };
         });
 
+        // Reverse geocode tọa độ sang tiếng Việt cho driver
+        const tripsWithViAddr = await Promise.all(
+          mappedTrips.map(async (trip: any) => {
+            try {
+              if (trip._startLat && trip._startLng) {
+                const viPickup = await reverseGeocode(Number(trip._startLat), Number(trip._startLng), 'vi');
+                trip.pickupLocation = viPickup.split(',')[0].trim();
+              }
+            } catch (e) { /* fallback to original */ }
+            try {
+              if (trip._endLat && trip._endLng) {
+                const viDest = await reverseGeocode(Number(trip._endLat), Number(trip._endLng), 'vi');
+                trip.destination = viDest.split(',')[0].trim();
+              }
+            } catch (e) { /* fallback to original */ }
+            // Cleanup temporary fields
+            delete trip._startLat;
+            delete trip._startLng;
+            delete trip._endLat;
+            delete trip._endLng;
+            return trip;
+          })
+        );
+
         if (pageNum === 1) {
-          setTrips(mappedTrips);
+          setTrips(tripsWithViAddr);
         } else {
-          setTrips(prev => [...prev, ...mappedTrips]);
+          setTrips(prev => [...prev, ...tripsWithViAddr]);
         }
         
         setHasMore(resData.pagination.hasMore);

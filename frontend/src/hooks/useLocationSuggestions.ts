@@ -28,9 +28,9 @@ export const useLocationSuggestions = (query: string) => {
       setError(null);
 
       try {
-        console.log('Searching for:', query); // Log để debug
+        console.log('Searching for:', query);
         const response = await fetch(
-          `https://photon.komoot.io/api/?q=${encodeURIComponent(query)}&limit=5&lang=en&bbox=102.14,8.33,109.46,23.39`
+          `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json&accept-language=ja&countrycodes=vn&limit=5&addressdetails=1`
         );
 
         if (!response.ok) {
@@ -38,21 +38,16 @@ export const useLocationSuggestions = (query: string) => {
         }
 
         const data = await response.json();
-        console.log('API Response:', data); // Xem dữ liệu thật trả về là gì
+        console.log('API Response:', data);
 
-        const formatted = data.features.map((feature: any) => {
-          const props = feature.properties;
+        const formatted = data.map((item: any) => {
+          const addr = item.address || {};
+          const name = addr.building || addr.amenity || addr.tourism || addr.shop || addr.road || item.display_name.split(',')[0] || '名前のない場所';
           return {
-            id: props.osm_id + '-' + Math.random().toString(36).substr(2, 9),
-            name: props.name || props.street || '名前のない場所',
-            address: [
-              props.house_number,
-              props.street,
-              props.district,
-              props.city,
-              props.country
-            ].filter(Boolean).join(', '),
-            coordinates: feature.geometry.coordinates,
+            id: item.place_id + '-' + Math.random().toString(36).substr(2, 9),
+            name: name,
+            address: item.display_name,
+            coordinates: [parseFloat(item.lon), parseFloat(item.lat)] as [number, number],
           };
         });
 
@@ -73,21 +68,16 @@ export const useLocationSuggestions = (query: string) => {
 
 /**
  * Hàm Reverse Geocoding: Chuyển tọa độ sang địa chỉ văn bản
+ * @param lang - Ngôn ngữ trả về: 'ja' (mặc định, cho passenger), 'vi' (cho driver)
  */
-export const reverseGeocode = async (lat: number, lon: number): Promise<string> => {
+export const reverseGeocode = async (lat: number, lon: number, lang: string = 'ja'): Promise<string> => {
   try {
     const response = await fetch(
-      `https://photon.komoot.io/reverse?lon=${lon}&lat=${lat}&lang=en`
+      `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json&accept-language=${lang}`
     );
     const data = await response.json();
-    if (data.features && data.features.length > 0) {
-      const props = data.features[0].properties;
-      return [
-        props.name,
-        props.street,
-        props.district,
-        props.city
-      ].filter(Boolean).join(', ') || 'Unknown Location';
+    if (data && data.display_name) {
+      return data.display_name;
     }
     return 'Unknown Location';
   } catch (error) {
@@ -159,13 +149,12 @@ export const getRouteWithDuration = async (start: LatLng, end: LatLng): Promise<
 export const geocodeAddress = async (query: string): Promise<{ lat: number; lng: number } | null> => {
   try {
     const response = await fetch(
-      `https://photon.komoot.io/api/?q=${encodeURIComponent(query)}&limit=1&lang=en&bbox=102.14,8.33,109.46,23.39`
+      `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json&accept-language=ja&countrycodes=vn&limit=1`
     );
     if (!response.ok) return null;
     const data = await response.json();
-    if (data.features && data.features.length > 0) {
-      const coords = data.features[0].geometry.coordinates; // [lng, lat]
-      return { lat: coords[1], lng: coords[0] };
+    if (data && data.length > 0) {
+      return { lat: parseFloat(data[0].lat), lng: parseFloat(data[0].lon) };
     }
     return null;
   } catch (error) {

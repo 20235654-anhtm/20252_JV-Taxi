@@ -21,7 +21,7 @@ import { useGeolocation } from '../../hooks/useGeolocation';
 import { showToast } from '../../components/ui/Toast';
 import { API_BASE_URL } from '../../config/api';
 import { socketService } from '../../services/socketService';
-import { getRouteWithDuration } from '../../hooks/useLocationSuggestions';
+import { getRouteWithDuration, reverseGeocode } from '../../hooks/useLocationSuggestions';
 import { SmartMapRoute } from '../../components/features/SmartMapRoute';
 import { Avatar } from '../../components/ui/Avatar';
 
@@ -250,8 +250,34 @@ const DriverInTrip: React.FC = () => {
     calculateRouteMetrics();
   }, [driverGeoPos.lat, driverGeoPos.lng, tripPhase, rideDetails, pickupPosition.lat, pickupPosition.lng, destinationPosition.lat, destinationPosition.lng]);
 
-  const displayPickup = rideDetails?.startAddress || pickupLocation;
-  const displayDest = rideDetails?.endAddress || destinationLocation;
+  // Vietnamese addresses for driver display
+  const [viPickup, setViPickup] = useState<string>(pickupLocation);
+  const [viDest, setViDest] = useState<string>(destinationLocation);
+
+  useEffect(() => {
+    const resolveViAddresses = async () => {
+      try {
+        if (pickupPosition.lat && pickupPosition.lng) {
+          const addr = await reverseGeocode(pickupPosition.lat, pickupPosition.lng, 'vi');
+          setViPickup(addr);
+        }
+      } catch (e) {
+        console.error('Error reverse geocoding pickup to Vietnamese:', e);
+      }
+      try {
+        if (destinationPosition.lat && destinationPosition.lng) {
+          const addr = await reverseGeocode(destinationPosition.lat, destinationPosition.lng, 'vi');
+          setViDest(addr);
+        }
+      } catch (e) {
+        console.error('Error reverse geocoding destination to Vietnamese:', e);
+      }
+    };
+    resolveViAddresses();
+  }, [pickupPosition.lat, pickupPosition.lng, destinationPosition.lat, destinationPosition.lng]);
+
+  const displayPickup = viPickup || rideDetails?.startAddress || pickupLocation;
+  const displayDest = viDest || rideDetails?.endAddress || destinationLocation;
 
   // Recenter map automatically when position updates
   useEffect(() => {
